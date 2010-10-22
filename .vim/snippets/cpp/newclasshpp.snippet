@@ -1,0 +1,26 @@
+#ifndef ${1:`toupper(Filename('$1_H', 'name'))`}
+#define $1
+
+/// @file:          `Filename('$1.hpp', 'name')`
+/// @author:        Christophe-Marie Duquesne <chm.duquesne@gmail.com>
+/// @created:       `strftime("%Y-%m-%d at %H:%M")`
+/// @last modified: `strftime("%Y-%m-%d at %H:%M")`
+
+namespace ${2:CHANGEME}
+{
+    class ${3:`Filename()`}
+    {
+        private:
+            /// Copy constructor
+            $3 (const $3 &toCopy);
+
+        public:
+            /// Default constructor
+            $3 (${4:arguments});
+
+            /// Default destructor
+            virtual ~$3 ();
+    };
+}
+
+#endif /* $1*/

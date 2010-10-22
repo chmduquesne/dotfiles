@@ -1,0 +1,94 @@
+/*
+ *      xft config
+ * */
+Xft*dpi:                    100
+Xft*antialias:              true
+Xft*hinting:                full
+
+/*
+ *      xdvi config
+ * */
+xdvi.background:            #eeeeee
+xdvi.wwwbrowser:            firefox
+xdvi.gsAlpha:               true
+xdvi.unique:                true
+xdvi.watchFile:             10
+
+/*
+ *      xterm config
+ * */
+*customization:             -color
+xterm*termName:             xterm-256color
+xterm*background:           #3f3f3f
+xterm*foreground:           #dcdccc
+xterm*saveLines:           10000
+xterm*faceName:             xft:Monospace-9:antialias=true
+
+*.charClass:33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
+*VT100.Translations: #override Shift <Key>Up: scroll-back(1) \n\
+                     Shift <Key>Down: scroll-forw(1)
+*scrollKey: true
+*saveLines:    10000
+
+/*
+ *      rxvt-unicode config
+ * */
+URxvt.colorUL:              #86a2be
+URxvt.jumpScroll:           True
+URxvt.saveLines:            5000
+URxvt.scrollBar:            False
+URxvt.scrollstyle:          plain
+URxvt.urgentOnBell:         true
+URxvt.secondaryScroll:      true
+URxvt.font:                 xft:Monospace-9:antialias=true
+URxvt.boldFont:             xft:Monospace-9:bold
+URxvt.perl-ext-common:      default,selection,matcher,searchable-scrollback
+URxvt.matcher.button:       1
+URxvt.urlLauncher:          uzbl-browser
+URxvt*depth:                32
+URxvt*shading:              75
+URxvt*fading:               2%
+URxvt*buffered:             true
+URxvt*foreground:           #dcdccc
+URxvt*background:           rgba:3f00/3f00/3f00/eeee
+URxvt*transparent:          false
+URxvt*fadeColor:            grey
+
+/*
+ *      default terminal colors
+ *
+ * 0-7 low-intensity
+ * 8-15 high-intensity */
+
+! black
+*color0:                    rgba:3f00/3f00/3f00/eeee
+*color8:                    #709080
+
+! red
+*color1:                    #705050
+*color9:                    #dca3a3
+
+! green
+*color2:                    #60b48a
+*color10:                   #c3bf9f
+
+! yellow
+*color3:                    #dfaf8f
+*color11:                   #f0dfaf
+
+! blue
+*color4:                    #506070
+*color12:                   #94bff3
+
+! magenta
+*color5:                    #dc8cc3
+*color13:                   #ec93d3
+
+! orange (default cyan)
+*color6:                    #8cd0d3
+*color14:                   #93e0e3
+
+! white
+*color7:                    #dcdccc
+*color15:                   #ffffff
+
