@@ -1,0 +1,16 @@
+.vim/after/
+.vim/autoload/
+.vim/colors/
+.vim/doc/
+.vim/extra_source/
+.vim/ftplugin/
+.vim/indent/
+.vim/mktypes.py
+.vim/nerdtree_plugin/
+.vim/GetLatest/GetLatestVimScripts.dist
+.vim/GetLatest/Installed/
+.vim/plugin/
+.vim/syntax/
+.vim/test/
+.vim/.VimballRecord
+.*\.snippets
