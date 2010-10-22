@@ -1,0 +1,11 @@
+set guioptions=
+
+imap <C-F6> <ESC>:open supergenpass<CR>
+map <C-F6> :open supergenpass<CR>
+nmap <C-F6> :open supergenpass<CR>
+vmap <C-F6> :open supergenpass<CR>
+
+map l gt
+map h gT
+
+" vim: set ft=vimperator:
