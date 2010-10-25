@@ -1,7 +1,9 @@
 # FILES TO LINK (MINUS ".", "..", ".hg")
-DOTFILES=$(patsubst .,,$(patsubst ..,,$(patsubst .hg,,$(wildcard .*))))
+DOTFILES=$(filter-out . .. .hg,$(wildcard .*))
+
+# RULE NAMES
 LINK=$(DOTFILES:.%=link.%)
-RM=$(DOTFILES:.%=unlink.%)
+RM=$(DOTFILES:.%=rm.%)
 
 all: install
 
@@ -9,7 +11,7 @@ link.%: .%
 	@echo "Creating the symbolic link $(HOME)/$<"
 	@ln -s $(PWD)/$< $(HOME)/$<
 
-unlink.%: .%
+rm.%: .%
 	@echo "Removing $(HOME)/$<"
 	@rm -rf $(HOME)/$<
 
