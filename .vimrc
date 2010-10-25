@@ -77,7 +77,7 @@ augroup load_save
                 \ if line("'\"") > 1 && line("'\"") <= line("$") |
                 \     exe "normal! g`\"" |
                 \ endif
-    " When writing a file, remove trailing whitespaces
+    " When writing a file, remove trailing whitespaces and retab
     autocmd BufWritePre * %smagic/\s\+$//e | retab
 augroup END
 
@@ -189,8 +189,6 @@ if has("cscope")
     nmap _s :cs find s <C-R>=expand("<cword>")<CR><CR>
     nmap __ :cs<CR>
 endif
-set grepprg=ack\ --column
-set grepformat=%f:%l:%c:%m
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " FAST TABS EDITING
