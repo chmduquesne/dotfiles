@@ -10,25 +10,6 @@ set guioptions=
 let g:GetLatestVimScripts_allowautoinstall=1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" TOGGLE UTILITY
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Toggles the given option (to be called by a mapping)
-function! Toggle(opt)
-    try
-        exec 'set ' . a:opt . '!'
-        exec 'set ' . a:opt . '?'
-    catch E518
-        exec 'let evalvalue = '.a:opt
-        if evalvalue == 0
-            exec 'let ' . a:opt . ' = ' 1
-        else
-            exec 'let ' . a:opt . ' = ' 0
-        endif
-        exec 'let ' . a:opt
-    endtry
-endfunction
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " GLOBAL WINDOWS HANDLING
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:quickfix_state = 0 " 0 is closed, 1 is open
@@ -36,7 +17,7 @@ let g:NERDTree_state = 0 " 0 is closed, 1 is open
 
 " Checks the two previous values. Triggers quickfix and nerdtree
 " accordingly and replaces the cursor in the right window.
-function! UpdateGlobalWindowsState()
+function! UpdateTabState()
     if g:quickfix_state == 1
         copen | silent! cgetfile
     else
@@ -51,20 +32,19 @@ function! UpdateGlobalWindowsState()
     execute "normal \<c-w>\<c-w>"
 endfunction
 
-" When a tab is entered/left, the state is updated, so that is the same in
-" every tab.
-autocmd TabEnter * call UpdateGlobalWindowsState()
+" When a tab is entered, its state is updated
+autocmd TabEnter * call UpdateTabState()
 
 function! ToggleQuickfix()
-    call Toggle("g:quickfix_state")
-    call UpdateGlobalWindowsState()
+    Toggle g:quickfix_state
+    call UpdateTabState()
 endfunction
 
 map <space> :call ToggleQuickfix()<CR>
 
 function! ToggleNERDTree()
-    call Toggle("g:NERDTree_state")
-    call UpdateGlobalWindowsState()
+    Toggle g:NERDTree_state
+    call UpdateTabState()
 endfunction
 
 map <F3> :call ToggleNERDTree()<CR>
@@ -118,8 +98,8 @@ set formatoptions+=t
 "setlocal spell spelllang=fr
 "z= for suggestions
 set spellsuggest=5
-map <F2> :call Toggle("paste")<CR>
-map <F6> :call Toggle("spell")<CR>
+map <F2> :Toggle paste<CR>
+map <F6> :Toggle spell<CR>
 let g:SuperTabDefaultCompletionType = 'context'
 let g:SuperTabRetainCompletionType = 0
 
