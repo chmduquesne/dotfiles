@@ -10,23 +10,22 @@ set guioptions=
 let g:GetLatestVimScripts_allowautoinstall=1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" TOGGLE UTILITIES
+" TOGGLE UTILITY
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Toggles the given option (to be called by a mapping)
 function! Toggle(opt)
-    exec 'set ' . a:opt . '!'
-    exec 'set ' . a:opt . '?'
-endfunction
-
-" Toggles the given value (when an option can't be triggered)
-function! ToggleValue(value)
-    exec 'let evalvalue = '.a:value
-    if evalvalue == 0
-        exec 'let ' . a:value . ' = ' 1
-    else
-        exec 'let ' . a:value . ' = ' 0
-    endif
-    exec 'let ' . a:value
+    try
+        exec 'set ' . a:opt . '!'
+        exec 'set ' . a:opt . '?'
+    catch E518
+        exec 'let evalvalue = '.a:opt
+        if evalvalue == 0
+            exec 'let ' . a:opt . ' = ' 1
+        else
+            exec 'let ' . a:opt . ' = ' 0
+        endif
+        exec 'let ' . a:opt
+    endtry
 endfunction
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -57,14 +56,14 @@ endfunction
 autocmd TabEnter * call UpdateGlobalWindowsState()
 
 function! ToggleQuickfix()
-    call ToggleValue("g:quickfix_state")
+    call Toggle("g:quickfix_state")
     call UpdateGlobalWindowsState()
 endfunction
 
 map <space> :call ToggleQuickfix()<CR>
 
 function! ToggleNERDTree()
-    call ToggleValue("g:NERDTree_state")
+    call Toggle("g:NERDTree_state")
     call UpdateGlobalWindowsState()
 endfunction
 
