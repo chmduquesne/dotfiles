@@ -1,6 +1,7 @@
 ScriptID SourceID Filename
 --------------------------
 39    1 :AutoInstall: matchit.zip
+40    1 :AutoInstall: DrawIt.vim
 273   1 :AutoInstall: taglist.zip
 294   1 :AutoInstall: Align.vim
 302   1 :AutoInstall: AnsiEsc.vim
@@ -30,6 +31,6 @@ ScriptID SourceID Filename
 2870  1 :AutoInstall: omnitags.vim
 2937  1 :AutoInstall: hexHighlight.vim
 2960  1 :AutoInstall: bisect.vim
+3028  1 :AutoInstall: rename.vim
 3295  1 :AutoInstall: toggle_option.vim
-40    1 :AutoInstall: DrawIt.vim
 3068  1 :AutoInstall: recover.vim
