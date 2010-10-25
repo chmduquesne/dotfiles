@@ -1,19 +1,22 @@
-DOTFILES=$(wildcard .*)
-LINKRULES=$(DOTFILES:.%=link.%)
-UNLINKRULES=$(DOTFILES:.%=unlink.%)
+# FILES TO LINK (MINUS ".", "..", ".hg")
+DOTFILES=$(patsubst .,,$(patsubst ..,,$(patsubst .hg,,$(wildcard .*))))
+LINK=$(DOTFILES:.%=link.%)
+RM=$(DOTFILES:.%=unlink.%)
 
 all: install
 
-link.:
 link.%: .%
-	@if test "x"$< != "x.." -a "x"$< != "x.hg"; then ln -s $(PWD)/$< $(HOME)/$<;echo "Creating link for $(HOME)/$<" ; fi
+	@echo "Creating the symbolic link $(HOME)/$<"
+	@ln -s $(PWD)/$< $(HOME)/$<
 
-unlink.:
 unlink.%: .%
-	@if test "x"$< != "x.." -a "x"$< != "x.hg"; then rm -rf $(HOME)/$<;echo "Removing $(HOME)/$<" ; fi
+	@echo "Removing $(HOME)/$<"
+	@rm -rf $(HOME)/$<
 
-install: $(LINKRULES)
+install: $(LINK)
 	@echo "config installed!"
 
-uninstall: $(UNLINKRULES)
+uninstall: $(RM)
 	@echo "config uninstalled!"
+
+clean: uninstall
