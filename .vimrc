@@ -19,12 +19,12 @@ function! Toggle(opt)
 endfunction
 
 " Toggles the given value (when an option can't be triggered)
-function! ToggleValue(value, default, other)
+function! ToggleValue(value)
     exec 'let evalvalue = '.a:value
-    if evalvalue == a:default
-        exec 'let ' . a:value . ' = ' . a:other
+    if evalvalue == 0
+        exec 'let ' . a:value . ' = ' 1
     else
-        exec 'let ' . a:value . ' = ' . a:default
+        exec 'let ' . a:value . ' = ' 0
     endif
     exec 'let ' . a:value
 endfunction
@@ -57,14 +57,14 @@ endfunction
 autocmd TabEnter * call UpdateGlobalWindowsState()
 
 function! ToggleQuickfix()
-    call ToggleValue("g:quickfix_state", 0, 1)
+    call ToggleValue("g:quickfix_state")
     call UpdateGlobalWindowsState()
 endfunction
 
 map <space> :call ToggleQuickfix()<CR>
 
 function! ToggleNERDTree()
-    call ToggleValue("g:NERDTree_state", 0, 1)
+    call ToggleValue("g:NERDTree_state")
     call UpdateGlobalWindowsState()
 endfunction
 
