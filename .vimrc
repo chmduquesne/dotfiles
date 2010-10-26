@@ -33,21 +33,12 @@ function! UpdateTabState()
 endfunction
 
 " When a tab is entered, its state is updated
-autocmd TabEnter * call UpdateTabState()
+augroup tabs
+    autocmd TabEnter * call UpdateTabState()
+augroup END
 
-function! ToggleQuickfix()
-    Toggle g:quickfix_state
-    call UpdateTabState()
-endfunction
-
-map <space> :call ToggleQuickfix()<CR>
-
-function! ToggleNERDTree()
-    Toggle g:NERDTree_state
-    call UpdateTabState()
-endfunction
-
-map <F3> :call ToggleNERDTree()<CR>
+map <silent> <F3> :Toggle g:NERDTree_state<CR>:doautocmd tabs TabEnter<CR>
+map <silent> <space> :Toggle g:quickfix_state<CR>:doautocmd tabs TabEnter<CR>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -117,9 +108,9 @@ let g:load_doxygen_syntax=1
 set nofoldenable
 augroup aspect
     autocmd BufRead * highlight OverLength ctermbg=darkgrey guibg=darkgrey
-    autocmd BufRead * match OverLength /\%74v.*/
+    autocmd BufRead * match OverLength /\%75v.*/
     autocmd BufRead * highlight RedundantSpaces ctermbg=red guibg=red
-    autocmd BufRead * match RedundantSpaces /\s\+$\| \+\ze\t/
+    autocmd BufRead * 2match RedundantSpaces /\s\+$\| \+\ze\t/
 augroup END
 if &t_Co == 256
     try
@@ -227,11 +218,11 @@ inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 "C/C++
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " autocmds
-augroup c++
+augroup lang_cpp
     autocmd FileType cpp set omnifunc=omni#cpp#complete#Main
     autocmd FileType cpp makeprg=make\ -j3\ -s
-    autocmd BufNewFile *.{hpp} execute "normal inewclasshpp\<tab>"
-    autocmd BufNewFile *.{cpp} execute "normal inewclasscpp\<tab>"
+    autocmd BufNewFile *.{hpp} execute "normal inewclasshpp"
+    autocmd BufNewFile *.{cpp} execute "normal inewclasscpp"
     "autocmd BufWritePost *.{hpp,cpp}
     "            \ silent execute "!cppcheck % > /tmp/cpperrors 2>&1 &" |
     "            \ silent execute "!notify-send \"`cat /tmp/cpperrors`\" &" |
@@ -250,7 +241,7 @@ map <F4> :e %:p:s,.hpp$,.X123X,:s,.cpp$,.hpp,:s,.X123X$,.cpp,<CR>
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "PYTHON
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-augroup python
+augroup lang_python
     autocmd FileType python compiler pyunit
 augroup END
 
