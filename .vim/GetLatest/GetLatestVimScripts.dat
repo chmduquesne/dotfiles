@@ -16,7 +16,7 @@ ScriptID SourceID Filename
 1195  1 :AutoInstall: vis.vba.gz
 1502  1 :AutoInstall: vimball.vim
 1506  1 :AutoInstall: LargeFile.vim
-1520  1 :AutoInstall: omnicppcomplete.zip
+#1520  1 :AutoInstall: omnicppcomplete.zip
 1643  1 :AutoInstall: supertab.vim
 1658  1 :AutoInstall: NERD_tree.zip
 1697  1 :AutoInstall: surround.vim
@@ -34,3 +34,4 @@ ScriptID SourceID Filename
 3028  1 :AutoInstall: rename.vim
 3295  1 :AutoInstall: toggle_option.vim
 3068  1 :AutoInstall: recover.vim
+3302  1 :AutoInstall: clang_complete.vim
