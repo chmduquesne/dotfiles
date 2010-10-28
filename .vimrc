@@ -215,37 +215,6 @@ inoremap [ [<esc>:call InsertIfNoTrailingClosingChar("]")<cr>a
 inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"C/C++
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" autocmds
-augroup lang_cpp
-    autocmd FileType cpp set omnifunc=omni#cpp#complete#Main
-    autocmd FileType cpp makeprg=make\ -j3\ -s
-    autocmd BufNewFile *.{hpp} execute "normal inewclasshpp"
-    autocmd BufNewFile *.{cpp} execute "normal inewclasscpp"
-    "autocmd BufWritePost *.{hpp,cpp}
-    "            \ silent execute "!cppcheck % > /tmp/cpperrors 2>&1 &" |
-    "            \ silent execute "!notify-send \"`cat /tmp/cpperrors`\" &" |
-    "            \ redraw!
-augroup END
-
-
-" omnicpp options
-let OmniCpp_MayCompleteScope = 0
-set completeopt=menu
-set tags+=~/.vim/tags/cpp
-
-" implem/header switching
-map <F4> :e %:p:s,.hpp$,.X123X,:s,.cpp$,.hpp,:s,.X123X$,.cpp,<CR>
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"PYTHON
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-augroup lang_python
-    autocmd FileType python compiler pyunit
-augroup END
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "BISECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nmap <C-Left>  <Plug>BisectLeft
@@ -260,3 +229,32 @@ xmap <C-Down>  <Plug>VisualBisectDown
 " reminders
 " delete empty lines
 " :g/^$/d
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"FILETYPE SPECIFIC
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+augroup filetypedetect
+    au BufNewFile,BufRead *.wiki setf Wikipedia
+augroup END
+
+"C/C++
+augroup lang_cpp
+    autocmd FileType cpp set omnifunc=omni#cpp#complete#Main
+    autocmd FileType cpp let OmniCpp_MayCompleteScope = 0
+    autocmd FileType cpp set makeprg=make\ -j3\ -s
+    autocmd BufNewFile *.{hpp} execute "normal inewclasshpp"
+    autocmd BufNewFile *.{cpp} execute "normal inewclasscpp"
+    autocmd FileType cpp set tags+=~/.vim/tags/cpp
+    autocmd FileType cpp map <F4> :e %:p:s,.hpp$,.X123X,:s,.cpp$,.hpp,:s,.X123X$,.cpp,<CR>
+    "autocmd BufWritePost *.{hpp,cpp}
+    "            \ silent execute "!cppcheck % > /tmp/cpperrors 2>&1 &" |
+    "            \ silent execute "!notify-send \"`cat /tmp/cpperrors`\" &" |
+    "            \ redraw!
+augroup END
+set completeopt=menu
+
+"PYTHON
+augroup lang_python
+    autocmd FileType python compiler pyunit
+augroup END
+
