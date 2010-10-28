@@ -14,4 +14,4 @@
 .vim/test/
 .vim/.VimballRecord
 .vim/.netrwhist
-.*\.snippets
+.vim/snippets/*\.snippets
