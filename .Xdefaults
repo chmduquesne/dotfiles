@@ -6,56 +6,45 @@ Xft*antialias:              true
 Xft*hinting:                full
 
 /*
- *      xdvi config
- * */
-xdvi.background:            #eeeeee
-xdvi.wwwbrowser:            firefox
-xdvi.gsAlpha:               true
-xdvi.unique:                true
-xdvi.watchFile:             10
-
-/*
  *      xterm config
  * */
-*customization:             -color
-xterm*termName:             xterm-256color
+xterm*saveLines:            5000
+xterm*scrollBar:            False
+xterm*colorUL:              #86a2be
+xterm*bellIsUrgent:         true
+xterm*faceName:             xft:Monospace-9:antialias=true
 xterm*background:           #3f3f3f
 xterm*foreground:           #dcdccc
-xterm*saveLines:           10000
-xterm*faceName:             xft:Monospace-9:antialias=true
-
-*.charClass:33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
-*VT100.Translations: #override Shift <Key>Up: scroll-back(1) \n\
-                     Shift <Key>Down: scroll-forw(1)
-*scrollKey: true
-*saveLines:    10000
+xterm*customization:        -color
+xterm*termName:             xterm-256color
+xterm*scrollKey:            true
+xterm*fastScroll:           true
+xterm*charClass:            33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
+xterm*translations:         #override Shift <Key>Up:   scroll-back(1) \n\
+                                      Shift <Key>Down: scroll-forw(1)
 
 /*
  *      rxvt-unicode config
  * */
-URxvt.colorUL:              #86a2be
-URxvt.jumpScroll:           True
-URxvt.saveLines:            5000
-URxvt.scrollBar:            False
-URxvt.scrollstyle:          plain
-URxvt.urgentOnBell:         true
-URxvt.secondaryScroll:      true
-URxvt.font:                 xft:Monospace-9:antialias=true
-URxvt.boldFont:             xft:Monospace-9:bold
-URxvt.perl-ext-common:      default,selection,matcher,searchable-scrollback
-URxvt.matcher.button:       1
-URxvt.urlLauncher:          uzbl-browser
-URxvt*depth:                32
-URxvt*shading:              75
-URxvt*fading:               2%
-URxvt*buffered:             true
-URxvt*foreground:           #dcdccc
-URxvt*background:           rgba:3f00/3f00/3f00/eeee
-URxvt*transparent:          false
-URxvt*fadeColor:            grey
+urxvt*saveLines:            5000
+urxvt*scrollBar:            False
+urxvt*colorUL:              #86a2be
+urxvt*urgentOnBell:         true
+urxvt*font:                 xft:Monospace-9:antialias=true
+urxvt*boldFont:             xft:Monospace-9:bold
+urxvt*background:           rgba:3f00/3f00/3f00/eeee
+urxvt*foreground:           #dcdccc
+urxvt*transparent:          false
+urxvt*fading:               2%
+urxvt*fadeColor:            grey
+urxvt*depth:                32
+urxvt*shading:              75
+urxvt*perl-ext-common:      default,selection,matcher,searchable-scrollback
+urxvt*matcher.button:       1
+urxvt*urlLauncher:          firefox
 
 /*
- *      default terminal colors
+ *      zenburn colors
  *
  * 0-7 low-intensity
  * 8-15 high-intensity */
