@@ -22,6 +22,7 @@ xterm*fastScroll:           true
 xterm*charClass:            33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
 xterm*translations:         #override Shift <Key>Up:   scroll-back(1) \n\
                                       Shift <Key>Down: scroll-forw(1)
+xterm*multiScroll: true
 
 /*
  *      rxvt-unicode config
@@ -34,11 +35,11 @@ urxvt*font:                 xft:Monospace-9:antialias=true
 urxvt*boldFont:             xft:Monospace-9:bold
 urxvt*background:           rgba:3f00/3f00/3f00/eeee
 urxvt*foreground:           #dcdccc
-urxvt*transparent:          false
-urxvt*fading:               2%
-urxvt*fadeColor:            grey
-urxvt*depth:                32
-urxvt*shading:              75
+!urxvt*transparent:          false
+!urxvt*fading:               2%
+!urxvt*fadeColor:            grey
+!urxvt*depth:                32
+!urxvt*shading:              75
 urxvt*perl-ext-common:      default,selection,matcher,searchable-scrollback
 urxvt*matcher.button:       1
 urxvt*urlLauncher:          firefox
