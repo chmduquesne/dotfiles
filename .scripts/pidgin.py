@@ -21,6 +21,7 @@ bonjourID = 4178
 #open conversation with contacts
 purple.PurpleConversationNew(bonjourID, 4178, "autre@pc-gscop-175")
 purple.PurpleConversationNew(bonjourID, 4178, "massonng@pc-gscop-174")
+purple.PurpleConversationNew(bonjourID, 4188, "warielon@gmail.com")
 purple.PurpleConversationNew(bonjourID, 4178, "darlayj@po-gscop-149")
 
 # Here, the message to broadcast
