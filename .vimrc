@@ -62,6 +62,7 @@ set hidden
 set nobackup
 set wildignore+=*.o,*.class,*.ps,*.dvi
 set nocompatible
+let g:trim_blank=1
 augroup load_save
     " When editing a file, always jump to the last known cursor position
     autocmd BufReadPost *
@@ -69,7 +70,11 @@ augroup load_save
                 \     exe "normal! g`\"" |
                 \ endif
     " When writing a file, remove trailing whitespaces and retab
-    autocmd BufWritePre * %smagic/\s\+$//e | retab
+    autocmd BufWritePre *
+                \ if g:trim_blank == 1 |
+                \     %smagic/\s\+$//e |
+                \     retab            |
+                \ endif
 augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -86,9 +91,6 @@ set expandtab
 set backspace=indent,eol,start
 set textwidth=74
 set formatoptions+=t
-"setlocal spell spelllang=fr
-"z= for suggestions
-set spellsuggest=5
 map <F2> :Toggle paste<CR>
 map <F6> :Toggle spell<CR>
 let g:SuperTabDefaultCompletionType = 'context'
@@ -107,7 +109,7 @@ let g:load_doxygen_syntax=1
 "set foldopen=all
 set nofoldenable
 augroup aspect
-    autocmd BufRead * highlight OverLength ctermbg=darkgrey guibg=darkgrey
+    autocmd BufRead * highlight OverLength ctermbg=darkblue guibg=darkblue
     autocmd BufRead * match OverLength /\%75v.*/
     autocmd BufRead * highlight RedundantSpaces ctermbg=red guibg=red
     autocmd BufRead * 2match RedundantSpaces /\s\+$\| \+\ze\t/
@@ -256,5 +258,11 @@ set completeopt=menu
 "PYTHON
 augroup lang_python
     autocmd FileType python compiler pyunit
+augroup END
+
+"LATEX
+augroup lang_latex
+    autocmd FileType tex setlocal spell spelllang=fr
+    "z= for suggestions
 augroup END
 
