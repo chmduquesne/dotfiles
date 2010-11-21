@@ -1,6 +1,6 @@
 # STARTX
 # if DISPLAY is not set, propose to start X11
-if test -z ${DISPLAY}; then
+if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
     echo "press enter to start X, CTRL-C to abort."
     read anykey
     startx
@@ -18,15 +18,21 @@ done
 
 # KEYS
 # fix keys for zsh
-if test -z ${TMUX}; then
-    bindkey "^[[7~" beginning-of-line
-    bindkey "^[[8~" end-of-line
-else
-    bindkey "^[[1~" beginning-of-line
-    bindkey "^[[4~" end-of-line
-    bindkey "^[[5~" beginning-of-history
-    bindkey "^[[6~" end-of-history
-fi
+autoload zkbd
+[[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-$VENDOR-$OSTYPE ]] && zkbd
+source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-$VENDOR-$OSTYPE
+
+[[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
+[[ -n ${key[Insert]} ]] && bindkey "${key[Insert]}" overwrite-mode
+[[ -n ${key[Home]} ]] && bindkey "${key[Home]}" beginning-of-line
+[[ -n ${key[PageUp]} ]] && bindkey "${key[PageUp]}" up-line-or-history
+[[ -n ${key[Delete]} ]] && bindkey "${key[Delete]}" delete-char
+[[ -n ${key[End]} ]] && bindkey "${key[End]}" end-of-line
+[[ -n ${key[PageDown]} ]] && bindkey "${key[PageDown]}" down-line-or-history
+[[ -n ${key[Up]} ]] && bindkey "${key[Up]}" up-line-or-search
+[[ -n ${key[Left]} ]] && bindkey "${key[Left]}" backward-char
+[[ -n ${key[Down]} ]] && bindkey "${key[Down]}" down-line-or-search
+[[ -n ${key[Right]} ]] && bindkey "${key[Right]}" forward-char
 
 # PROMPT
 autoload -U promptinit
@@ -91,9 +97,6 @@ alias multiscreen='xrandr --output VGA --above LVDS'
 
 # GDB
 alias gdb='gdb -q'
-
-# OPEN
-alias open='gnome-open'
 
 # FIX JAVA
 export GDK_NATIVE_WINDOWS=true
