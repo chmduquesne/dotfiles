@@ -113,8 +113,8 @@ irssi()
     fi
 }
 
-export PATH=/home/cduquesn/code/autohell/bin:/opt/android-sdk-linux_86/tools:${PATH}
+export PATH=${HOME}/code/autohell/bin:/opt/android-sdk-linux_86/tools:${PATH}
 export GUROBI_HOME=/opt/gurobi301/linux64/
-export AUTOTOOLS_DIR=/home/cduquesn/code/autohell
+export AUTOTOOLS_DIR=${HOME}/code/autohell
 export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
 unset MAILCHECK
