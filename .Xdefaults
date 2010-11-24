@@ -1,84 +1,74 @@
 /*
  *      xft config
  * */
-Xft*dpi:                    100
-Xft*antialias:              true
-Xft*hinting:                full
+xft*dpi:                                100
+xft*antialias:                          true
+xft*hinting:                            full
 
 /*
  *      xterm config
  * */
-xterm*saveLines:            5000
-xterm*scrollBar:            False
-xterm*colorUL:              #86a2be
-xterm*bellIsUrgent:         true
-xterm*faceName:             xft:Monospace-9:antialias=true
-xterm*background:           #3f3f3f
-xterm*foreground:           #dcdccc
-xterm*customization:        -color
-xterm*termName:             xterm-256color
-xterm*scrollKey:            true
-xterm*fastScroll:           true
-xterm*charClass:            33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
-xterm*translations:         #override Shift <Key>Up:   scroll-back(1) \n\
-                                      Shift <Key>Down: scroll-forw(1)
-xterm*multiScroll: true
+xterm*saveLines:                        5000
+xterm*scrollBar:                        false
+xterm*colorUL:                          #86a2be
+xterm*bellIsUrgent:                     true
+xterm*background:                       #3f3f3f
+xterm*foreground:                       #dcdccc
+xterm*customization:                    -color
+xterm*termName:                         xterm-256color
+xterm*scrollKey:                        true
+xterm*fastScroll:                       true
+xterm*charClass:                        33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
+xterm*multiScroll:                      true
+xterm*faceName:                         xft:Monospace:pixelsize=12:antialias=true
 
 /*
  *      rxvt-unicode config
  * */
-urxvt*saveLines:            5000
-urxvt*scrollBar:            False
-urxvt*colorUL:              #86a2be
-urxvt*urgentOnBell:         true
-urxvt*font:                 xft:Monospace-9:antialias=true
-urxvt*boldFont:             xft:Monospace-9:bold
-urxvt*background:           rgba:3f00/3f00/3f00/eeee
-urxvt*foreground:           #dcdccc
-!urxvt*transparent:          false
-!urxvt*fading:               2%
-!urxvt*fadeColor:            grey
-!urxvt*depth:                32
-!urxvt*shading:              75
-urxvt*perl-ext-common:      default,selection,matcher,searchable-scrollback
-urxvt*matcher.button:       1
-urxvt*urlLauncher:          firefox
+urxvt*saveLines:                        5000
+urxvt*scrollBar:                        false
+urxvt*colorUL:                          #86a2be
+urxvt*urgentOnBell:                     true
+urxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback
+urxvt*matcher.button:                   1
+urxvt*urlLauncher:                      firefox
+!urxvt*transparent:                      false
+!urxvt*fading:                           2%
+!urxvt*fadeColor:                        grey
+!urxvt*depth:                            32
+!urxvt*shading:                          75
 
 /*
- *      zenburn colors
+ *      Global settings
  *
- * 0-7 low-intensity
- * 8-15 high-intensity */
+ *      monospace font + zenburn colors
+ * */
+*font:                                  xft:Monospace:pixelsize=12:antialias=true
+*background:                            #3f3f3f
+*foreground:                            #dcdccc
 
 ! black
-*color0:                    rgba:3f00/3f00/3f00/eeee
-*color8:                    #709080
-
+*color0:                                rgba:3f00/3f00/3f00/eeee
+*color8:                                #709080
 ! red
-*color1:                    #705050
-*color9:                    #dca3a3
-
+*color1:                                #705050
+*color9:                                #dca3a3
 ! green
-*color2:                    #60b48a
-*color10:                   #c3bf9f
-
+*color2:                                #60b48a
+*color10:                               #c3bf9f
 ! yellow
-*color3:                    #dfaf8f
-*color11:                   #f0dfaf
-
+*color3:                                #dfaf8f
+*color11:                               #f0dfaf
 ! blue
-*color4:                    #506070
-*color12:                   #94bff3
-
+*color4:                                #506070
+*color12:                               #94bff3
 ! magenta
-*color5:                    #dc8cc3
-*color13:                   #ec93d3
-
+*color5:                                #dc8cc3
+*color13:                               #ec93d3
 ! orange (default cyan)
-*color6:                    #8cd0d3
-*color14:                   #93e0e3
-
+*color6:                                #8cd0d3
+*color14:                               #93e0e3
 ! white
-*color7:                    #dcdccc
-*color15:                   #ffffff
+*color7:                                #dcdccc
+*color15:                               #ffffff
 
