@@ -1,9 +1,6 @@
-# FILES TO LINK (MINUS ".", "..", ".hg")
-DOTFILES=$(filter-out . .. .hg,$(wildcard *))
-
-# RULE NAMES
-LINK=$(DOTFILES:%=link.%)
-RM=$(DOTFILES:%=rm.%)
+FILES=$(filter-out . .. .hg .hgignore Makefile,$(wildcard *))
+LINKRULES=$(FILES:%=link.%)
+REMOVERULES=$(FILES:%=rm.%)
 
 all: install
 
@@ -15,10 +12,10 @@ rm.%: %
 	@echo "Removing $(HOME)/.$<"
 	@rm -rf $(HOME)/.$<
 
-install: $(LINK)
+install: $(LINKRULES)
 	@echo "config installed!"
 
-uninstall: $(RM)
+uninstall: $(REMOVERULES)
 	@echo "config uninstalled!"
 
 clean: uninstall
