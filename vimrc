@@ -1,16 +1,21 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" GVIM SPECIFICS
+"GVIM SPECIFICS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set guifont=monospace\ 9
 set guioptions=
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" UPDATES
+"FAST SCROLLING
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set lazyredraw
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:GetLatestVimScripts_allowautoinstall=1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" GLOBAL WINDOWS HANDLING
+"GLOBAL WINDOWS HANDLING
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:quickfix_state = 0 " 0 is closed, 1 is open
 let g:NERDTree_state = 0 " 0 is closed, 1 is open
@@ -42,7 +47,7 @@ map <silent> <space> :Toggle g:quickfix_state<CR>:doautocmd tabs TabEnter<CR>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" BROWSING (NETRW-NERDTree)
+"BROWSING (NETRW-NERDTree)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let NERDTreeHijackNetrw=0
 let g:netrw_browsex_viewer="gnome-open"
@@ -50,7 +55,7 @@ let g:netrw_liststyle=3
 let g:netrw_hide=1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" LOAD/SAVE
+"LOAD/SAVE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nmap ,s :source ~/.vimrc<CR>
 nmap ,v :e ~/.vimrc<CR>
@@ -78,7 +83,7 @@ augroup load_save
 augroup END
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" INSERTION
+"INSERTION
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set joinspaces
 set autoindent
@@ -97,7 +102,7 @@ let g:SuperTabDefaultCompletionType = 'context'
 let g:SuperTabRetainCompletionType = 0
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" ASPECT
+"ASPECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set number
 set cursorline
@@ -125,7 +130,7 @@ else
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" STATUS BAR
+"STATUS BAR
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set ruler
 set laststatus=2
@@ -136,7 +141,7 @@ set wildmenu
 set wildmode=list:longest,full
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" SEARCH OPTIONS
+"SEARCH OPTIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set ignorecase
 set smartcase
@@ -146,7 +151,7 @@ set hlsearch
 xmap / y/<C-R>"<CR>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" MOUSE
+"MOUSE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set mouse=a
 inoremap <LeftDrag> <LeftMouse>
@@ -158,12 +163,12 @@ nnoremap <C-LeftMouse>
 set virtualedit=block
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CLIPBOARD
+"CLIPBOARD
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set clipboard=unnamed
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CODE BROWSING
+"CODE BROWSING
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 map <PageDown> :cnext<CR>
 map <PageUp> :cprevious<CR>
@@ -184,7 +189,7 @@ if has("cscope")
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" FAST TABS EDITING
+"FAST TABS EDITING
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nmap <C-h> :tabprevious<cr>
 nmap <C-l> :tabnext<cr>

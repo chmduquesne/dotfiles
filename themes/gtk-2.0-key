@@ -1,0 +1,12 @@
+# Standard Unix bindings for GtkTextView and GtkEntry
+binding "gtk-unix-text-entry"
+{
+  bind "<ctrl>u" { "delete-from-cursor" (paragraph-ends, -1) }
+  bind "<ctrl>h" { "delete-from-cursor" (chars, -1) }
+  bind "<ctrl>w" { "delete-from-cursor" (word-ends, -1) }
+}
+
+
+class "GtkEntry" binding "gtk-unix-text-entry"
+class "GtkTextView" binding "gtk-unix-text-entry"
+
