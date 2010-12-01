@@ -101,6 +101,9 @@ alias gdb='gdb -q'
 # FIX JAVA
 export GDK_NATIVE_WINDOWS=true
 
+# CRONTAB
+alias crontab-e='vi ~/.crontab && crontab ~/.crontab'
+
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)
 irssi()

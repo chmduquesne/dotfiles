@@ -1,0 +1,6 @@
+# every 3 minutes
+*/3 * * * * ~/.scripts/run_offlineimap.sh
+# at 5 in the morning
+*   5 * * * pkill offlineimap
+# every hour
+*/30 * * * * DISPLAY=":0.0" gcalcli remind 240 'notify-send -t 300000 -i /usr/share/icons/gnome/scalable/mimetypes/stock_calendar.svg "Calendar" \%s'
