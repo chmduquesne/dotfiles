@@ -224,12 +224,8 @@ inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "BISECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-nmap <C-Left>  <Plug>BisectLeft
-nmap <C-Right> <Plug>BisectRight
 nmap <C-Up>    <Plug>BisectUp
 nmap <C-Down>  <Plug>BisectDown
-xmap <C-Left>  <Plug>VisualBisectLeft
-xmap <C-Right> <Plug>VisualBisectRight
 xmap <C-Up>    <Plug>VisualBisectUp
 xmap <C-Down>  <Plug>VisualBisectDown
 
