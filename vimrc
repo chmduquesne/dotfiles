@@ -263,6 +263,7 @@ set completeopt=menu
 "PYTHON
 augroup lang_python
     autocmd FileType python compiler pyunit
+    autocmd FileType python map K :Pydoc <C-r>=expand("<cword>")<CR><CR>
 augroup END
 
 "LATEX
