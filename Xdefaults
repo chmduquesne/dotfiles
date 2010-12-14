@@ -1,7 +1,6 @@
 /*
  *      xft config
  * */
-xft*dpi:                                100
 xft*antialias:                          true
 xft*hinting:                            full
 
@@ -48,7 +47,8 @@ urxvt*urlLauncher:                      firefox
 *foreground:                            #dcdccc
 
 ! black
-*color0:                                rgba:3f00/3f00/3f00/eeee
+!*color0:                                rgba:3f/3f00/3f00/eeee
+*color0:                                #3f3f3f
 *color8:                                #709080
 ! red
 *color1:                                #705050
