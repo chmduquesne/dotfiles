@@ -1,18 +1,10 @@
 /*
- *      xft config
- * */
-xft*antialias:                          true
-xft*hinting:                            full
-
-/*
  *      xterm config
  * */
 xterm*saveLines:                        5000
 xterm*scrollBar:                        false
 xterm*colorUL:                          #86a2be
 xterm*bellIsUrgent:                     true
-xterm*background:                       #3f3f3f
-xterm*foreground:                       #dcdccc
 xterm*customization:                    -color
 xterm*termName:                         xterm-256color
 xterm*scrollKey:                        true
