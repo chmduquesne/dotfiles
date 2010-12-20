@@ -1,0 +1,9 @@
+command! suscribe emenu Marque-pages.S'abonner à cette page…
+" supergenpass, from a shell script (more secure)
+map -modes=n,v <C-F6> y:!~/.scripts/supergenpass<Space>'<S-Insert>'<Return><Esc>2gi<S-Insert><Return>
+map -modes=n,v h gT
+map -modes=n,v l gt
+map -modes=i <C-F6> <Esc><C-F6>
+set runtimepath=/home/cduquesn/.pentadactyl
+
+" vim: set ft=pentadactyl:

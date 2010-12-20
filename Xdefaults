@@ -1,4 +1,11 @@
 /*
+ *      font, background, foreground
+ */
+*font:                                  xft:Monospace:pixelsize=12:antialias=true
+*background:                            #3f3f3f
+*foreground:                            #dcdccc
+
+/*
  *      xterm config
  * */
 xterm*saveLines:                        5000
@@ -12,6 +19,8 @@ xterm*fastScroll:                       true
 xterm*charClass:                        33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
 xterm*multiScroll:                      true
 xterm*faceName:                         xft:Monospace:pixelsize=12:antialias=true
+xterm*background:                       #3f3f3f
+xterm*foreground:                       #dcdccc
 
 /*
  *      rxvt-unicode config
@@ -30,14 +39,8 @@ urxvt*urlLauncher:                      firefox
 !urxvt*shading:                          75
 
 /*
- *      Global settings
- *
- *      monospace font + zenburn colors
+ *      zenburn colors
  * */
-*font:                                  xft:Monospace:pixelsize=12:antialias=true
-*background:                            #3f3f3f
-*foreground:                            #dcdccc
-
 ! black
 !*color0:                                rgba:3f/3f00/3f00/eeee
 *color0:                                #3f3f3f
