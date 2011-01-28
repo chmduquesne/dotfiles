@@ -17,6 +17,7 @@ ScriptID SourceID Filename
 1643  1 :AutoInstall: supertab.vim
 1658  1 :AutoInstall: NERD_tree.zip
 1697  1 :AutoInstall: surround.vim
+2184  1 :AutoInstall: file:line.vim
 2136  1 :AutoInstall: repeat.vim
 2540  1 :AutoInstall: snipMate.zip
 2645  1 :AutoInstall: colourscheme_bandit.vim
