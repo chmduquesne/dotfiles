@@ -16,3 +16,6 @@ vim/.VimballRecord
 vim/.netrwhist
 vim/snippets/.*\.snippets
 vim/spell
+vim/bundle
+vim/vundle.git
+

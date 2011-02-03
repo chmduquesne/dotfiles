@@ -12,7 +12,37 @@ set lazyredraw
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:GetLatestVimScripts_allowautoinstall=1
+"git clone http://github.com/gmarik/vundle.git ~/.vim/vundle.git
+set runtimepath+=~/.vim/vundle.git/
+call vundle#rc()
+
+Bundle "matchit.zip"
+Bundle "DrawIt"
+Bundle "Align"
+Bundle "AnsiEsc.vim"
+Bundle "Zenburn"
+Bundle "ManPageView"
+Bundle "pydoc.vim"
+Bundle "cecutil"
+Bundle "netrw.vim"
+Bundle "vis"
+Bundle "visualstar.vim"
+Bundle "Vimball"
+Bundle "LargeFile"
+Bundle "SuperTab-continued."
+Bundle "The-NERD-tree"
+Bundle "surround.vim"
+Bundle "file-line"
+Bundle "repeat.vim"
+Bundle "snipMate"
+Bundle "CTAGS-Highlighting"
+Bundle "Tag-Signature-Balloons"
+Bundle "hexHighlight.vim"
+Bundle "bisect"
+Bundle "rename.vim"
+Bundle "toggle_option"
+Bundle "recover.vim"
+Bundle "clang-complete"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "GLOBAL WINDOWS HANDLING
