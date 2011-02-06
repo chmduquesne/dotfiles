@@ -1,0 +1,6 @@
+gtk-theme-name="Clearlooks"
+gtk-icon-theme-name="Tango"
+gtk-font-name="Sans 8"
+gtk-toolbar-style=3
+include "~/.gtkrc-2.0.mine"
+gtk-menu-popup-delay = 0
