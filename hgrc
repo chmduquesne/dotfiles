@@ -1,2 +1,7 @@
 [ui]
 username = "Christophe-Marie Duquesne <chm.duquesne@gmail.com>"
+
+[extensions]
+rebase =
+transplant =
+hgsubversion = ~/code/hgsubversion/hgsubversion
