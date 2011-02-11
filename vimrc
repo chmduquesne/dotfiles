@@ -43,6 +43,7 @@ Bundle "rename.vim"
 Bundle "toggle_option"
 Bundle "recover.vim"
 Bundle "clang-complete"
+Bundle "Command-T"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "GLOBAL WINDOWS HANDLING
