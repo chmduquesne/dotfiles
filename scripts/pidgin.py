@@ -15,17 +15,14 @@ IMConversationType = 1
 #the following loop:
 #for conv in purple.PurpleGetIms():
 #    print purple.PurpleConversationGetAccount(conv)
-gmailID = 4188
-bonjourID = 4178
-
+account = purple.PurpleAccountsGetAllActive()[0]
 #open conversation with contacts
-purple.PurpleConversationNew(bonjourID, 4178, "autre@pc-gscop-175")
-purple.PurpleConversationNew(bonjourID, 4178, "massonng@pc-gscop-174")
-purple.PurpleConversationNew(bonjourID, 4188, "warielon@gmail.com")
-purple.PurpleConversationNew(bonjourID, 4178, "darlayj@po-gscop-149")
+purple.PurpleConversationNew(1, account, "CN=Daniel Perez/OU=NCE/O=AMADEUS")
+purple.PurpleConversationNew(1, account, "CN=Baptiste Chatrain/OU=NCE/O=AMADEUS")
+purple.PurpleConversationNew(1, account, "CN=Gabrielle Sabatier/OU=NCE/O=AMADEUS")
 
 # Here, the message to broadcast
-message = "On part manger."
+message = "Voila qui marche parfaitement"
 
 # Actually send the message
 for conv in purple.PurpleGetIms():
