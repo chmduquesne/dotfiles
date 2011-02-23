@@ -19,8 +19,8 @@ done
 # KEYS
 # fix keys for zsh
 autoload zkbd
-[[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-$DISPLAY ]] && zkbd
-source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-$DISPLAY
+[[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE} ]] && zkbd
+source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
 
 [[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
 [[ -n ${key[Insert]} ]] && bindkey "${key[Insert]}" overwrite-mode
@@ -103,6 +103,26 @@ export GDK_NATIVE_WINDOWS=true
 
 # CRONTAB
 alias crontab-e='vi ~/.crontab && crontab ~/.crontab'
+
+# MAKE
+if test $DISPLAY && which notify-send 2>&1 >/dev/null; then
+    if test -z ${MAKECMD}; then
+        export MAKECMD=$(which make)
+    fi
+    make()
+    {
+        ICON_OK=/usr/share/icons/Humanity/actions/32/gtk-info.svg
+        ICON_KO=/usr/share/icons/Humanity/actions/32/process-stop.svg
+        TEXT_OK="Everything seems fine."
+        TEXT_KO="Process returned an error"
+
+        if $MAKECMD $@; then
+            notify-send -i ${ICON_OK} "make finished" $TEXT_OK
+        else
+            notify-send -i ${ICON_KO} "make finished" $TEXT_KO
+        fi
+    }
+fi
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)

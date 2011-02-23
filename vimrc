@@ -44,6 +44,7 @@ Bundle "toggle_option"
 Bundle "recover.vim"
 Bundle "clang-complete"
 Bundle "Command-T"
+Bundle "EasyGrep"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "GLOBAL WINDOWS HANDLING
@@ -179,7 +180,26 @@ set smartcase
 set incsearch
 set magic
 set hlsearch
-xmap / y/<C-R>"<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"EASYGREP PLUGIN
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:EasyGrepRecursive = 1
+let g:EasyGrepOptionPrefix = ''
+let g:EasyGrepMode = 2
+map <silent> ,go <plug>EgMapGrepOptions
+map <silent> ,S <plug>EgMapGrepCurrentWord_v
+xmap <silent> ,S <plug>EgMapGrepSelection_v
+map <silent> ,s <plug>EgMapGrepCurrentWord_V
+xmap <silent> ,s <plug>EgMapGrepSelection_V
+map <silent> ,a <plug>EgMapGrepCurrentWord_a
+xmap <silent> ,a <plug>EgMapGrepSelection_a
+map <silent> ,A <plug>EgMapGrepCurrentWord_A
+xmap <silent> ,A <plug>EgMapGrepSelection_A
+map <silent> ,R <plug>EgMapReplaceCurrentWord_r
+xmap <silent> ,R <plug>EgMapReplaceSelection_r
+map <silent> ,r <plug>EgMapReplaceCurrentWord_R
+xmap <silent> ,r <plug>EgMapReplaceSelection_R
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "MOUSE
@@ -228,12 +248,17 @@ map <C-h> :tabprevious<cr>
 map <C-l> :tabnext<cr>
 imap <C-h> <ESC>:tabprevious<cr>i
 imap <C-l> <ESC>:tabnext<cr>i
-nmap t :tabedit ./
+"nmap t :tabedit ./
 nmap T :tabedit <C-R>%
-nmap ,t :tabclose<cr>
 map H <C-o>
 map L <C-i>
 set switchbuf=usetab,useopen,newtab
+
+" command-t mappings
+let mapleader = ","
+nmap <silent> t :CommandT<cr>
+let g:CommandTAcceptSelectionTabMap="<cr>"
+let g:CommandTAcceptSelectionMap="<C-o>"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "PARENTHESIS
@@ -255,8 +280,12 @@ inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "BISECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+nmap <C-Left>  <Plug>BisectLeft
+nmap <C-Right> <Plug>BisectRight
 nmap <C-Up>    <Plug>BisectUp
 nmap <C-Down>  <Plug>BisectDown
+xmap <C-Left>  <Plug>VisualBisectLeft
+xmap <C-Right> <Plug>VisualBisectRight
 xmap <C-Up>    <Plug>VisualBisectUp
 xmap <C-Down>  <Plug>VisualBisectDown
 
