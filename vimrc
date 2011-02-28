@@ -136,6 +136,7 @@ set textwidth=74
 set formatoptions+=t
 map <F2> :Toggle paste<CR>
 map <F6> :Toggle spell<CR>
+map Q <Nop>
 let g:SuperTabDefaultCompletionType = 'context'
 let g:SuperTabRetainCompletionType = 0
 
@@ -254,7 +255,7 @@ map <C-h> :tabprevious<cr>
 map <C-l> :tabnext<cr>
 imap <C-h> <ESC>:tabprevious<cr>i
 imap <C-l> <ESC>:tabnext<cr>i
-"nmap t :tabedit ./
+nmap t :tabedit ./
 nmap T :tabedit <C-R>%
 map H <C-o>
 map L <C-i>
