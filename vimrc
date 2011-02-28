@@ -134,9 +134,9 @@ set expandtab
 set backspace=indent,eol,start
 set textwidth=74
 set formatoptions+=t
-map <F2> :Toggle paste<CR>
-map <F6> :Toggle spell<CR>
-map Q <Nop>
+nmap <F2> :Toggle paste<CR>
+nmap <F6> :Toggle spell<CR>
+nmap Q <Nop>
 let g:SuperTabDefaultCompletionType = 'context'
 let g:SuperTabRetainCompletionType = 0
 
@@ -260,12 +260,7 @@ nmap T :tabedit <C-R>%
 map H <C-o>
 map L <C-i>
 set switchbuf=usetab,useopen,newtab
-
-" command-t mappings
 let mapleader = ","
-nmap <silent> t :CommandT<cr>
-let g:CommandTAcceptSelectionTabMap="<cr>"
-let g:CommandTAcceptSelectionMap="<C-o>"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "PARENTHESIS
