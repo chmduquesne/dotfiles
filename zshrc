@@ -93,7 +93,8 @@ export MPD_HOST='localhost'
 alias scanimage='/usr/bin/scanimage --resolution 130'
 
 # XRANDR
-alias multiscreen='xrandr --output VGA --above LVDS'
+#alias multiscreen='xrandr --output VGA --above LVDS'
+alias multiscreen='xrandr --output HDMI1 --left-of VGA1'
 
 # GDB
 alias gdb='gdb -q'
