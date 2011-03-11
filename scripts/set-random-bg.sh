@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 files=($HOME/images/wallpapers/*)
 numfiles=${#files[*]}
