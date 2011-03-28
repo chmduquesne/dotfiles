@@ -17,12 +17,14 @@ IMConversationType = 1
 #    print purple.PurpleConversationGetAccount(conv)
 account = purple.PurpleAccountsGetAllActive()[0]
 #open conversation with contacts
-purple.PurpleConversationNew(1, account, "CN=Daniel Perez/OU=NCE/O=AMADEUS")
-purple.PurpleConversationNew(1, account, "CN=Baptiste Chatrain/OU=NCE/O=AMADEUS")
-purple.PurpleConversationNew(1, account, "CN=Gabrielle Sabatier/OU=NCE/O=AMADEUS")
+purple.PurpleConversationNew(1, account, )
+purple.PurpleConversationNew(1, account, )
+purple.PurpleConversationNew(1, account, )
+purple.PurpleConversationNew(1, account, )
+purple.PurpleConversationNew(1, account, )
 
 # Here, the message to broadcast
-message = "Voila qui marche parfaitement"
+message = "manger?"
 
 # Actually send the message
 for conv in purple.PurpleGetIms():

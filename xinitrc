@@ -3,6 +3,7 @@
 xrdb -load ~/.Xdefaults
 #setxkbmap fr
 urxvtd&
-awesome&
-wicd-gtk&
-exec ck-launch-session gnome-session
+eval $(dbus-launch --sh-syntax --exit-with-session)
+gnome-panel &
+exec awesome
+#exec ck-launch-session gnome-session
