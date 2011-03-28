@@ -103,7 +103,18 @@ alias gdb='gdb -q'
 export GDK_NATIVE_WINDOWS=true
 
 # CRONTAB
-alias crontab-e='vi ~/.crontab && crontab ~/.crontab'
+if test -z $CRONTABCMD; then
+    export CRONTABCMD=$(which crontab)
+    crontab()
+    {
+        if [[ $@ == "-e" ]]; then
+            vim ~/.crontab && $CRONTABCMD ~/.crontab
+        else
+            $CRONTABCMD $@
+        fi
+    }
+    $CRONTABCMD ~/.crontab
+fi
 
 # MAKE
 if test $DISPLAY && which notify-send 2>&1 >/dev/null; then
