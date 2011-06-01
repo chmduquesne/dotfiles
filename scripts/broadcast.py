@@ -26,8 +26,8 @@ n = 1
 message = ""
 
 try:
-    opts, args = getopt.gnu_getopt(sys.argv[1:], "hr:n:m:", ["help",
-        "recipients=", "prevent=", "message="])
+    opts, args = getopt.gnu_getopt(sys.argv[1:], "hpr:n:m:", ["help",
+        "recipients=", "prevent", "message="])
 except getopt.GetoptError, err:
     print str(err)
     print __doc__
@@ -42,7 +42,7 @@ for option, arg in opts:
     elif option == "-n":
         n = int(arg)
     elif option in ("-p", "--prevent"):
-        recipients_file = None
+        recipients_file = ""
     elif option in ("-m", "--message"):
         message = arg
     else:
@@ -75,6 +75,7 @@ if os.path.exists(recipients_file):
             if not l.startswith("#"):
                 purple.PurpleConversationNew(1, account, l)
 
-## Actually send the message
-#for conv in purple.PurpleGetIms():
-#    purple.PurpleConvImSend(purple.PurpleConvIm(conv), message)
+# Actually send the message
+for conv in purple.PurpleGetIms():
+    for i in range(n):
+        purple.PurpleConvImSend(purple.PurpleConvIm(conv), message)
