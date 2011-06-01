@@ -94,7 +94,7 @@ alias scanimage='/usr/bin/scanimage --resolution 130'
 
 # XRANDR
 #alias multiscreen='xrandr --output VGA --above LVDS'
-alias multiscreen='xrandr --output HDMI1 --left-of VGA1'
+alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
 
 # GDB
 alias gdb='gdb -q'
