@@ -3,7 +3,7 @@
 Broadcasts a message to all open conversations (opens first conversations
 using recipients from ~/.broadcast-recipients, unless -p is provided)
 
-/!\ Remember to close conversations with recipients you don't want /!\
+/!\ Remember to close conversations with recipients you don't want /!\ 
 
 Usage:
     python broadcast.py [-r <recipients>] [-n <number>] -m "my message"
