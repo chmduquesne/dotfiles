@@ -20,7 +20,7 @@ fi
 
 # KEYS
 # fix keys for zsh
-if test $SSH_TTY; then
+if test -z $SSH_TTY; then
     autoload zkbd
     [[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE} ]] && zkbd
     source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
