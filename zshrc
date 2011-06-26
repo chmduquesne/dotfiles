@@ -7,32 +7,36 @@ if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
 fi
 
 # TMUX
-# if no session is started, start a new session
-if test -z ${TMUX}; then
-    tmux
+if which tmux 2>&1 >/dev/null; then
+    # if no session is started, start a new session
+    if test -z ${TMUX}; then
+        tmux
+    fi
+    # when quitting tmux, try to attach
+    while test -z ${TMUX}; do
+        tmux attach || break
+    done
 fi
-# when quitting tmux, try to attach
-while test -z ${TMUX}; do
-    tmux attach || break
-done
 
 # KEYS
 # fix keys for zsh
-autoload zkbd
-[[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE} ]] && zkbd
-source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
+if test $SSH_TTY; then
+    autoload zkbd
+    [[ ! -f ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE} ]] && zkbd
+    source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
 
-[[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
-[[ -n ${key[Insert]} ]] && bindkey "${key[Insert]}" overwrite-mode
-[[ -n ${key[Home]} ]] && bindkey "${key[Home]}" beginning-of-line
-[[ -n ${key[PageUp]} ]] && bindkey "${key[PageUp]}" up-line-or-history
-[[ -n ${key[Delete]} ]] && bindkey "${key[Delete]}" delete-char
-[[ -n ${key[End]} ]] && bindkey "${key[End]}" end-of-line
-[[ -n ${key[PageDown]} ]] && bindkey "${key[PageDown]}" down-line-or-history
-[[ -n ${key[Up]} ]] && bindkey "${key[Up]}" up-line-or-search
-[[ -n ${key[Left]} ]] && bindkey "${key[Left]}" backward-char
-[[ -n ${key[Down]} ]] && bindkey "${key[Down]}" down-line-or-search
-[[ -n ${key[Right]} ]] && bindkey "${key[Right]}" forward-char
+    [[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
+    [[ -n ${key[Insert]} ]] && bindkey "${key[Insert]}" overwrite-mode
+    [[ -n ${key[Home]} ]] && bindkey "${key[Home]}" beginning-of-line
+    [[ -n ${key[PageUp]} ]] && bindkey "${key[PageUp]}" up-line-or-history
+    [[ -n ${key[Delete]} ]] && bindkey "${key[Delete]}" delete-char
+    [[ -n ${key[End]} ]] && bindkey "${key[End]}" end-of-line
+    [[ -n ${key[PageDown]} ]] && bindkey "${key[PageDown]}" down-line-or-history
+    [[ -n ${key[Up]} ]] && bindkey "${key[Up]}" up-line-or-search
+    [[ -n ${key[Left]} ]] && bindkey "${key[Left]}" backward-char
+    [[ -n ${key[Down]} ]] && bindkey "${key[Down]}" down-line-or-search
+    [[ -n ${key[Right]} ]] && bindkey "${key[Right]}" forward-char
+fi
 
 # PROMPT
 autoload -U promptinit
@@ -41,7 +45,7 @@ prompt suse
 
 # COMPLETION
 zstyle ':completion:*' completer _complete _ignored _correct
-zstyle :compinstall filename '/home/me/.zshrc'
+zstyle :compinstall filename '~/.zshrc'
 autoload -Uz compinit
 compinit
 
@@ -67,7 +71,6 @@ alias vdir='vdir --color=always'
 alias grep='grep --color=always'
 alias fgrep='fgrep --color=always'
 alias egrep='egrep --color=always'
-alias diff='colordiff'
 alias less='less -R'
 
 # LS
