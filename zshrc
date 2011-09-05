@@ -38,8 +38,18 @@ source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
 
 # PROMPT
 autoload -U promptinit
-promptinit
-prompt suse
+autoload -Uz vcs_info
+setopt prompt_subst
+precmd() {
+    vcs_info
+    if [[ -n $vcs_info_msg_0_ ]]; then
+        vcs_status="[$vcs_info_msg_0_]"
+    else
+        vcs_status=""
+    fi
+}
+PS1='%F{yellow}%3~%F{green}$vcs_status%f%# '
+RPS1='%F{green}%n%f %F{magenta}%m%F{red} [%F{green}%*%F{red}]%f'
 
 # COMPLETION
 zstyle ':completion:*' completer _complete _ignored _correct

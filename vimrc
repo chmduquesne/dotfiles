@@ -287,8 +287,11 @@ xmap <C-Down>  <Plug>VisualBisectDown
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup filetypedetect
     au BufNewFile,BufRead *.wiki setf Wikipedia
+    au BufNewFile,Bufread *.h setf c
 augroup END
-
+augroup lang_c
+    autocmd FileType c map <F4> :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
+augroup END
 "C/C++
 augroup lang_cpp
     autocmd FileType cpp set omnifunc=omni#cpp#complete#Main

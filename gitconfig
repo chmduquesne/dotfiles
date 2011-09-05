@@ -8,4 +8,3 @@
     co = checkout
     lc = log ORIG_HEAD.. --stat --no-merges
     serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
-
