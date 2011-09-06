@@ -28,8 +28,8 @@ zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 precmd () { vcs_info }
 setopt prompt_subst
-PROMPT='%m:%~/ %# '
-RPROMPT='$vcs_info_msg_0_'
+PROMPT='%~/$vcs_info_msg_0_ %# '
+#RPROMPT='$vcs_info_msg_0_'
 
 # KEYS
 # fix keys for zsh
@@ -162,7 +162,8 @@ unset MAILCHECK
 
 # python virtualenv
 export WORKON_HOME=$HOME/.virtualenvs
-source /etc/bash_completion.d/virtualenvwrapper
+[[ -f /etc/bash_completion.d/virtualenvwrapper ]] && source /etc/bash_completion.d/virtualenvwrapper
+[[ -f /usr/bin/virtualenvwrapper.sh ]] && source /usr/bin/virtualenvwrapper.sh
 
 # various stuff
 export GUROBI_HOME=/opt/gurobi451/linux64/
