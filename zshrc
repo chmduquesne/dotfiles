@@ -21,17 +21,15 @@ fi
 # PROMPT
 autoload -U promptinit
 autoload -Uz vcs_info
-setopt prompt_subst
-zstyle ':vcs_info:*' actionformats ' [%b%c%u]'
-zstyle ':vcs_info:*' formats ' [%b%c%u]'
-zstyle ':vcs_info:*' stagedstr '%F{green}●%f'
-zstyle ':vcs_info:*' unstagedstr '%F{red}●%f'
+zstyle ':vcs_info:*' stagedstr '%F{green}>%f'
+zstyle ':vcs_info:*' unstagedstr '%F{yellow}<%f'
 zstyle ':vcs_info:*' check-for-changes true
-precmd() {
-    vcs_info
-}
-PROMPT='%~/$vcs_info_msg_0_ > '
-RPROMPT='[%n@%m]'
+zstyle ':vcs_info:*' formats ' [%b%u%c]'
+zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
+precmd () { vcs_info }
+setopt prompt_subst
+PROMPT='%n@%m:%~/ %# '
+RPROMPT='$vcs_info_msg_0_'
 
 # KEYS
 # fix keys for zsh
@@ -159,8 +157,13 @@ irssi()
     fi
 }
 
-export PATH=${HOME}/code/autohell/bin:/opt/android-sdk-linux_86/tools:${PATH}
-export GUROBI_HOME=/opt/gurobi451/linux64/
-export AUTOTOOLS_DIR=${HOME}/code/autohell
-export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
+# Don't bug me with mails, I've already got notifications
 unset MAILCHECK
+
+# python virtualenv
+export WORKON_HOME=$HOME/.virtualenvs
+source /etc/bash_completion.d/virtualenvwrapper
+
+# various stuff
+export GUROBI_HOME=/opt/gurobi451/linux64/
+export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
