@@ -4,3 +4,6 @@ username = "Christophe-Marie Duquesne <chm.duquesne@gmail.com>"
 [extensions]
 rebase =
 transplant =
+
+[alias]
+clean = !cd $($HG root) && $HG status --no-status --ignored -0 | xargs -0 rm && cd -
