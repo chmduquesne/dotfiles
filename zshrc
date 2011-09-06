@@ -18,6 +18,21 @@ if which tmux 2>&1 >/dev/null; then
     done
 fi
 
+# PROMPT
+autoload -U promptinit
+autoload -Uz vcs_info
+setopt prompt_subst
+zstyle ':vcs_info:*' actionformats ' [%b%c%u]'
+zstyle ':vcs_info:*' formats ' [%b%c%u]'
+zstyle ':vcs_info:*' stagedstr '%F{green}●%f'
+zstyle ':vcs_info:*' unstagedstr '%F{red}●%f'
+zstyle ':vcs_info:*' check-for-changes true
+precmd() {
+    vcs_info
+}
+PROMPT='%~/$vcs_info_msg_0_ > '
+RPROMPT='[%n@%m]'
+
 # KEYS
 # fix keys for zsh
 autoload zkbd
@@ -35,21 +50,6 @@ source ${ZDOTDIR:-$HOME}/.zkbd/$TERM-${DISPLAY:-$VENDOR-$OSTYPE}
 [[ -n ${key[Left]} ]] && bindkey "${key[Left]}" backward-char
 [[ -n ${key[Down]} ]] && bindkey "${key[Down]}" down-line-or-search
 [[ -n ${key[Right]} ]] && bindkey "${key[Right]}" forward-char
-
-# PROMPT
-autoload -U promptinit
-autoload -Uz vcs_info
-setopt prompt_subst
-precmd() {
-    vcs_info
-    if [[ -n $vcs_info_msg_0_ ]]; then
-        vcs_status="[$vcs_info_msg_0_]"
-    else
-        vcs_status=""
-    fi
-}
-PS1='%F{yellow}%3~%F{green}$vcs_status%f%# '
-RPS1='%F{green}%n%f %F{magenta}%m%F{red} [%F{green}%*%F{red}]%f'
 
 # COMPLETION
 zstyle ':completion:*' completer _complete _ignored _correct
