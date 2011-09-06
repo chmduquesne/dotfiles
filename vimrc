@@ -38,6 +38,7 @@ Bundle "recover.vim"
 Bundle "clang-complete"
 Bundle "Command-T"
 Bundle "EasyGrep"
+Bundle "vrackets"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "GLOBAL WINDOWS HANDLING
@@ -252,19 +253,19 @@ let mapleader = ","
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "PARENTHESIS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-function! InsertIfNoTrailingClosingChar(closingChar)
-    let trailing = strpart(getline("."), col("."))
-    let regexp = '\S' . a:closingChar
-    if trailing !~ regexp
-        execute "normal! a" . a:closingChar
-        execute "normal! h"
-    endif
-endfunction
-
-inoremap ( (<esc>:call InsertIfNoTrailingClosingChar(")")<cr>a
-inoremap " "<esc>:call InsertIfNoTrailingClosingChar('"')<cr>a
-inoremap [ [<esc>:call InsertIfNoTrailingClosingChar("]")<cr>a
-inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
+"function! InsertIfNoTrailingClosingChar(closingChar)
+"    let trailing = strpart(getline("."), col("."))
+"    let regexp = '\S' . a:closingChar
+"    if trailing !~ regexp
+"        execute "normal! a" . a:closingChar
+"        execute "normal! h"
+"    endif
+"endfunction
+"
+"inoremap ( (<esc>:call InsertIfNoTrailingClosingChar(")")<cr>a
+"inoremap " "<esc>:call InsertIfNoTrailingClosingChar('"')<cr>a
+"inoremap [ [<esc>:call InsertIfNoTrailingClosingChar("]")<cr>a
+"inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "BISECT
