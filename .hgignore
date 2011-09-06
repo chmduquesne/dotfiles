@@ -18,4 +18,4 @@ vim/snippets/.*\.snippets
 vim/spell
 vim/bundle
 vim/vundle.git
-
+virtualenvs
