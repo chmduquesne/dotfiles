@@ -28,7 +28,7 @@ zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 precmd () { vcs_info }
 setopt prompt_subst
-PROMPT='%n@%m:%~/ %# '
+PROMPT='%m:%~/ %# '
 RPROMPT='$vcs_info_msg_0_'
 
 # KEYS
