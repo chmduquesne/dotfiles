@@ -175,7 +175,7 @@ set smartcase
 set incsearch
 set magic
 set hlsearch
-nnoremap <silent> <esc> :noh<return><esc>
+"nnoremap <silent> <esc> :noh<return><esc>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "EASYGREP PLUGIN

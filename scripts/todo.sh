@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
- 
+
 #params
-todofile=$HOME/TODO
+todofile=$HOME/.TODO
 icon='/usr/share/icons/gnome/32x32/status/dialog-information.png'
 popupTime=10000
 urgency='low'
