@@ -4,6 +4,5 @@
 #*   5 * * * pkill offlineimap
 # every hour
 */30 * * * * DISPLAY=":0.0" gcalcli remind 240 'notify-send -t 300000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg "Calendar" \%s'
-*/30 * * * * michel pull > ${HOME}/.TODO
-*/30 * * * * ${HOME}/.scripts/todo.sh
-
+*/15 * * * * michel pull > /tmp/TODO && mv /tmp/TODO ~/.TODO
+*/30 * * * * DISPLAY=":0.0" notify-send -t 10000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg TODO "$(cat ~/.TODO)"
