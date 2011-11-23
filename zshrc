@@ -31,6 +31,10 @@ setopt prompt_subst
 PROMPT='%m:%~/$vcs_info_msg_0_ %# '
 #RPROMPT='$vcs_info_msg_0_'
 
+# MIME
+autoload -U zsh-mime-setup
+zsh-mime-setup
+
 # KEYS
 # fix keys for zsh
 autoload zkbd

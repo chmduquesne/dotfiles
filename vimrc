@@ -9,35 +9,37 @@ set lazyredraw
 "git clone http://github.com/gmarik/vundle.git ~/.vim/vundle.git
 set runtimepath+=~/.vim/vundle.git/
 call vundle#rc()
-Bundle "matchit.zip"
-Bundle "DrawIt"
-Bundle "Align"
-Bundle "AnsiEsc.vim"
-Bundle "Zenburn"
-Bundle "ManPageView"
-Bundle "pydoc.vim"
-Bundle "cecutil"
-Bundle "netrw.vim"
-Bundle "vis"
-Bundle "visualstar.vim"
-Bundle "Vimball"
-Bundle "LargeFile"
-Bundle "SuperTab-continued."
-Bundle "The-NERD-tree"
-Bundle "surround.vim"
-Bundle "file-line"
-Bundle "repeat.vim"
-Bundle "snipMate"
-Bundle "CTAGS-Highlighting"
-Bundle "Tag-Signature-Balloons"
-Bundle "hexHighlight.vim"
-Bundle "bisect"
-Bundle "rename.vim"
-Bundle "toggle_option"
-Bundle "recover.vim"
-Bundle "clang-complete"
-Bundle "Command-T"
-Bundle "EasyGrep"
+Bundle 'matchit.zip'
+Bundle 'DrawIt'
+Bundle 'Align'
+Bundle 'AnsiEsc.vim'
+Bundle 'Zenburn'
+Bundle 'ManPageView'
+Bundle 'pydoc.vim'
+Bundle 'cecutil'
+Bundle 'netrw.vim'
+Bundle 'vis'
+Bundle 'visualstar.vim'
+Bundle 'Vimball'
+Bundle 'LargeFile'
+Bundle 'SuperTab-continued.'
+Bundle 'The-NERD-tree'
+Bundle 'surround.vim'
+Bundle 'file-line'
+Bundle 'repeat.vim'
+Bundle 'snipMate'
+Bundle 'CTAGS-Highlighting'
+Bundle 'Tag-Signature-Balloons'
+Bundle 'hexHighlight.vim'
+Bundle 'bisect'
+Bundle 'rename.vim'
+Bundle 'toggle_option'
+Bundle 'recover.vim'
+Bundle 'clang-complete'
+Bundle 'Command-T'
+Bundle 'EasyGrep'
+Bundle 'Gundo'
+Bundle 'Markdown'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -190,17 +192,8 @@ set hlsearch
 let g:EasyGrepRecursive = 1
 let g:EasyGrepOptionPrefix = ''
 let g:EasyGrepMode = 2
-map <silent> ,go <plug>EgMapGrepOptions
-map <silent> ,S <plug>EgMapGrepCurrentWord_v
-xmap <silent> ,S <plug>EgMapGrepSelection_v
-map <silent> ,s <plug>EgMapGrepCurrentWord_V
-xmap <silent> ,s <plug>EgMapGrepSelection_V
-map <silent> ,a <plug>EgMapGrepCurrentWord_a
-xmap <silent> ,a <plug>EgMapGrepSelection_a
-map <silent> ,A <plug>EgMapGrepCurrentWord_A
-xmap <silent> ,A <plug>EgMapGrepSelection_A
-map <silent> ,R <plug>EgMapReplaceCurrentWord_r
-xmap <silent> ,R <plug>EgMapReplaceSelection_r
+map <silent> ,* <plug>EgMapGrepCurrentWord_V
+xmap <silent> ,* <plug>EgMapGrepSelection_V
 map <silent> ,r <plug>EgMapReplaceCurrentWord_R
 xmap <silent> ,r <plug>EgMapReplaceSelection_R
 
@@ -295,8 +288,9 @@ xmap <C-Down>  <Plug>VisualBisectDown
 "FILETYPE SPECIFIC
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup filetypedetect
-    au BufNewFile,BufRead *.wiki setf Wikipedia
-    au BufNewFile,Bufread *.h setf c
+    autocmd BufNewFile,BufRead *.wiki set filetype=Wikipedia
+    autocmd BufNewFile,Bufread *.h set filetype=c
+    autocmd BufNewFile,BufRead *.md set filetype=markdown
 augroup END
 augroup lang_c
     autocmd FileType c map <F4> :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
@@ -328,4 +322,3 @@ augroup lang_latex
     autocmd FileType tex setlocal spell spelllang=fr
     "z= for suggestions
 augroup END
-
