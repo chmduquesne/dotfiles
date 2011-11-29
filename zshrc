@@ -1,5 +1,5 @@
 # STARTX
-# if DISPLAY is not set, propose to start X11
+# if DISPLAY is not set, propose to start X11 (before starting tmux)
 if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
     echo "press enter to start X, CTRL-C to abort."
     read anykey
@@ -108,6 +108,15 @@ alias scanimage='/usr/bin/scanimage --resolution 130'
 # XRANDR
 #alias multiscreen='xrandr --output VGA --above LVDS'
 alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
+
+# SSH-AGENT
+if which ssh-agent 2>&1 >/dev/null
+then
+    if test -z $SSH_AUTH_SOCK; then
+        eval $(ssh-agent)
+        ssh-add
+    fi
+fi
 
 # GDB
 alias gdb='gdb -q'
