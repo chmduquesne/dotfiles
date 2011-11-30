@@ -6,6 +6,15 @@ if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
     startx
 fi
 
+# SSH-AGENT
+if which ssh-agent 2>&1 >/dev/null
+then
+    if test -z $SSH_AUTH_SOCK; then
+        eval $(ssh-agent)
+        ssh-add
+    fi
+fi
+
 # TMUX
 if which tmux 2>&1 >/dev/null; then
     # if no session is started, start a new session
@@ -108,15 +117,6 @@ alias scanimage='/usr/bin/scanimage --resolution 130'
 # XRANDR
 #alias multiscreen='xrandr --output VGA --above LVDS'
 alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
-
-# SSH-AGENT
-if which ssh-agent 2>&1 >/dev/null
-then
-    if test -z $SSH_AUTH_SOCK; then
-        eval $(ssh-agent)
-        ssh-add
-    fi
-fi
 
 # GDB
 alias gdb='gdb -q'
