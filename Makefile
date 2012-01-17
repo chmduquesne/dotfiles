@@ -1,4 +1,4 @@
-FILES=$(filter-out . .. .hg .hgignore Makefile,$(wildcard *))
+FILES=$(filter-out . .. .hg .hgignore README Makefile,$(wildcard *))
 LINKRULES=$(FILES:%=link.%)
 REMOVERULES=$(FILES:%=rm.%)
 
