@@ -14,7 +14,6 @@ Bundle 'DrawIt'
 Bundle 'Align'
 Bundle 'AnsiEsc.vim'
 Bundle 'Zenburn'
-Bundle 'ManPageView'
 Bundle 'pydoc.vim'
 Bundle 'cecutil'
 Bundle 'netrw.vim'
@@ -143,7 +142,7 @@ let g:SuperTabRetainCompletionType = 0
 set number
 set cursorline
 set list
-set listchars=tab:▶- "eol:¬
+set listchars=tab:>-
 syntax on
 let g:load_doxygen_syntax=1
 "set foldmethod=syntax

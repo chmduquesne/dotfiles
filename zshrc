@@ -9,7 +9,7 @@ fi
 
 # STARTX
 # if DISPLAY is not set, propose to start X11 (before starting tmux)
-if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
+if [[ -z "$DISPLAY" ]] && [[ $(tty) = "/dev/tty1" ]]; then
     echo "press enter to start X, CTRL-C to abort."
     read anykey
     startx
@@ -38,7 +38,7 @@ zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 precmd () { vcs_info }
 setopt prompt_subst
 PROMPT='%m:%~/$vcs_info_msg_0_ %# '
-#RPROMPT='$vcs_info_msg_0_'
+RPROMPT='$vcs_info_msg_0_'
 
 # MIME
 autoload -U zsh-mime-setup
@@ -122,7 +122,7 @@ alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
 alias gdb='gdb -q'
 
 # FIX JAVA
-export GDK_NATIVE_WINDOWS=true
+#export GDK_NATIVE_WINDOWS=true
 
 # CRONTAB
 if test -z $CRONTABCMD; then
