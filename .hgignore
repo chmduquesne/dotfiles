@@ -19,3 +19,5 @@ vim/spell
 vim/bundle
 vim/vundle.git
 virtualenvs
+config
+themes
