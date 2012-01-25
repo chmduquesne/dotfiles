@@ -1,12 +1,3 @@
-# SSH-AGENT (before trying to start X)
-if which ssh-agent 2>&1 >/dev/null
-then
-    if test -z $SSH_AUTH_SOCK; then
-        eval $(ssh-agent)
-        ssh-add
-    fi
-fi
-
 # STARTX
 # if DISPLAY is not set, propose to start X11 (before starting tmux)
 if [[ -z "$DISPLAY" ]] && [[ $(tty) = "/dev/tty1" ]]; then
@@ -25,6 +16,11 @@ if which tmux 2>&1 >/dev/null; then
     while test -z ${TMUX}; do
         tmux attach || break
     done
+fi
+
+# KEYCHAIN+SSH-AGENT
+if which keychain 2>&1 >/dev/null; then
+    eval $(keychain --eval --agents ssh -Q --quiet id_rsa)
 fi
 
 # PROMPT
