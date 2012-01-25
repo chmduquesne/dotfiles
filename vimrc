@@ -319,5 +319,8 @@ augroup END
 "LATEX
 augroup lang_latex
     autocmd FileType tex setlocal spell spelllang=en
+    set conceallevel=2
+    hi Conceal guibg=black guifg=white
+    let g:tex_conceal="adgm"
     "z= for suggestions
 augroup END
