@@ -318,6 +318,6 @@ augroup END
 
 "LATEX
 augroup lang_latex
-    autocmd FileType tex setlocal spell spelllang=fr
+    autocmd FileType tex setlocal spell spelllang=en
     "z= for suggestions
 augroup END
