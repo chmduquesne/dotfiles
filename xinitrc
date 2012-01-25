@@ -1,6 +1,7 @@
 #!/bin/sh
 
 xrdb -load ~/.Xdefaults
+xmodmap ~/.Xmodmap
 setxkbmap fr
 urxvtd &
 awesome &
