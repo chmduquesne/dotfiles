@@ -23,7 +23,7 @@ if which keychain 2>&1 >/dev/null; then
     eval $(keychain --eval --agents ssh -Q --quiet id_rsa)
 fi
 
-# PROMPT
+# VCS
 autoload -U promptinit
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' stagedstr '%F{green}>%f'
@@ -35,6 +35,7 @@ precmd () { vcs_info }
 setopt prompt_subst
 PROMPT='%m:%~/$vcs_info_msg_0_ %# '
 RPROMPT='$vcs_info_msg_0_'
+alias -s git='git clone'
 
 # MIME
 autoload -U zsh-mime-setup
@@ -164,6 +165,18 @@ irssi()
         TMUX="" tmux new -d -s irssi /usr/bin/irssi
         tmux switch -t irssi
     fi
+}
+
+# SMART CD
+cd () {
+        if [[ -f ${1} ]]
+        then
+                [[ ! -e ${1:h} ]] && return 1
+                print "Correcting ${1} to ${1:h}"
+                builtin cd ${1:h}
+        else
+                builtin cd ${1}
+        fi
 }
 
 # Don't bug me with mails, I've already got notifications
