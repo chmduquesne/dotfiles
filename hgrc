@@ -4,6 +4,7 @@ username = "Christophe-Marie Duquesne <chm.duquesne@gmail.com>"
 [extensions]
 rebase =
 transplant =
+extdiff =
 
 [alias]
 clean = !cd $($HG root) && $HG status --no-status --ignored -0 | xargs -0 rm && cd -
@@ -11,3 +12,9 @@ clean = !cd $($HG root) && $HG status --no-status --ignored -0 | xargs -0 rm && 
 [hostfingerprints]
 195.83.78.178 = 12:50:e4:7c:9a:64:33:a8:44:91:d0:29:66:6c:ad:1b:48:90:c4:81
 bitbucket.org = 24:9c:45:8b:9c:aa:ba:55:4e:01:6d:58:ff:e4:28:7d:2a:14:ae:3b
+
+[defaults]
+latexdiff = -q
+
+[extdiff]
+cmd.latexdiff = latexdiff
