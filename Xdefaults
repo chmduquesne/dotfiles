@@ -32,11 +32,11 @@ urxvt*urgentOnBell:                     true
 urxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback
 urxvt*matcher.button:                   1
 urxvt*urlLauncher:                      firefox
-!urxvt*transparent:                      false
+urxvt*transparent:                      false
+urxvt*shading:                          75
 !urxvt*fading:                           2%
 !urxvt*fadeColor:                        grey
 !urxvt*depth:                            32
-!urxvt*shading:                          75
 
 /*
  *      zenburn colors
