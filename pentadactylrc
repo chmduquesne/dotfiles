@@ -1,9 +1,12 @@
-command! suscribe emenu Marque-pages.S'abonner à cette page…
-" supergenpass, from a shell script (more secure)
-map -modes=n,v <C-F6> y:!~/.scripts/supergenpass<Space>'<S-Insert>'<Return><Esc>2gi<S-Insert><Return>
-map -modes=n,v h gT
-map -modes=n,v l gt
-map -modes=i <C-F6> <Esc><C-F6>
-set runtimepath=/home/cduquesn/.pentadactyl
+"1.0rc1
+
+loadplugins '\.(js|penta)$'
+group user
+command! suscribe emenu Bookmarks.Subscribe to This Page…
+map -count -modes=n,v <C-F6> <count>y:!~/.scripts/supergenpass<Space>'<S-Insert>'<Return><Esc>2gi<S-Insert><Return>
+map -count -modes=n,v h <count>gT
+map -count -modes=n,v l <count>gt
+map -count -modes=i <C-F6> <Esc><C-F6>
+set defsearch=duckduckgo-ssl
 
 " vim: set ft=pentadactyl:
