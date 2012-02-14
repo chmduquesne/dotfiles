@@ -98,6 +98,7 @@ alias l='ls -CF'
 export VISUAL=vim
 export EDITOR=vim
 alias vi='vim'
+alias sudo='nocorrect sudo'
 
 # MANPAGES
 export PAGER='less'
