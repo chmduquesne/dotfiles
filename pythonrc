@@ -1,0 +1,40 @@
+#!env python
+
+# readline completion and history
+try:
+    import readline
+except ImportError:
+    print("Module readline not available.")
+else:
+    # completion
+    import rlcompleter
+    import atexit
+    class irlcompleter(rlcompleter.Completer):
+        def complete(self, text, state):
+            if text == "":
+                readline.insert_text('\t')
+                return None
+            else:
+                return rlcompleter.Completer.complete(self,text,state)
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(irlcompleter().complete)
+
+    # history
+    import os.path
+    history_file = os.path.expanduser('~/.python_history')
+    if os.path.exists(history_file):
+        readline.read_history_file(history_file)
+    atexit.register(readline.write_history_file, history_file)
+
+# pretty printing
+import sys
+import pprint
+def purty_print(value):
+    if value is not None:
+        try:
+            import __builtin__
+            __builtin__._ = value
+        except ImportError:
+            __builtins__._ = value
+        pprint.pprint(value)
+sys.displayhook = purty_print

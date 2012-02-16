@@ -183,6 +183,9 @@ cd () {
 # Don't bug me with mails, I've already got notifications
 unset MAILCHECK
 
+# PYTHON
+export PYTHONSTARTUP=~/.pythonrc
+
 # python virtualenv
 export WORKON_HOME=$HOME/.virtualenvs
 [[ -f /etc/bash_completion.d/virtualenvwrapper ]] && source /etc/bash_completion.d/virtualenvwrapper
