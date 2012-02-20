@@ -27,14 +27,14 @@ fi
 autoload -U promptinit
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' stagedstr '%F{green}>%f'
-zstyle ':vcs_info:*' unstagedstr '%F{yellow}<%f'
+zstyle ':vcs_info:*' unstagedstr '%F{yellow}>%f'
 zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 precmd () { vcs_info }
 setopt prompt_subst
 PROMPT='%m:%~/$vcs_info_msg_0_ %# '
-RPROMPT='$vcs_info_msg_0_'
+#RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
 
 # MIME
