@@ -18,3 +18,4 @@ latexdiff = -q
 
 [extdiff]
 cmd.latexdiff = latexdiff
+opts.latexdiff = --exclude-safecmd="diffblock"
