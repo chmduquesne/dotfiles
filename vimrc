@@ -38,6 +38,7 @@ Bundle 'Command-T'
 Bundle 'EasyGrep'
 Bundle 'Gundo'
 Bundle 'Markdown'
+Bundle 'https://bitbucket.org/agr/ropevim'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -144,8 +145,8 @@ set list
 set listchars=tab:>-
 syntax on
 let g:load_doxygen_syntax=1
-"set foldmethod=syntax
-"set foldopen=all
+set foldmethod=syntax
+set foldopen=all
 set nofoldenable
 augroup aspect
     autocmd BufRead * highlight OverLength ctermbg=darkblue guibg=darkblue
@@ -271,6 +272,19 @@ inoremap { {<esc>:call InsertIfNoTrailingClosingChar("}")<cr>a
 " :g/^$/d
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" CONCEAL
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:tex_conceal="agm"
+
+function! ToggleConceal()
+    exec 'let newconceallevel = ' (2 - &conceallevel)
+    exec 'set conceallevel=' . newconceallevel
+    exec 'set conceallevel? '
+endfunction
+nmap <F8> :call ToggleConceal()<CR>
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "FILETYPE SPECIFIC
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 augroup filetypedetect
@@ -306,8 +320,5 @@ augroup END
 "LATEX
 augroup lang_latex
     autocmd FileType tex setlocal spell spelllang=en
-    set conceallevel=2
-    hi Conceal guibg=black guifg=white
-    let g:tex_conceal="adgm"
     "z= for suggestions
 augroup END
