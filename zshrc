@@ -180,6 +180,20 @@ cd () {
         fi
 }
 
+# suspend/reboot/poweroff via dbus (depends: consolekit, upower)
+suspend()
+{
+    dbus-send --print-reply --system --dest=org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.UPower.Suspend
+}
+reboot()
+{
+    dbus-send --system --print-reply --dest=org.freedesktop.ConsoleKit /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Restart
+}
+poweroff()
+{
+    dbus-send --system --print-reply --dest=org.freedesktop.ConsoleKit /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Stop
+}
+
 # Don't bug me with mails, I've already got notifications
 unset MAILCHECK
 
