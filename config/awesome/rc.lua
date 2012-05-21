@@ -2,6 +2,7 @@
 require("awful")
 require("awful.autofocus")
 require("awful.rules")
+require("awful.remote")
 -- Theme handling library
 require("beautiful")
 -- Notification library
