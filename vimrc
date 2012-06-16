@@ -297,8 +297,6 @@ augroup lang_c
 augroup END
 "C/C++
 augroup lang_cpp
-    autocmd FileType cpp set omnifunc=omni#cpp#complete#Main
-    autocmd FileType cpp let OmniCpp_MayCompleteScope = 0
     autocmd FileType cpp set makeprg=make\ -j3\ -s
     autocmd BufNewFile *.{hpp} execute "normal inewclasshpp"
     autocmd BufNewFile *.{cpp} execute "normal inewclasscpp"
