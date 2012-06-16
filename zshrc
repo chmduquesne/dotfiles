@@ -206,5 +206,5 @@ export WORKON_HOME=$HOME/.virtualenvs
 [[ -f /usr/bin/virtualenvwrapper.sh ]] && source /usr/bin/virtualenvwrapper.sh
 
 # various stuff
-export GUROBI_HOME=/opt/gurobi500//linux64/
+export GUROBI_HOME=/opt/gurobi500/linux64/
 export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
