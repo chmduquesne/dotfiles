@@ -183,6 +183,8 @@ set smartcase
 set incsearch
 set magic
 set hlsearch
+nnoremap N Nzz
+nnoremap n nzz
 "nnoremap <silent> <esc> :noh<return><esc>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
