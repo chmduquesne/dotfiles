@@ -1,0 +1,9 @@
+#!/bin/bash
+HOST=$(hostname)
+echo -n "
+HOST                        DEFAULT=${HOST}
+USER                        DEFAULT=${USER}
+XAUTHORITY                  DEFAULT=${XAUTHORITY}
+DISPLAY                     DEFAULT=${DISPLAY}
+DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
+" > ~/.pam_environment
