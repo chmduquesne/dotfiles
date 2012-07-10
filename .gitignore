@@ -1,0 +1,4 @@
+config/*
+themes/*
+vim/*
+virtualenvs/*

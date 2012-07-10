@@ -1,0 +1,6 @@
+.thumbnails/*
+.mozilla/firefox/*.default/Cache*
+.ssh/id_rsa*
+.ssh/authorized_keys
+.ssh/known_hosts
+.ssh/tmp/*
