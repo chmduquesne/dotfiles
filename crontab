@@ -3,8 +3,8 @@
 # at 5 in the morning
 #*   5 * * * pkill offlineimap
 # every hour
-0 * * * * DISPLAY=":0.0" gcalcli remind 240 'notify-send -t 300000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg "Calendar" \%s'
+0 * * * * . $HOME/.Xdbus && gcalcli remind 240 'notify-send -t 300000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg "Calendar" \%s'
 */10 * * * * michel pull > /tmp/TODO && mv /tmp/TODO ~/.TODO
-0 * * * * DISPLAY=":0.0" notify-send -t 10000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg TODO "$(cat ~/.TODO)"
-0 * * * * DISPLAY=":0.0" xfdesktop --reload
+0 * * * * . $HOME/.Xdbus && notify-send -t 10000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg TODO "$(cat ~/.TODO)"
 @hourly rsync -avz --delete --exclude-from=$HOME/.backup.exclude $HOME/ backup@ruecharlespeguy.dyndns.org:$USER@$HOST 2>&1 | logger
+* * * * * . $HOME/.Xdbus && notify-send "coucou"
