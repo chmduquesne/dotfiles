@@ -13,8 +13,8 @@ fi
 xrdb -load ~/.Xdefaults
 xmodmap ~/.Xmodmap
 
-# save X and dbus settings
-. ~/.bin/export_x_info
+# save X and dbus settings in pam_environment for crontab
+. ~/.bin/update_pam_environment
 
 # various programs
 urxvtd -q -o -f
