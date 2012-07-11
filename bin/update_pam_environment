@@ -1,6 +1,7 @@
 #!/bin/bash
 HOST=$(hostname)
 echo -n "
+PATH                        DEFAULT=${PATH}
 HOST                        DEFAULT=${HOST}
 USER                        DEFAULT=${USER}
 XAUTHORITY                  DEFAULT=${XAUTHORITY}
