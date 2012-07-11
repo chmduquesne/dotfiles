@@ -4,6 +4,7 @@
 #
 # crontab can use .pam_environment, so advantage is taken of that to set
 # dbus and X related variables.
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 
 # pull todo list from google
 */10 * * * *    michel pull > /tmp/TODO && mv /tmp/TODO ~/.TODO
