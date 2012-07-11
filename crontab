@@ -13,7 +13,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
 # gcalcli notifications
 @hourly         gcalcli remind 240 'notify-send -t 300000 -i /usr/share/icons/Humanity/mimes/48/stock_calendar.svg "Calendar" \%s'
 # backup
-@daily          . $HOME/.keychain/*-sh && rsync -avz --delete --exclude-from=$HOME/.backup.exclude $HOME/ backup@ruecharlespeguy.dyndns.org:$USER@$HOST 2>&1 | logger -i -t rsync-backup
+@daily          . $HOME/.keychain/*-sh && rsync -avz --delete --exclude-from=$HOME/.backup.exclude $HOME/ backup@ruecharlespeguy.dyndns.org:$USER@$HOST/latest 2>&1 | logger -i -t rsync-backup
 # mail sync
 #*/3 * * * * ~/.scripts/run_offlineimap.sh
 # kill mail sync that went bad

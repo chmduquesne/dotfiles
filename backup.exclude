@@ -5,3 +5,7 @@
 .ssh/known_hosts
 .ssh/tmp/*
 .sshfs/*
+.cache/*
+.macromedia/*
+.adobe/*
+.mozilla-backup/*
