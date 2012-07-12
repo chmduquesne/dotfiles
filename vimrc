@@ -139,7 +139,8 @@ let g:SuperTabRetainCompletionType = 0
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "ASPECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set number
+set showcmd
+set relativenumber
 set cursorline
 set list
 set listchars=tab:>-
@@ -153,6 +154,8 @@ augroup aspect
     autocmd BufRead * match OverLength /\%75v.*/
     autocmd BufRead * highlight RedundantSpaces ctermbg=red guibg=red
     autocmd BufRead * 2match RedundantSpaces /\s\+$\| \+\ze\t/
+    autocmd InsertEnter * set number
+    autocmd InsertLeave * set relativenumber
 augroup END
 if &t_Co == 256
     try
