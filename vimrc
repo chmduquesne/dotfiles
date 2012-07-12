@@ -38,7 +38,7 @@ Bundle 'Command-T'
 Bundle 'EasyGrep'
 Bundle 'Gundo'
 Bundle 'Markdown'
-Bundle 'https://bitbucket.org/agr/ropevim'
+Bundle 'neocomplcache'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -140,7 +140,7 @@ let g:SuperTabRetainCompletionType = 0
 "ASPECT
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set showcmd
-set relativenumber
+set number
 set cursorline
 set list
 set listchars=tab:>-
@@ -154,8 +154,6 @@ augroup aspect
     autocmd BufRead * match OverLength /\%75v.*/
     autocmd BufRead * highlight RedundantSpaces ctermbg=red guibg=red
     autocmd BufRead * 2match RedundantSpaces /\s\+$\| \+\ze\t/
-    autocmd InsertEnter * set number
-    autocmd InsertLeave * set relativenumber
 augroup END
 if &t_Co == 256
     try
