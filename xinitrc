@@ -1,12 +1,17 @@
 #!/bin/sh
 
+# if ~/.pam_environment is set, remove and relaunch clean
+if [ -f ~/.pam_environment ]; then
+    rm ~/.pam_environment
+    exec env -u DBUS_SESSION_BUS_ADDRESS sh ~/.xinitrc
+fi
+
 # trick to relaunch this script with dbus-launch
 if test -z "$DBUS_SESSION_BUS_ADDRESS" ; then
     exec dbus-launch --exit-with-session \
         sh ~/.xinitrc \
         1> ~/.cache/awesome/stdout \
         2> ~/.cache/awesome/stderr
-    exit 0 # should not be reached
 fi
 
 # apply X settings
