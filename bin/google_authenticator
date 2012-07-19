@@ -10,7 +10,7 @@ Just drop your secret in ~/.google_authenticator, like this:
 secret = jbswy3dpehpk3pxp
 
 TODO: handle the case when the local clock is out of sync. The app does
-this by grabbing the date from the http header responce of a GET request
+this by grabbing the date from the http header response of a GET request
 on https://www.google.com. See
 http://code.google.com/p/google-authenticator/source/browse/src/com/google/android/apps/authenticator/timesync/NetworkTimeProvider.java?repo=android
 """
