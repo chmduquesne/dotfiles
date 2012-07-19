@@ -1,0 +1,40 @@
+#!/usr/bin/python2
+"""
+Simple script to reproduce the google_authenticator behavior, from a
+shell. Modified flavour of
+http://stackoverflow.com/questions/8529265/google-authenticator-implementation-in-python
+
+Just drop your secret in ~/.google_authenticator, like this:
+
+[main]
+secret = jbswy3dpehpk3pxp
+
+TODO: handle the case when the local clock is out of sync. The app does
+this by grabbing the date from the http header responce of a GET request
+on https://www.google.com. See
+http://code.google.com/p/google-authenticator/source/browse/src/com/google/android/apps/authenticator/timesync/NetworkTimeProvider.java?repo=android
+"""
+
+import hmac, base64, struct, hashlib, time, ConfigParser, os.path
+
+def get_hotp_token(secret, intervals_no):
+    key = base64.b32decode(secret, casefold=True)
+    msg = struct.pack(">Q", intervals_no)
+    h = hmac.new(key, msg, hashlib.sha1).digest()
+    o = ord(h[19]) & 15
+    h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+    return h
+
+def get_totp_token(secret):
+    return get_hotp_token(secret, intervals_no=int(time.time())//30)
+
+def main():
+    """
+    """
+    config = ConfigParser.RawConfigParser()
+    config.read(os.path.expanduser('~/.google_authenticator'))
+    secret = config.get('main', 'secret')
+    print get_totp_token(secret)
+
+if __name__ == "__main__":
+    main()

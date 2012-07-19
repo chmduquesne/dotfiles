@@ -208,5 +208,6 @@ export WORKON_HOME=$HOME/.virtualenvs
 # various stuff
 export GUROBI_HOME=/opt/gurobi500/linux64/
 export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
+export PATH=${PATH}:${HOME}/.bin
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
