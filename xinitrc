@@ -30,8 +30,8 @@ udisks-glue &
 lxpanel &
 
 # automounted sshfs directories
-afuse -o mount_template="sshfs %r:/ %m" \
-      -o unmount_template="fusermount -u -z %m" \
-      ~/.sshfs
+#afuse -o mount_template="sshfs %r:/ %m" \
+#      -o unmount_template="fusermount -u -z %m" \
+#      ~/.sshfs
 
 awesome

@@ -1,19 +1,24 @@
 #!/usr/bin/python2
 """
-Simple script to reproduce the google_authenticator behavior, from a
-shell. Modified flavour of
+Simple script to generate tokens compatible with google_authenticator.
+Meant to work everywhere (only builtin dependencies). Modified from
 http://stackoverflow.com/questions/8529265/google-authenticator-implementation-in-python
 
 Just drop your secret in ~/.google_authenticator, like this:
 
-[main]
-secret = jbswy3dpehpk3pxp
+    [login@gmail.com]
+    secret = jbswy3dpehpk3pxp
 
-TODO: handle the case when the local clock is out of sync. The app does
-this by grabbing the date from the http header response of a GET request
-on https://www.google.com. See
-http://code.google.com/p/google-authenticator/source/browse/src/com/google/android/apps/authenticator/timesync/NetworkTimeProvider.java?repo=android
+    [another@yourdomain.tld]
+    secret = ozsxe6jam5swk2zb
+
+Getting your secret: https://accounts.google.com/SmsAuthConfig
+Then remove/replace, and grab it at QR-code flashing step.
 """
+#TODO: handle the case when the local clock is out of sync. The android
+#app does this by grabbing the date from the http header response of a GET
+#request on https://www.google.com. See
+#http://code.google.com/p/google-authenticator/source/browse/src/com/google/android/apps/authenticator/timesync/NetworkTimeProvider.java?repo=android
 
 import hmac, base64, struct, hashlib, time, ConfigParser, os.path
 
@@ -29,12 +34,11 @@ def get_totp_token(secret):
     return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
 def main():
-    """
-    """
     config = ConfigParser.RawConfigParser()
     config.read(os.path.expanduser('~/.google_authenticator'))
-    secret = config.get('main', 'secret')
-    print get_totp_token(secret)
+    for section in config.sections():
+        secret = config.get(section, 'secret')
+        print section, get_totp_token(secret)
 
 if __name__ == "__main__":
     main()
