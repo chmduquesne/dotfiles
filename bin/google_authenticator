@@ -14,6 +14,10 @@ Just drop your secret in ~/.google_authenticator, like this:
 
 Getting your secret: https://accounts.google.com/SmsAuthConfig
 Then remove/replace, and grab it at QR-code flashing step.
+
+The same can be achieved with http://www.nongnu.org/oath-toolkit/.
+    oathtool --totp --base32 jbswy3dpehpk3pxp
+    oathtool --totp --base32 ozsxe6jam5swk2zb
 """
 #TODO: handle the case when the local clock is out of sync. The android
 #app does this by grabbing the date from the http header response of a GET
