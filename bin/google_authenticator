@@ -1,9 +1,9 @@
 #!/usr/bin/python2
 """
 copyright 2011 Tomasz Jaskowski
-copyright 2011 Christophe-Marie Duquesne
+copyright 2012 Christophe-Marie Duquesne
 
-This snippet comes under the LGPL
+License: LGPL
 
 Simple script to generate tokens compatible with google_authenticator.
 Meant to work everywhere (only builtin dependencies). Modified from
