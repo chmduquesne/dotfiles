@@ -7,6 +7,6 @@ map -count -modes=n,v <C-F6> <count>y:!~/.scripts/supergenpass<Space>'<S-Insert>
 map -count -modes=n,v h <count>gT
 map -count -modes=n,v l <count>gt
 map -count -modes=i <C-F6> <Esc><C-F6>
-set defsearch=startpage-https
+"set defsearch=startpage-https
 
 " vim: set ft=pentadactyl:
