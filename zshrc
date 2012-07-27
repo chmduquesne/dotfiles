@@ -18,9 +18,9 @@ if which tmux 2>&1 >/dev/null; then
     done
 fi
 
-# KEYCHAIN+SSH-AGENT
+# GPG/SSH AGENTS
 if which keychain 2>&1 >/dev/null; then
-    eval $(keychain --eval --agents ssh -Q --quiet id_rsa)
+    eval $(keychain --eval -Q --quiet id_rsa 13F0A395)
 fi
 
 # VCS
