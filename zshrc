@@ -136,6 +136,18 @@ if test -z $CRONTABCMD; then
     $CRONTABCMD ~/.crontab
 fi
 
+wrap(){
+    ok="Everything seems fine."
+    ko="Process returned an error."
+
+    $1 "${@[2,-1]}"
+    retval=$?
+
+    [ $retval = 0 ] && text=$ok || text=$ko
+    notify-send "$1 finished" $text
+    return $retval
+}
+
 # MAKE
 if test $DISPLAY && which notify-send 2>&1 >/dev/null; then
     if test -z ${MAKECMD}; then
@@ -143,16 +155,7 @@ if test $DISPLAY && which notify-send 2>&1 >/dev/null; then
     fi
     make()
     {
-        ICON_OK=/usr/share/icons/Humanity/actions/32/gtk-info.svg
-        ICON_KO=/usr/share/icons/Humanity/actions/32/process-stop.svg
-        TEXT_OK="Everything seems fine."
-        TEXT_KO="Process returned an error"
-
-        if $MAKECMD $@; then
-            notify-send -i ${ICON_OK} "make finished" $TEXT_OK
-        else
-            notify-send -i ${ICON_KO} "make finished" $TEXT_KO
-        fi
+        wrap $MAKECMD $@
     }
 fi
 
@@ -166,18 +169,6 @@ irssi()
         TMUX="" tmux new -d -s irssi /usr/bin/irssi
         tmux switch -t irssi
     fi
-}
-
-# SMART CD
-cd () {
-        if [[ -f ${1} ]]
-        then
-                [[ ! -e ${1:h} ]] && return 1
-                print "Correcting ${1} to ${1:h}"
-                builtin cd ${1:h}
-        else
-                builtin cd ${1}
-        fi
 }
 
 # suspend/reboot/poweroff via dbus (depends: consolekit, upower)
