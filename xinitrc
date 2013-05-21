@@ -1,5 +1,7 @@
 #!/bin/sh
 
+[ -f ~/.xprofile ] && source ~/.xprofile
+
 # if ~/.pam_environment is set, remove and relaunch clean
 if [ -f ~/.pam_environment ]; then
     rm ~/.pam_environment
@@ -24,14 +26,17 @@ xmodmap ~/.Xmodmap
 # various programs
 urxvtd -q -o -f
 xscreensaver -no-splash &
-wicd-client -t &
-xfce4-power-manager &
+netmon &
+tidybattery &
+volwheel &
 udisks-glue &
 lxpanel &
+skype &
+export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 
 # automounted sshfs directories
 #afuse -o mount_template="sshfs %r:/ %m" \
 #      -o unmount_template="fusermount -u -z %m" \
 #      ~/.sshfs
 
-awesome
+exec awesome

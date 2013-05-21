@@ -39,6 +39,7 @@ Bundle 'EasyGrep'
 Bundle 'Gundo'
 Bundle 'Markdown'
 Bundle 'neocomplcache'
+Bundle 'abolish.vim'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -124,6 +125,7 @@ set autoindent
 set smartindent
 filetype plugin indent on
 set shiftwidth=4
+set shiftround
 set tabstop=4
 set softtabstop=4
 set expandtab
@@ -202,7 +204,7 @@ xmap <silent> ,r <plug>EgMapReplaceSelection_R
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "MOUSE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set mouse=a
+set mouse=nvch
 inoremap <LeftDrag> <LeftMouse>
 "xnoremap <MiddleMouse> <Nop>
 nnoremap <C-LeftMouse>
@@ -214,7 +216,8 @@ set virtualedit=block
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "CLIPBOARD
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set clipboard=unnamed
+set clipboard=unnamed,unnamedplus
+"set clipboard=unnamed
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "CODE BROWSING
@@ -256,6 +259,7 @@ let mapleader = ","
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "PARENTHESIS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set showmatch
 function! InsertIfNoTrailingClosingChar(closingChar)
     let trailing = strpart(getline("."), col("."))
     let regexp = '\S' . a:closingChar

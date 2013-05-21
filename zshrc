@@ -19,9 +19,53 @@ if which tmux 2>&1 >/dev/null; then
 fi
 
 # GPG/SSH AGENTS
-if which keychain 2>&1 >/dev/null; then
-    eval $(keychain --eval -Q --quiet id_rsa 13F0A395)
-fi
+#if which keychain 2>&1 >/dev/null; then
+#    eval $(keychain --eval -Q --quiet id_rsa 13F0A395)
+#fi
+
+# DETECT SSH
+#is_ssh(){
+#    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+#        return 0
+#    else
+#        case $(ps -o comm= -p $PPID) in
+#            sshd|*/sshd) return 0;;
+#        esac
+#    fi
+#    return 1
+#}
+
+# LAST COMMAND
+NOTIFY_CMD="notify-send"
+LAST_CMD="history -1 | sed 's/^ [0-9]\+  //'"
+
+notify_last_cmd(){
+    retval=$?
+
+    ok="Terminated normally"
+    ko="Returned an error"
+
+    [ $retval = 0 ] && text=$ok || text=$ko
+    $NOTIFY_CMD "$USER@$HOST" "\n$(eval $LAST_CMD)\n\n$text\nRuntime: $_ELAPSED_TIME seconds."
+
+    return $retval
+}
+
+REPORTTIME=3
+
+# Called just before executing the command line
+preexec() {
+    _CMD_START_TIME=$SECONDS
+    _ELAPSED_TIME=0
+}
+
+# Called just before printing the prompt
+precmd () {
+    (( _CMD_START_TIME >= 0 )) && _ELAPSED_TIME=$(( SECONDS-_CMD_START_TIME ))
+    _CMD_START_TIME=-1
+    (( _ELAPSED_TIME >= $REPORTTIME )) && notify_last_cmd
+    vcs_info
+}
 
 # VCS
 autoload -U promptinit
@@ -31,7 +75,6 @@ zstyle ':vcs_info:*' unstagedstr '%F{yellow}>%f'
 zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
-precmd () { vcs_info }
 setopt prompt_subst
 PROMPT='%m:%~/$vcs_info_msg_0_ %# '
 #RPROMPT='$vcs_info_msg_0_'
@@ -136,29 +179,6 @@ if test -z $CRONTABCMD; then
     $CRONTABCMD ~/.crontab
 fi
 
-wrap(){
-    ok="Everything seems fine."
-    ko="Process returned an error."
-
-    $1 "${@[2,-1]}"
-    retval=$?
-
-    [ $retval = 0 ] && text=$ok || text=$ko
-    notify-send "$1 finished" $text
-    return $retval
-}
-
-# MAKE
-if test $DISPLAY && which notify-send 2>&1 >/dev/null; then
-    if test -z ${MAKECMD}; then
-        export MAKECMD=$(which make)
-    fi
-    make()
-    {
-        wrap $MAKECMD $@
-    }
-fi
-
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)
 irssi()
@@ -174,15 +194,19 @@ irssi()
 # suspend/reboot/poweroff via dbus (depends: consolekit, upower)
 suspend()
 {
-    dbus-send --print-reply --system --dest=org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.UPower.Suspend
+    systemctl suspend
 }
 reboot()
 {
-    dbus-send --system --print-reply --dest=org.freedesktop.ConsoleKit /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Restart
+    systemctl reboot
 }
 poweroff()
 {
-    dbus-send --system --print-reply --dest=org.freedesktop.ConsoleKit /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Stop
+    systemctl poweroff
+}
+logout()
+{
+    echo "awesome.quit()" | awesome-client
 }
 
 # Don't bug me with mails, I've already got notifications
@@ -194,7 +218,7 @@ export PYTHONSTARTUP=~/.pythonrc
 # python virtualenv
 export WORKON_HOME=$HOME/.virtualenvs
 [[ -f /etc/bash_completion.d/virtualenvwrapper ]] && source /etc/bash_completion.d/virtualenvwrapper
-[[ -f /usr/bin/virtualenvwrapper.sh ]] && source /usr/bin/virtualenvwrapper.sh
+[[ -f /usr/bin/virtualenvwrapper_lazy.sh ]] && source /usr/bin/virtualenvwrapper_lazy.sh
 
 # various stuff
 export GUROBI_HOME=/opt/gurobi500/linux64/
