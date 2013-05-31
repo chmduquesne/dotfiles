@@ -17,18 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from sys import argv
-from optparse import OptionParser
+from sys import exit, argv
 from base64 import b64encode
 from hashlib import md5
 from urlparse import urlparse
 from subprocess import Popen, PIPE
 import re
-
-parser = OptionParser(usage=u'Usage: %prog [options] <domain>')
-parser.add_option('-l', '--length', '--len', type='int', help=u'Length of generated password')
-parser.add_option('-d', '--disable-subdomain-removal', dest='subdomain', action='store_false')
-parser.set_defaults(length=10, subdomain=True)
 
 digits = re.compile('[0-9]')
 upper = re.compile('[A-Z]')
@@ -57,27 +51,12 @@ def strip_domain(domain):
         return u'.'.join(parts[-3:])
     return u'.'.join(parts[-2:])
 
-options, args = parser.parse_args()
+if len(argv) != 3:
+    print ("Usage: supergenpass <password> <domain>")
+    exit(1)
 
-if len(args) < 1:
-    parser.error(u'Please specify domain')
-elif len(args) > 1:
-    parser.error(u'Extra arguments')
-
-domain = args[0].decode('utf-8')
-master = None
-
-askpass = Popen(['ssh-askpass', 'supergenpass','master', 'password'],
-        stdout=PIPE)
-master = askpass.communicate()[0].decode('utf-8').replace('\n','')
-
-if options.subdomain:
-    domain = strip_domain(domain)
-password = generate(master, domain, options.length)
-
-try:
-    xclip = Popen(['xclip', '-i'], stdin=PIPE)
-    xclip.communicate(password)
-    code = xclip.wait()
-except OSError:
-    print password
+master = argv[1].decode()
+domain = argv[2].decode()
+domain = strip_domain(domain)
+password = generate(master, domain, 10)
+print password

@@ -27,12 +27,15 @@ xmodmap ~/.Xmodmap
 urxvtd -q -o -f
 xscreensaver -no-splash &
 netmon &
-tidybattery &
 volwheel &
 udisks-glue &
 lxpanel &
 skype &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
+weatherboy -l 12723082 > ~/.cache/weatherboy_stderr &
+tidybattery > ~/.cache/tidybattery_stderr &
+#/home/me/.bin/hpass-tray &
+/home/me/.bin/supergenpass-tray &
 
 # automounted sshfs directories
 #afuse -o mount_template="sshfs %r:/ %m" \

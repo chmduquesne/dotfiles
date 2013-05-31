@@ -143,10 +143,22 @@ export EDITOR=vim
 alias vi='vim'
 alias sudo='nocorrect sudo'
 
+# BROWSER
+export BROWSER=firefox
+
 # MANPAGES
 export PAGER='less'
 export LESSCHARSET=UTF-8
-alias manlat='LESSCHARSET=latin9 man -C /etc/man-latin1.conf'
+man() {
+    env LESS_TERMCAP_mb=$(printf "\e[1;31m") \
+    LESS_TERMCAP_md=$(printf "\e[1;31m") \
+    LESS_TERMCAP_me=$(printf "\e[0m") \
+    LESS_TERMCAP_se=$(printf "\e[0m") \
+    LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
+    LESS_TERMCAP_ue=$(printf "\e[0m") \
+    LESS_TERMCAP_us=$(printf "\e[1;32m") \
+    man "$@"
+}
 
 # MPD
 export MPD_PORT=6600
