@@ -1,7 +1,7 @@
 # STARTX
 # if DISPLAY is not set, propose to start X11 (before starting tmux)
-if [[ -z "$DISPLAY" ]] && [[ $(tty) = "/dev/tty1" ]]; then
-    echo "press enter to start X, CTRL-C to abort."
+if [ -z "$DISPLAY" ] && [ $(tty) = "/dev/tty1" ]; then
+    echo "Press any key to start X (CTRL-C to abort)."
     read anykey
     startx
 fi
@@ -9,25 +9,21 @@ fi
 # TMUX
 if which tmux 2>&1 >/dev/null; then
     # if no session is started, start a new session
-    if test -z ${TMUX}; then
+    if [ -z "$TMUX" ]; then
         tmux
     fi
     # when quitting tmux, try to attach
-    while test -z ${TMUX}; do
+    while [ -z "$TMUX" ]; do
         tmux attach || break
     done
 fi
-
-# GPG/SSH AGENTS
-#if which keychain 2>&1 >/dev/null; then
-#    eval $(keychain --eval -Q --quiet id_rsa 13F0A395)
-#fi
 
 # DETECT SSH
 #is_ssh(){
 #    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
 #        return 0
 #    else
+#        # parent pid of the shell is sshd
 #        case $(ps -o comm= -p $PPID) in
 #            sshd|*/sshd) return 0;;
 #        esac
@@ -35,39 +31,39 @@ fi
 #    return 1
 #}
 
-# LAST COMMAND
-NOTIFY_CMD="notify-send"
-LAST_CMD="history -1 | sed 's/^ [0-9]\+  //'"
-
-notify_last_cmd(){
-    retval=$?
-
-    ok="Terminated normally"
-    ko="Returned an error"
-
-    [ $retval = 0 ] && text=$ok || text=$ko
-    $NOTIFY_CMD "$USER@$HOST" "\n$(eval $LAST_CMD)\n\n$text\nRuntime: $_ELAPSED_TIME seconds."
-
-    return $retval
-}
-
+# NOTIFICATION UPON COMMAND COMPLETION
 REPORTTIME=3
+if [ -x `which notify-send` ]; then
+    notify-hook(){
+        [ $? -eq 0 ] && _URGENCY="low" || _URGENCY="critical"
+        _CMD=$(eval "history -1 | sed 's/^ [0-9]\+  //'")
+        _RUNTIME="Runtime: $_ELAPSED_TIME seconds"
+        notify-send -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
+    }
 
-# Called just before executing the command line
-preexec() {
-    _CMD_START_TIME=$SECONDS
-    _ELAPSED_TIME=0
-}
+    notify-preexec-hook() {
+        _CMD_START_TIME=$SECONDS
+        _ELAPSED_TIME=0
+    }
 
-# Called just before printing the prompt
-precmd () {
-    (( _CMD_START_TIME >= 0 )) && _ELAPSED_TIME=$(( SECONDS-_CMD_START_TIME ))
-    _CMD_START_TIME=-1
-    (( _ELAPSED_TIME >= $REPORTTIME )) && notify_last_cmd
-    vcs_info
-}
+    notify-precmd-hook() {
+        (( _CMD_START_TIME >= 0 )) && \
+            _ELAPSED_TIME=$(( SECONDS-_CMD_START_TIME ))
+        _CMD_START_TIME=-1
+        (( _ELAPSED_TIME >= $REPORTTIME )) && notify-hook
+    }
+fi
+
+[ -z $preexec_functions ] && preexec_functions=()
+preexec_functions=($preexec_functions notify-preexec-hook)
+
+[ -z $precmd_functions ] && precmd_functions=()
+precmd_functions=($precmd_functions notify-precmd-hook)
+
 
 # VCS
+[ -z $precmd_functions ] && precmd_functions=()
+precmd_functions=($precmd_functions vcs_info)
 autoload -U promptinit
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' stagedstr '%F{green}>%f'
@@ -125,11 +121,7 @@ bindkey -e
 eval "`dircolors -b`"
 export LS_COLORS='di=38;5;108:fi=00:*svn-commit.tmp=31:ln=38;5;116:ex=38;5;186'
 alias ls='ls --color=always'
-alias dir='dir --color=always'
-alias vdir='vdir --color=always'
 alias grep='grep --color=always'
-alias fgrep='fgrep --color=always'
-alias egrep='egrep --color=always'
 alias less='less -R'
 
 # LS
@@ -174,15 +166,12 @@ alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
 # GDB
 alias gdb='gdb -q'
 
-# FIX JAVA
-#export GDK_NATIVE_WINDOWS=true
-
 # CRONTAB
-if test -z $CRONTABCMD; then
+if [ -z $CRONTABCMD ]; then
     export CRONTABCMD=$(which crontab)
     crontab()
     {
-        if [[ $@ == "-e" ]]; then
+        if [ $@ == "-e" ]; then
             vim ~/.crontab && $CRONTABCMD ~/.crontab
         else
             $CRONTABCMD $@
@@ -229,8 +218,8 @@ export PYTHONSTARTUP=~/.pythonrc
 
 # python virtualenv
 export WORKON_HOME=$HOME/.virtualenvs
-[[ -f /etc/bash_completion.d/virtualenvwrapper ]] && source /etc/bash_completion.d/virtualenvwrapper
-[[ -f /usr/bin/virtualenvwrapper_lazy.sh ]] && source /usr/bin/virtualenvwrapper_lazy.sh
+[ -f /etc/bash_completion.d/virtualenvwrapper ] && source /etc/bash_completion.d/virtualenvwrapper
+[ -f /usr/bin/virtualenvwrapper_lazy.sh ] && source /usr/bin/virtualenvwrapper_lazy.sh
 
 # various stuff
 export GUROBI_HOME=/opt/gurobi500/linux64/
