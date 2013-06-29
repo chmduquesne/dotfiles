@@ -170,7 +170,7 @@ if [ -z $CRONTABCMD ]; then
     export CRONTABCMD=$(which crontab)
     crontab()
     {
-        if [ $@ == "-e" ]; then
+        if [ "$@" = "-e" ]; then
             vim ~/.crontab && $CRONTABCMD ~/.crontab
         else
             $CRONTABCMD $@
@@ -207,6 +207,11 @@ poweroff()
 logout()
 {
     echo "awesome.quit()" | awesome-client
+}
+
+uuid()
+{
+    lsblk -no UUID $1
 }
 
 # Don't bug me with mails, I've already got notifications

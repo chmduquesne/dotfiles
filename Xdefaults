@@ -31,7 +31,7 @@ urxvt*colorUL:                          #86a2be
 urxvt*urgentOnBell:                     true
 urxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback
 urxvt*matcher.button:                   1
-urxvt*urlLauncher:                      firefox
+urxvt*url-launcher:                     firefox
 urxvt*transparent:                      false
 urxvt*shading:                          75
 !urxvt*fading:                           2%
