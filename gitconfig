@@ -10,3 +10,5 @@
     serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
     graphviz = "!f() { echo 'digraph git {' ; git log --pretty='format:  %h -> { %p }' \"$@\" | sed 's/[0-9a-f][0-9a-f]*/\"&\"/g' ; echo '}'; }; f | dot -Txlib"
     blendinparent = "!VISUAL='sed -i 2s/pick/squash/' git rebase -i $1^"
+[push]
+    default = matching

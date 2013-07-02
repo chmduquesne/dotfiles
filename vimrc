@@ -35,11 +35,12 @@ Bundle 'toggle_option'
 Bundle 'recover.vim'
 Bundle 'clang-complete'
 Bundle 'Command-T'
-Bundle 'EasyGrep'
 Bundle 'Gundo'
 Bundle 'Markdown'
 Bundle 'neocomplcache'
 Bundle 'abolish.vim'
+Bundle 'sleuth.vim'
+Bundle 'greplace.vim'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
