@@ -33,12 +33,13 @@ fi
 
 # NOTIFICATION UPON COMMAND COMPLETION
 REPORTTIME=3
-if [ -x `which notify-send` ]; then
+notify=$(which notify-send 2>/dev/null)
+if [ -n $notify -a -x $notify ]; then
     notify-hook(){
         [ $? -eq 0 ] && _URGENCY="low" || _URGENCY="critical"
         _CMD=$(eval "history -1 | sed 's/^ [0-9]\+  //'")
         _RUNTIME="Runtime: $_ELAPSED_TIME seconds"
-        notify-send -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
+        $notify -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
     }
 
     notify-preexec-hook() {
@@ -156,7 +157,15 @@ export MPD_PORT=6600
 export MPD_HOST='localhost'
 
 # SCANIMAGE
-alias scanimage='/usr/bin/scanimage --resolution 130'
+#alias scanimage='/usr/bin/scanimage --resolution 130'
+scanimage() {
+    PNM=$(mktemp --suffix=.pnm)
+    JPG=$(date +%Y-%m-%d-%H:%M:%S)_scan.jpg
+    /usr/bin/scanimage > $PNM
+    # size max = 2048 x 2048 = 4194304
+    convert -resize @4194304 $PNM $JPG
+    rm $PNM
+}
 
 # XRANDR
 #alias multiscreen='xrandr --output VGA --above LVDS'
