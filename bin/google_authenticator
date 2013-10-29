@@ -1,0 +1,36 @@
+#! /bin/sh
+# -*- mode: sh -*-
+#
+# Requires:
+# - yad (replacement for zenity) [1]
+# - xclip (X11 clipboard command line interface) [2]
+# - notify-send (notification popups) [3]
+# - oathtool from oath-toolkit [4]
+# - gnome-keyring-query (gnome-keyring command line interface) [5]
+#
+# [1]: https://code.google.com/p/yad/
+# [2]: http://xclip.sourceforge.net/
+# [3]: https://developer.gnome.org/notification-spec/
+# [4]: http://www.nongnu.org/oath-toolkit/
+# [5]: http://www.gentoo-wiki.info/HOWTO_Use_gnome-keyring_to_store_SSH_passphrases#Part_1:_gnome-keyring-query
+#
+#
+# usage: ./google_authenticator
+
+function authenticate() {
+    # Get the current date from google servers
+    now=$(curl -s -I https://google.com | grep Date | sed 's/^Date: //g')
+    # Get the key from gnome keyring
+    key=$(gnome-keyring-query get google_authenticator 2>/dev/null)
+    # Compute the token
+    otp=$(oathtool --now="$now" --totp --base32 $key)
+    # Put it in the keyboard and notify via a popup
+    echo -n $otp | xclip -i
+    notify-send "authenticate one-time-token copied to clipboard"
+}
+
+export -f authenticate
+
+yad --notification --kill-parent --listen \
+    --image="dialog-password" --text="" \
+    --command="sh -c authenticate"

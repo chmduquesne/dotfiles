@@ -158,12 +158,20 @@ export MPD_HOST='localhost'
 
 # SCANIMAGE
 #alias scanimage='/usr/bin/scanimage --resolution 130'
+#scanimage() {
+#    PNM=$(mktemp --suffix=.pnm)
+#    JPG=$(date +%Y-%m-%d-%H:%M:%S)_scan.jpg
+#    /usr/bin/scanimage > $PNM
+#    # size max = 2048 x 2048 = 4194304
+#    convert -resize @4194304 $PNM $JPG
+#    rm $PNM
+#}
 scanimage() {
     PNM=$(mktemp --suffix=.pnm)
-    JPG=$(date +%Y-%m-%d-%H:%M:%S)_scan.jpg
+    PDF=$(date +%Y-%m-%d-%H:%M:%S)_scan.pdf
     /usr/bin/scanimage > $PNM
     # size max = 2048 x 2048 = 4194304
-    convert -resize @4194304 $PNM $JPG
+    convert -resize @4194304 $PNM $PDF
     rm $PNM
 }
 

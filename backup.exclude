@@ -9,4 +9,14 @@
 .macromedia/*
 .adobe/*
 .mozilla-backup/*
+.local/share/Steam/*
+.local/share/icons/
+.local/share/wineprefixes/
+.mozilla
+.nv
+.tor-browser-en
+.wine
+.local/share/Trash
+code/abs/
+documents/games
 videos/*

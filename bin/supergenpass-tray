@@ -1,0 +1,102 @@
+#! /bin/sh
+# -*- mode: sh -*-
+#
+# Requires:
+# - yad (replacement for zenity) [1]
+# - xclip (X11 clipboard command line interface) [2]
+# - notify-send (notification popups) [3]
+# - gnome-keyring-query (gnome-keyring command line interface) [4]
+#
+# [1]: https://code.google.com/p/yad/
+# [2]: http://xclip.sourceforge.net/
+# [3]: https://developer.gnome.org/notification-spec/
+# [4]: http://www.gentoo-wiki.info/HOWTO_Use_gnome-keyring_to_store_SSH_passphrases#Part_1:_gnome-keyring-query
+#
+#
+# usage: ./supergenpass-tray [--popup]
+# If run with --popup, the program just invokes a popup, then exits
+
+POPUP=0
+[ x"$1" == x"--popup" ] && POPUP=1
+
+function supergenpass() {
+    /home/me/.bin/supergenpass $1 $2
+}
+
+# Gets what's in the clipboard, assuming it is an url, and return the
+# domain part
+function get_domain() {
+    xclip -o
+}
+
+# Sleeps 30 seconds, then check if the argument is in the clipboard. If it
+# is the case, empties the clipboard. Meant to be called as background.
+function sleep_and_forget {
+    sleep 30
+    if [ x$(xclip -o) == x"$1" ]; then
+        echo -n | xclip -i
+        notify-send "Password removed from clipboard after 30s"
+    fi
+}
+
+function popup() {
+    # Prefill the fields
+    domain=$(get_domain)
+    master=$(gnome-keyring-query get supergenpass 2>/dev/null)
+
+    save_msg="Save master password in gnome-keyring"
+    if [ ! -z $master ]; then
+        save_msg="Overwrite master password in gnome-keyring"
+    fi
+
+    # Launch
+    yad --center --width 300 --title="supergenpass" \
+        --image="lock" --form --separator="$IFS" \
+        --field="Master Password":H \
+        --field="Url" \
+        --field="$save_msg":CHK \
+        "$master" "$domain" "FALSE"
+}
+
+function run_once () {
+    # launch popup
+    answer=$(popup)
+
+    # leave if cancel was hit
+    [ $? -ne 0 ] && return
+
+    # there should be 3 tokens (master password, domain, save_in_keyring)
+    set $answer
+    if [ $# -ne 3 ]; then
+        notify-send "Sorry, supergenpass does not accept empty domain/password"
+        return
+    fi
+    master=$1
+    domain=$2
+    save_in_keyring=$3
+
+    # save the password if told to do so
+    if [ x$save_in_keyring == x"TRUE" ]; then
+        echo -n $master | gnome-keyring-query set supergenpass
+        notify-send "Saved master password to gnome-keyring"
+    fi
+
+    # generate
+    generated_password=$(supergenpass $master $domain)
+    echo -n $generated_password | xclip -i
+    notify-send "Password for $domain copied to clipboard for 30 seconds"
+
+    # forget after 30s
+    sleep_and_forget $generated_password &
+}
+
+if [ $POPUP -eq 1 ]; then
+    run_once
+    exit
+fi
+
+export -f run_once get_domain popup supergenpass sleep_and_forget
+
+yad --notification --kill-parent --listen \
+    --image=locked --text="" \
+    --command="sh -c run_once"

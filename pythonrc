@@ -27,14 +27,14 @@ else:
     atexit.register(readline.write_history_file, history_file)
 
 # pretty printing
-import sys
-import pprint
-def purty_print(value):
-    if value is not None:
-        try:
-            import __builtin__
-            __builtin__._ = value
-        except ImportError:
-            __builtins__._ = value
-        pprint.pprint(value)
-sys.displayhook = purty_print
+#import sys
+#import pprint
+#def purty_print(value):
+#    if value is not None:
+#        try:
+#            import __builtin__
+#            __builtin__._ = value
+#        except ImportError:
+#            __builtins__._ = value
+#        pprint.pprint(value)
+#sys.displayhook = purty_print

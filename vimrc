@@ -17,7 +17,6 @@ Bundle 'Zenburn'
 Bundle 'pydoc.vim'
 Bundle 'cecutil'
 Bundle 'netrw.vim'
-Bundle 'vis'
 Bundle 'visualstar.vim'
 Bundle 'Vimball'
 Bundle 'LargeFile'
@@ -34,13 +33,13 @@ Bundle 'rename.vim'
 Bundle 'toggle_option'
 Bundle 'recover.vim'
 Bundle 'clang-complete'
-Bundle 'Command-T'
 Bundle 'Gundo'
 Bundle 'Markdown'
 Bundle 'neocomplcache'
 Bundle 'abolish.vim'
 Bundle 'sleuth.vim'
 Bundle 'greplace.vim'
+Bundle 'header.vim'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -192,15 +191,9 @@ nnoremap n nzz
 "nnoremap <silent> <esc> :noh<return><esc>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"EASYGREP PLUGIN
+"GSEARCH PLUGIN
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let g:EasyGrepRecursive = 1
-let g:EasyGrepOptionPrefix = ''
-let g:EasyGrepMode = 2
-map <silent> ,* <plug>EgMapGrepCurrentWord_V
-xmap <silent> ,* <plug>EgMapGrepSelection_V
-map <silent> ,r <plug>EgMapReplaceCurrentWord_R
-xmap <silent> ,r <plug>EgMapReplaceSelection_R
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "MOUSE
@@ -327,4 +320,9 @@ augroup END
 augroup lang_latex
     autocmd FileType tex setlocal spell spelllang=en
     "z= for suggestions
+augroup END
+
+"MARKDOWN
+augroup lang_markdown
+    autocmd Filetype markdown let g:trim_blank=0
 augroup END
