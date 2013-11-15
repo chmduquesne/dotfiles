@@ -39,7 +39,6 @@ Bundle 'neocomplcache'
 Bundle 'abolish.vim'
 Bundle 'sleuth.vim'
 Bundle 'greplace.vim'
-Bundle 'header.vim'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS

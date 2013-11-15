@@ -20,7 +20,7 @@ POPUP=0
 [ x"$1" == x"--popup" ] && POPUP=1
 
 function supergenpass() {
-    /home/me/.bin/supergenpass $1 $2
+    ~/.bin/supergenpass $1 $2
 }
 
 # Gets what's in the clipboard, assuming it is an url, and return the

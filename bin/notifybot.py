@@ -85,7 +85,7 @@ def new_config(path):
             "user": user,
             "password": password,
             }, indent = 4, fp = f)
-    print("config saved in %s" % config_path)
+    print("config saved in %s" % path)
 
 def main():
     """Read the config, creating it if necessary, then loop on (re)starting the bot"""

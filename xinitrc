@@ -37,19 +37,19 @@ netmon &
 volwheel &
 udisks-glue &
 lxpanel &
-#skype &
+##skype &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 weatherboy -l 12723082 1>~/.cache/weatherboy.out 2>~/.cache/weatherboy.err &
-tidybattery 1>~/.cache/tidybattery.out 2>~/.cache/tidybattery.err &
-#/home/me/.bin/hpass-tray &
-/home/me/.bin/supergenpass-tray &
-/home/me/.bin/google_authenticator &
-/home/me/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
-
-# automounted sshfs directories
-#afuse -o mount_template="sshfs %r:/ %m" \
-#      -o unmount_template="fusermount -u -z %m" \
-#      ~/.sshfs
+#tidybattery 1>~/.cache/tidybattery.out 2>~/.cache/tidybattery.err &
+##/home/me/.bin/hpass-tray &
+~/.bin/supergenpass-tray &
+#~/.bin/google_authenticator &
+~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
+#
+## automounted sshfs directories
+##afuse -o mount_template="sshfs %r:/ %m" \
+##      -o unmount_template="fusermount -u -z %m" \
+##      ~/.sshfs
 
 [ -f ~/.fehbg ] && (sleep 5 && sh ~/.fehbg)&
 exec awesome 1>~/.cache/awesome/stdout 2>~/.cache/awesome/stderr
