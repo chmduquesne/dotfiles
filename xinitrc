@@ -31,6 +31,7 @@ DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 " > ~/.pam_environment
 
 # various programs
+xmodmap ~/.Xmodmap
 urxvtd -q -o -f
 xscreensaver -no-splash &
 netmon &
