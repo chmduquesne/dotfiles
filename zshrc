@@ -79,6 +79,11 @@ PROMPT='%n@%M:%~/$vcs_info_msg_0_ %# '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
 
+# OPEN FILES
+command_not_found_handler() {
+    xdg-open $1
+}
+
 # MIME
 autoload -U zsh-mime-setup
 zsh-mime-setup

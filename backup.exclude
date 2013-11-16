@@ -17,6 +17,8 @@
 .tor-browser-en
 .wine
 .local/share/Trash
+.mail
+.offlineimap
 code/abs/
 documents/games
 videos/*
