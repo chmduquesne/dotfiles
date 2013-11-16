@@ -1,0 +1,8 @@
+text/plain; cat %s; copiousoutput
+text/html; w3m -I %{charset} -dump %s; nametemplate=%s.html; copiousoutput
+application/*; xdg-open %s;
+audio/*; xdg-open %s;
+image/*; xdg-open %s;
+model/*; xdg-open %s;
+video/*; xdg-open %s;
+x-scheme-handler/*; xdg-open %s;

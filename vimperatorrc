@@ -1,0 +1,9 @@
+"3.8 (created: 2013/10/13 18:08:56)
+
+map <silent> l gt
+map <silent> h gT
+map <C-z> <S-Esc>
+map <C-v> <S-Esc>
+source! /home/chmd/.vimperatorrc.local
+
+" vim: set ft=vimperator:
