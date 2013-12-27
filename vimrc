@@ -39,6 +39,8 @@ Bundle 'neocomplcache'
 Bundle 'abolish.vim'
 Bundle 'sleuth.vim'
 Bundle 'greplace.vim'
+Bundle 'junegunn/seoul256.vim'
+Bundle 'altercation/vim-colors-solarized'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
