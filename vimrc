@@ -41,6 +41,7 @@ Bundle 'sleuth.vim'
 Bundle 'greplace.vim'
 Bundle 'junegunn/seoul256.vim'
 Bundle 'altercation/vim-colors-solarized'
+Bundle 'smokey42/lighttpd-syntax.git'
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
