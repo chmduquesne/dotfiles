@@ -2,8 +2,8 @@
 
 map <silent> l gt
 map <silent> h gT
-map <C-z> <S-Esc>
-map <C-v> <S-Esc>
+map <C-z> i
+map <C-v> i
 source! /home/chmd/.vimperatorrc.local
 
 " vim: set ft=vimperator:
