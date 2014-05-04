@@ -33,14 +33,14 @@ DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 # various programs
 xmodmap ~/.Xmodmap
 urxvtd -q -o -f
-xscreensaver -no-splash &
+xautolock -locker i3lock &
 netmon &
-volwheel &
+pasystray &
 udisks-glue &
 lxpanel &
 ##skype &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
-weatherboy -l 12723082 1>~/.cache/weatherboy.out 2>~/.cache/weatherboy.err &
+weatherboy -l 12723082 > ~/.weatherboy.loc 2>&1 &
 #tidybattery 1>~/.cache/tidybattery.out 2>~/.cache/tidybattery.err &
 ##/home/me/.bin/hpass-tray &
 ~/.bin/supergenpass-tray &
@@ -53,4 +53,4 @@ weatherboy -l 12723082 1>~/.cache/weatherboy.out 2>~/.cache/weatherboy.err &
 ##      ~/.sshfs
 
 [ -f ~/.fehbg ] && (sleep 5 && sh ~/.fehbg)&
-exec awesome 1>~/.cache/awesome/stdout 2>~/.cache/awesome/stderr
+exec i3 > ~/.wm.log 2>&1
