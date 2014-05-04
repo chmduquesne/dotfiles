@@ -34,6 +34,7 @@ urxvt*matcher.button:                   1
 urxvt*url-launcher:                     firefox
 urxvt*transparent:                      false
 urxvt*shading:                          75
+urxvt*dynamicColors                     on
 !urxvt*fading:                           2%
 !urxvt*fadeColor:                        grey
 !urxvt*depth:                            32
