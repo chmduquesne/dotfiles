@@ -37,10 +37,10 @@ fi
 # NOTIFICATION UPON COMMAND COMPLETION
 REPORTTIME=3
 notify=$(which notify-send 2>/dev/null)
-if [ -n $notify -a -x $notify ]; then
+if [ -n "$notify" -a -x "$notify" ]; then
     notify-hook(){
         [ $? -eq 0 ] && _URGENCY="low" || _URGENCY="critical"
-        _CMD=$(eval "history -1 | sed 's/^ [0-9]\+  //'")
+        _CMD=$(eval "history -1 | sed 's/\ \+[0-9]\+\ \+//'")
         _RUNTIME="Runtime: $_ELAPSED_TIME seconds"
         $notify -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
     }
@@ -80,18 +80,13 @@ PROMPT='%n@%M:%~/$vcs_info_msg_0_ %# '
 alias -s git='git clone'
 
 # OPEN FILES
-command_not_found_handler() {
-    xdg-open $1
-}
+[ -f /usr/share/doc/pkgfile/command-not-found.zsh ] && source /usr/share/doc/pkgfile/command-not-found.zsh
 
 # MIME
 autoload -U zsh-mime-setup
 zsh-mime-setup
 
 # KEYS
-# fix keys for zsh
-# create a zkbd compatible hash;
-# to add other keys to this hash, see: man 5 terminfo
 typeset -A key
 
 key[Backspace]=${terminfo[kbs]}
@@ -106,18 +101,21 @@ key[Down]=${terminfo[kcud1]}
 key[Left]=${terminfo[kcub1]}
 key[Right]=${terminfo[kcuf1]}
 
-# setup key accordingly
 [ -n ${key[Backspace]} ] && bindkey "${key[Backspace]}" backward-delete-char
 [ -n ${key[Insert]}    ] && bindkey "${key[Insert]}"    overwrite-mode
 [ -n ${key[Home]}      ] && bindkey "${key[Home]}"      beginning-of-line
-[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}"    up-line-or-history
+[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}" history-beginning-search-backward
 [ -n ${key[Delete]}    ] && bindkey "${key[Delete]}"    delete-char
 [ -n ${key[End]}       ] && bindkey "${key[End]}"       end-of-line
-[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}"  down-line-or-history
+[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}" history-beginning-search-forward
 [ -n ${key[Up]}        ] && bindkey "${key[Up]}"        up-line-or-search
 [ -n ${key[Left]}      ] && bindkey "${key[Left]}"      backward-char
 [ -n ${key[Down]}      ] && bindkey "${key[Down]}"      down-line-or-search
 [ -n ${key[Right]}     ] && bindkey "${key[Right]}"     forward-char
+
+# or
+#[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}"    up-line-or-history
+#[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}"  down-line-or-history
 
 # Finally, make sure the terminal is in application mode, when zle is
 # active. Only then are the values from $terminfo valid.
@@ -265,6 +263,11 @@ uuid()
     lsblk -no UUID $1
 }
 
+sqlite()
+{
+    python -c "import apsw;apsw.main()" -init ~/.sqliterc $@
+}
+
 # Don't bug me with mails, I've already got notifications
 unset MAILCHECK
 
@@ -274,7 +277,7 @@ export PYTHONSTARTUP=~/.pythonrc
 # python virtualenv
 export WORKON_HOME=$HOME/.virtualenvs
 [ -f /etc/bash_completion.d/virtualenvwrapper ] && source /etc/bash_completion.d/virtualenvwrapper
-[ -f /usr/bin/virtualenvwrapper_lazy.sh ] && source /usr/bin/virtualenvwrapper_lazy.sh
+[ -f /usr/bin/virtualenvwrapper_lazy.sh ] && source /usr/bin/virtualenvwrapper_lazy.sh && source /usr/bin/virtualenvwrapper.sh
 
 # various stuff
 export GUROBI_HOME=/opt/gurobi500/linux64/
