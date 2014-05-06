@@ -42,7 +42,7 @@ xautolock -locker i3lock &
 netmon &
 pasystray &
 udisks-glue &
-lxpanel &
+pidgin &
 ##skype &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 weatherboy -l 12723082 > ~/.weatherboy.loc 2>&1 &
