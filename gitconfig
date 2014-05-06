@@ -8,3 +8,5 @@
     co = checkout
 [push]
     default = matching
+[url "https://"]
+    insteadOf = git://
