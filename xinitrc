@@ -13,7 +13,7 @@ if [ -d /etc/X11/xinit/xinitrc.d ]; then
 fi
 
 # set the extra screens
-[ -f ~/.xprofile ] && source ~/.xprofile
+[ -f ~/.screenlayout/arandr.sh ] && source ~/.screenlayout/arandr.sh
 
 # apply X settings
 xrdb -load ~/.Xdefaults
@@ -29,6 +29,11 @@ XAUTHORITY                  DEFAULT=${XAUTHORITY}
 DISPLAY                     DEFAULT=${DISPLAY}
 DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 " > ~/.pam_environment
+
+# if we are in a virtualbox environment, launch the relevant VBoxClient
+# commands
+[ -f /usr/bin/VBoxClient ] && VBoxClient --clipboard &
+[ -f /usr/bin/VBoxClient ] && VBoxClient --display &
 
 # various programs
 xmodmap ~/.Xmodmap
