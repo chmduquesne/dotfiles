@@ -1,47 +1,51 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"FAST SCROLLING
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set lazyredraw
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "git clone http://github.com/gmarik/vundle.git ~/.vim/vundle.git
-set runtimepath+=~/.vim/vundle.git/
-call vundle#rc()
-Bundle 'matchit.zip'
-Bundle 'DrawIt'
-Bundle 'Align'
-Bundle 'AnsiEsc.vim'
-Bundle 'Zenburn'
-Bundle 'pydoc.vim'
-Bundle 'cecutil'
-Bundle 'netrw.vim'
-Bundle 'visualstar.vim'
-Bundle 'Vimball'
-Bundle 'LargeFile'
-Bundle 'SuperTab-continued.'
-Bundle 'The-NERD-tree'
-Bundle 'surround.vim'
-Bundle 'file-line'
-Bundle 'repeat.vim'
-Bundle 'snipMate'
-Bundle 'CTAGS-Highlighting'
-Bundle 'Tag-Signature-Balloons'
-Bundle 'hexHighlight.vim'
-Bundle 'rename.vim'
-Bundle 'toggle_option'
-Bundle 'recover.vim'
-Bundle 'clang-complete'
-Bundle 'Gundo'
-Bundle 'Markdown'
-Bundle 'neocomplcache'
-Bundle 'abolish.vim'
-Bundle 'sleuth.vim'
-Bundle 'greplace.vim'
-Bundle 'junegunn/seoul256.vim'
-Bundle 'altercation/vim-colors-solarized'
-Bundle 'smokey42/lighttpd-syntax.git'
+set nocompatible
+filetype off
+set runtimepath+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+Plugin 'gmarik/Vundle.vim'
+Plugin 'matchit.zip'
+Plugin 'DrawIt'
+Plugin 'Align'
+Plugin 'AnsiEsc.vim'
+Plugin 'Zenburn'
+Plugin 'pydoc.vim'
+Plugin 'cecutil'
+Plugin 'netrw.vim'
+Plugin 'visualstar.vim'
+Plugin 'Vimball'
+Plugin 'LargeFile'
+Plugin 'ajh17/VimCompletesMe'
+Plugin 'The-NERD-tree'
+Plugin 'file-line'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-repeat'
+Plugin 'CTAGS-Highlighting'
+Plugin 'Tag-Signature-Balloons'
+Plugin 'hexHighlight.vim'
+Plugin 'rename.vim'
+Plugin 'toggle_option'
+Plugin 'recover.vim'
+Plugin 'clang-complete'
+Plugin 'Gundo'
+Plugin 'tpope/vim-markdown'
+Plugin 'tpope/vim-abolish'
+Plugin 'tpope/vim-sleuth'
+Plugin 'greplace.vim'
+Plugin 'junegunn/seoul256.vim'
+Plugin 'altercation/vim-colors-solarized'
+Plugin 'smokey42/lighttpd-syntax.git'
+Plugin 'tpope/vim-rsi'
+call vundle#end()            " required
+filetype plugin indent on
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"FAST SCROLLING
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+set lazyredraw
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -103,7 +107,6 @@ set autoread
 set hidden
 set nobackup
 set wildignore+=*.o,*.class,*.ps,*.dvi
-set nocompatible
 let g:trim_blank=1
 augroup load_save
     " When editing a file, always jump to the last known cursor position
@@ -125,7 +128,6 @@ augroup END
 set joinspaces
 set autoindent
 set smartindent
-filetype plugin indent on
 set shiftwidth=4
 set shiftround
 set tabstop=4
@@ -137,8 +139,6 @@ set formatoptions+=t
 nmap <F2> :Toggle paste<CR>
 nmap <F6> :Toggle spell<CR>
 nmap Q <Nop>
-let g:SuperTabDefaultCompletionType = 'context'
-let g:SuperTabRetainCompletionType = 0
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "ASPECT
