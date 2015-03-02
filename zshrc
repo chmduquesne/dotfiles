@@ -1,6 +1,8 @@
 # UTF8
 export LANG=en_US.UTF-8
 
+export PULSE_LATENCY_MSEC=60
+
 # STARTX
 # if DISPLAY is not set, propose to start X11 (before starting tmux)
 if [ -z "$DISPLAY" ] && [ $(tty) = "/dev/tty1" ]; then

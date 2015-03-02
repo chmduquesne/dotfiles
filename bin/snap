@@ -1,0 +1,19 @@
+#!/bin/bash
+
+SNAPDIR=/home/me/backups/me@xps-14z
+
+if [ -d "$1" ]; then
+  SNAPDIR="$1"
+fi
+
+MINCHANGES=100
+COUNT=0
+LOGFILE=${SNAPDIR}/rsync.log
+
+[ -f ${LOGFILE} ] && COUNT=$(wc -l ${LOGFILE} | cut -d" " -f1)
+
+if [ ${COUNT} -gt ${MINCHANGES} ]; then
+  DATETAG=$(date +%Y-%m-%d)
+  cp -al ${SNAPDIR}/latest ${SNAPDIR}/${DATETAG}
+  mv ${LOGFILE} ${SNAPDIR}/${DATETAG}
+fi

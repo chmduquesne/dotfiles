@@ -1,11 +1,10 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"git clone http://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+"git clone http://github.com/gmarik/vundle.git ~/.vim/vundle.git
 set nocompatible
 filetype off
 set runtimepath+=~/.vim/bundle/Vundle.vim
-
 call vundle#begin()
 Plugin 'gmarik/Vundle.vim'
 Plugin 'matchit.zip'
@@ -21,9 +20,9 @@ Plugin 'Vimball'
 Plugin 'LargeFile'
 Plugin 'ajh17/VimCompletesMe'
 Plugin 'The-NERD-tree'
-Plugin 'surround.vim'
 Plugin 'file-line'
-Plugin 'repeat.vim'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-repeat'
 Plugin 'CTAGS-Highlighting'
 Plugin 'Tag-Signature-Balloons'
 Plugin 'hexHighlight.vim'
@@ -32,16 +31,15 @@ Plugin 'toggle_option'
 Plugin 'recover.vim'
 Plugin 'clang-complete'
 Plugin 'Gundo'
-Plugin 'Markdown'
-Plugin 'abolish.vim'
-Plugin 'sleuth.vim'
+Plugin 'tpope/vim-markdown'
+Plugin 'tpope/vim-abolish'
+Plugin 'tpope/vim-sleuth'
 Plugin 'greplace.vim'
 Plugin 'junegunn/seoul256.vim'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'smokey42/lighttpd-syntax.git'
-Plugin 'derekwyatt/vim-scala'
-call vundle#end()
-
+Plugin 'tpope/vim-rsi'
+call vundle#end()            " required
 filetype plugin indent on
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -136,8 +134,6 @@ set formatoptions+=t
 nmap <F2> :Toggle paste<CR>
 nmap <F6> :Toggle spell<CR>
 nmap Q <Nop>
-let g:SuperTabDefaultCompletionType = 'context'
-let g:SuperTabRetainCompletionType = 0
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "FAST SCROLLING

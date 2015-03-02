@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while true; do
+    eval $(xdotool getmouselocation --shell 2>/dev/null)
+    xdotool mousemove $((X+1)) $((Y+1))
+    xdotool mousemove $X $Y
+    sleep $((4*60))
+done

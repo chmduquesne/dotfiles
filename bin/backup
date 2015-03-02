@@ -1,0 +1,8 @@
+#!/bin/bash
+
+SRC="$HOME/"
+DST="me@chmd.fr:backups/$USER@$HOST/latest"
+OPTS="-avz --delete --exclude-from=$HOME/.backup.exclude"
+LOGCMD="ssh me@chmd.fr cat >> backups/$USER@$HOST/rsync.log"
+
+rsync $OPTS $SRC $DST | $LOGCMD
