@@ -42,8 +42,8 @@ xautolock -locker i3lock &
 netmon &
 pasystray &
 udisks-glue &
-pidgin &
 ##skype &
+shutter --min_at_startup &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 weatherboy -l 12723082 > ~/.weatherboy.loc 2>&1 &
 #tidybattery 1>~/.cache/tidybattery.out 2>~/.cache/tidybattery.err &
