@@ -280,8 +280,7 @@ export WORKON_HOME=$HOME/.virtualenvs
 [ -f /usr/bin/virtualenvwrapper_lazy.sh ] && source /usr/bin/virtualenvwrapper_lazy.sh && source /usr/bin/virtualenvwrapper.sh
 
 # various stuff
-export GUROBI_HOME=/opt/gurobi500/linux64/
-export LD_LIBRARY_PATH=/usr/local/lib/coin/:${LD_LIBRARY_PATH}
-export PATH=${PATH}:${HOME}/.bin
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
+export GOPATH=~/code/golang
+export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin
