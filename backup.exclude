@@ -9,9 +9,7 @@
 .macromedia/*
 .adobe/*
 .mozilla-backup/*
-.local/share/Steam/*
-.local/share/icons/
-.local/share/wineprefixes/
+.local/share/*
 .mozilla
 .nv
 .tor-browser-en
