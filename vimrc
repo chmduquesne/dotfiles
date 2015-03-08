@@ -18,7 +18,6 @@ Plugin 'netrw.vim'
 Plugin 'visualstar.vim'
 Plugin 'Vimball'
 Plugin 'LargeFile'
-Plugin 'ajh17/VimCompletesMe'
 Plugin 'The-NERD-tree'
 Plugin 'file-line'
 Plugin 'tpope/vim-surround'
@@ -39,6 +38,8 @@ Plugin 'junegunn/seoul256.vim'
 Plugin 'altercation/vim-colors-solarized'
 Plugin 'smokey42/lighttpd-syntax.git'
 Plugin 'tpope/vim-rsi'
+Plugin 'fatih/vim-go'
+Plugin 'Valloric/YouCompleteMe'
 call vundle#end()            " required
 filetype plugin indent on
 
@@ -113,7 +114,6 @@ augroup load_save
     autocmd BufWritePre *
                 \ if g:trim_blank == 1 |
                 \     %smagic/\s\+$//e |
-                \     retab            |
                 \ endif
 augroup END
 
