@@ -217,18 +217,18 @@ alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
 alias gdb='gdb -q'
 
 # CRONTAB
-if [ -z $CRONTABCMD ]; then
-    export CRONTABCMD=$(which crontab)
-    crontab()
-    {
-        if [ "$@" = "-e" ]; then
-            vim ~/.crontab && $CRONTABCMD ~/.crontab
-        else
-            $CRONTABCMD $@
-        fi
-    }
-    $CRONTABCMD ~/.crontab
-fi
+#if [ -z $CRONTABCMD ]; then
+#    export CRONTABCMD=$(which crontab)
+#    crontab()
+#    {
+#        if [ "$@" = "-e" ]; then
+#            vim ~/.crontab && $CRONTABCMD ~/.crontab
+#        else
+#            $CRONTABCMD $@
+#        fi
+#    }
+#    $CRONTABCMD ~/.crontab
+#fi
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)

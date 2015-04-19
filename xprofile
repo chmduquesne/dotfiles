@@ -1,0 +1,47 @@
+# set the extra screens
+[ -f ~/.screenlayout/arandr.sh ] && source ~/.screenlayout/arandr.sh
+
+# apply X settings
+setxkbmap -layout us -variant intl
+xrdb -load ~/.Xdefaults
+xmodmap ~/.Xmodmap
+xautolock -locker i3lock &
+
+# save X and dbus settings in pam_environment (this makes them available
+# to cron)
+echo -n "
+PATH                        DEFAULT=${PATH}
+HOST                        DEFAULT=$(hostname)
+USER                        DEFAULT=${USER}
+XAUTHORITY                  DEFAULT=${XAUTHORITY}
+DISPLAY                     DEFAULT=${DISPLAY}
+DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
+" > ~/.pam_environment
+
+# if we are in a virtualbox environment, launch the relevant VBoxClient
+# commands
+[ -f /usr/bin/VBoxClient ] && VBoxClient --clipboard &
+[ -f /usr/bin/VBoxClient ] && VBoxClient --display &
+
+# various programs
+urxvtd -q -o -f
+netmon &
+pasystray &
+devmon --exec-on-drive ".bin/mount-notify %d %f %l" &
+telegram &
+skype &
+shutter --min_at_startup &
+export $(gnome-keyring-daemon -c secrets,ssh,gpg)
+batterymon &
+
+~/.bin/supergenpass-tray &
+#/home/me/.bin/hpass-tray &
+#~/.bin/google_authenticator &
+#~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
+
+## automounted sshfs directories
+#afuse -o mount_template="sshfs %r:/ %m" \
+#      -o unmount_template="fusermount -u -z %m" \
+#      ~/.sshfs
+
+[ -f ~/.fehbg ] && (sleep 5 && sh ~/.fehbg)&
