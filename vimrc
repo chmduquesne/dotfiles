@@ -36,7 +36,6 @@ Plugin 'tpope/vim-sleuth'
 Plugin 'greplace.vim'
 Plugin 'junegunn/seoul256.vim'
 Plugin 'altercation/vim-colors-solarized'
-Plugin 'smokey42/lighttpd-syntax.git'
 Plugin 'tpope/vim-rsi'
 Plugin 'fatih/vim-go'
 Plugin 'Valloric/YouCompleteMe'
@@ -191,6 +190,11 @@ set hlsearch
 nnoremap N Nzz
 nnoremap n nzz
 "nnoremap <silent> <esc> :noh<return><esc>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"VIM-GO
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+let g:go_fmt_command = "goimports"
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "GSEARCH PLUGIN
