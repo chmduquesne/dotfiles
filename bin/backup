@@ -1,8 +1,15 @@
 #!/bin/bash
 
-SRC="$HOME/"
-DST="me@chmd.fr:backups/$USER@$HOST/latest"
+BACKUPS="backups/$USER@$HOST"
+LOGFILE="$BACKUPS/rsync.log"
+MINCHANGES=100
 OPTS="-avz --delete --exclude-from=$HOME/.backup.exclude"
-LOGCMD="ssh me@chmd.fr tee backups/$USER@$HOST/rsync.log"
+LOGCMD="ssh me@chmd.fr tee $LOGFILE"
 
-rsync $OPTS $SRC $DST | $LOGCMD
+rsync $OPTS "$HOME/" "me@chmd.fr:$BACKUPS/latest" | $LOGCMD
+
+if [ $(ssh me@chmd.fr "wc -l $LOGFILE | cut -d' ' -f1") -gt $MINCHANGES ]; then
+    DATE=$(date +%Y-%m-%d)
+    ssh me@chmd.fr "cp -al $BACKUPS/latest $BACKUPS/$DATE"
+    ssh me@chmd.fr "mv $LOGFILE $BACKUPS/$DATE"
+fi

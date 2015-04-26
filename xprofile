@@ -25,9 +25,11 @@ DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 
 # various programs
 urxvtd -q -o -f
-netmon &
+#netmon &
+connman-ui-gtk &
 pasystray &
-devmon --exec-on-drive ".bin/mount-notify %d %f %l" &
+devmon --exec-on-drive ".bin/mount-notify %d %f %l" \
+       --exec-on-unmount ".bin/unmount-notify %d %f %l" &
 telegram &
 skype &
 shutter --min_at_startup &
