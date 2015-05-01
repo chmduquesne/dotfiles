@@ -255,10 +255,6 @@ poweroff()
 {
     systemctl poweroff
 }
-logout()
-{
-    echo "awesome.quit()" | awesome-client
-}
 
 uuid()
 {
@@ -284,5 +280,5 @@ export WORKON_HOME=$HOME/.virtualenvs
 # various stuff
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
-export GOPATH=~/code/golang
+export GOPATH=${HOME}/code/golang
 export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin

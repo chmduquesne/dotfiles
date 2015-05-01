@@ -28,8 +28,8 @@ urxvtd -q -o -f
 #netmon &
 connman-ui-gtk &
 pasystray &
-devmon --exec-on-drive ".bin/mount-notify %d %f %l" \
-       --exec-on-unmount ".bin/unmount-notify %d %f %l" &
+udiskie --tray &
+~/.bin/encbackmon &
 telegram &
 skype &
 shutter --min_at_startup &

@@ -1,7 +1,0 @@
-#!/bin/sh
-
-mountpoint="$1"
-device="$2"
-label="$3"
-
-notify-send "$USER@$HOST" "unmounted $device from $mountpoint"
