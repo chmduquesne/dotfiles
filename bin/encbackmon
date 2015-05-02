@@ -2,14 +2,23 @@
 
 uuid=fa7aa25e-c196-413d-b300-29c88fac79e0
 
+backup(){
+    logfile=$(mktemp)
+    notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
+    rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
+        $HOME/ /media/$uuid > $logfile
+    n=$(tail -n +2 $logfile | cut -d/ -f1 | wc -l)
+    d=$(tail -n +2 $logfile | cut -d/ -f1 | uniq | tr '\n' ' ')
+    notify-send -u critical "Backup finished." "$n files updated in $d"
+    rm $logfile
+}
+
 inotifywait --monitor --event create --format '%f' /media/ | \
     while read file; do
         case $file in
             $uuid)
-                notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
                 sleep 1
-                rsync -az --delete --exclude-from=$HOME/.backup.exclude $HOME/ /media/$uuid
-                notify-send -u critical "Backup finished." "You can eject the device"
+                backup
                 ;;
             *)
                 ;;

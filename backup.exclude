@@ -17,6 +17,7 @@
 .local/share/Trash
 .mail
 .offlineimap
+.steam
 code/abs/
 documents/games
 videos/*
