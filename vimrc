@@ -1,7 +1,7 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"git clone http://github.com/gmarik/vundle.git ~/.vim/vundle.git
+"git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 set nocompatible
 filetype off
 set runtimepath+=~/.vim/bundle/Vundle.vim
@@ -39,8 +39,8 @@ Plugin 'altercation/vim-colors-solarized'
 Plugin 'tpope/vim-rsi'
 Plugin 'fatih/vim-go'
 Plugin 'Valloric/YouCompleteMe'
+Plugin 'tpope/vim-sensible'
 call vundle#end()            " required
-filetype plugin indent on
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
@@ -95,10 +95,7 @@ let g:netrw_hide=1
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 nmap ,s :source ~/.vimrc<CR>
 nmap ,v :e ~/.vimrc<CR>
-nmap mk :mksession!<CR>
-nmap ml :so Session.vim<CR>
 cmap w!! %!sudo tee > /dev/null %
-set autoread
 set hidden
 set nobackup
 set wildignore+=*.o,*.class,*.ps,*.dvi
@@ -127,7 +124,6 @@ set shiftround
 set tabstop=4
 set softtabstop=4
 set expandtab
-set backspace=indent,eol,start
 set textwidth=74
 set formatoptions+=t
 nmap <F2> :Toggle paste<CR>
@@ -146,18 +142,10 @@ set showcmd
 set number
 set cursorline
 set list
-set listchars=tab:>-
-syntax on
 let g:load_doxygen_syntax=1
 set foldmethod=syntax
 set foldopen=all
 set nofoldenable
-"augroup aspect
-"    autocmd BufRead * highlight OverLength ctermbg=darkblue guibg=darkblue
-"    autocmd BufRead * match OverLength /\%75v.*/
-"    autocmd BufRead * highlight RedundantSpaces ctermbg=red guibg=red
-"    autocmd BufRead * 2match RedundantSpaces /\s\+$\| \+\ze\t/
-"augroup END
 if &t_Co == 256
     try
         colorscheme zenburn
@@ -171,12 +159,8 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "STATUS BAR
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set ruler
-set laststatus=2
-set showcmd
 set showmode
 set ch=1
-set wildmenu
 set wildmode=list:longest,full
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -184,7 +168,6 @@ set wildmode=list:longest,full
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set ignorecase
 set smartcase
-set incsearch
 set magic
 set hlsearch
 nnoremap N Nzz
