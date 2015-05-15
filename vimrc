@@ -142,6 +142,11 @@ set showcmd
 set number
 set cursorline
 set list
+set listchars=tab:>-,trail:\ ,extends:>,precedes:<
+augroup aspect
+    autocmd BufRead * highlight SpecialKey ctermbg=darkblue guibg=darkblue
+    autocmd BufRead * highlight NonText    ctermbg=darkblue guibg=darkblue
+augroup end
 let g:load_doxygen_syntax=1
 set foldmethod=syntax
 set foldopen=all
