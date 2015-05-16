@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# This file was useful with slim. With lightdm, xprofile is the one to use
+
 # Avoid reading DBUS_SESSION_BUS_ADDRESS from pam_environment, since it
 # comes from a previous session
 unset DBUS_SESSION_BUS_ADDRESS
