@@ -86,7 +86,7 @@ map <silent> <space> :Toggle g:quickfix_state<CR>:doautocmd tabs TabEnter<CR>
 "BROWSING (NETRW-NERDTree)
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let NERDTreeHijackNetrw=0
-let g:netrw_browsex_viewer="gnome-open"
+let g:netrw_browsex_viewer="xdg-open"
 let g:netrw_liststyle=3
 let g:netrw_hide=1
 
