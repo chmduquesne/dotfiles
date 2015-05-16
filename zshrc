@@ -1,15 +1,8 @@
 # UTF8
 export LANG=en_US.UTF-8
 
+# PULSEAUDIO
 export PULSE_LATENCY_MSEC=60
-
-# STARTX
-# if DISPLAY is not set, propose to start X11 (before starting tmux)
-if [ -z "$DISPLAY" ] && [ $(tty) = "/dev/tty1" ]; then
-    echo "Press any key to start X (CTRL-C to abort)."
-    read anykey
-    startx
-fi
 
 # TMUX
 if which tmux 2>&1 >/dev/null; then
@@ -190,16 +183,6 @@ man() {
 export MPD_PORT=6600
 export MPD_HOST='localhost'
 
-# SCANIMAGE
-#alias scanimage='/usr/bin/scanimage --resolution 130'
-#scanimage() {
-#    PNM=$(mktemp --suffix=.pnm)
-#    JPG=$(date +%Y-%m-%d-%H:%M:%S)_scan.jpg
-#    /usr/bin/scanimage > $PNM
-#    # size max = 2048 x 2048 = 4194304
-#    convert -resize @4194304 $PNM $JPG
-#    rm $PNM
-#}
 scanimage() {
     PNM=$(mktemp --suffix=.pnm)
     PDF=$(date +%Y-%m-%d-%H:%M:%S)_scan.pdf
@@ -208,10 +191,6 @@ scanimage() {
     convert -resize @4194304 $PNM $PDF
     rm $PNM
 }
-
-# XRANDR
-#alias multiscreen='xrandr --output VGA --above LVDS'
-alias multiscreen='xrandr --output HDMI1 --right-of VGA1'
 
 # GDB
 alias gdb='gdb -q'
@@ -271,11 +250,6 @@ unset MAILCHECK
 
 # PYTHON
 export PYTHONSTARTUP=~/.pythonrc
-
-# python virtualenv
-export WORKON_HOME=$HOME/.virtualenvs
-[ -f /etc/bash_completion.d/virtualenvwrapper ] && source /etc/bash_completion.d/virtualenvwrapper
-[ -f /usr/bin/virtualenvwrapper_lazy.sh ] && source /usr/bin/virtualenvwrapper_lazy.sh && source /usr/bin/virtualenvwrapper.sh
 
 # various stuff
 export DEBEMAIL="chmd@chmd.fr"
