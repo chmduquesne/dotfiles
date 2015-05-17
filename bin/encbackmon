@@ -1,20 +1,47 @@
 #!/bin/bash
 
-uuid=fa7aa25e-c196-413d-b300-29c88fac79e0
+# devices with special actions
+icybox=fa7aa25e-c196-413d-b300-29c88fac79e0
+lexar=d8a65fc1-c21f-4f79-b2c7-b50a10bb5f46
+lego=
 
 backup(){
-    sleep 1
-    notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
-    report=$(rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
-        $HOME/ /media/$uuid | tail -n 2)
-    notify-send -u critical "Backup finished." "$report"
+    # Always ask, in case somebody forges a disk with the same uuid
+    zenity --question --text "Start a backup?" --timeout 5
+    if [ $? = 0 ]; then
+        notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
+        report=$(rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
+            "$HOME/" "$1" | tail -n 2)
+        notify-send -u critical "Backup finished." "$report"
+    fi
 }
 
-inotifywait --monitor --event create --format '%f' /media/ | \
+savesecrets(){
+    # Always ask, in case somebody forges a disk with the same uuid
+    zenity --question --text "Save secrets?" --timeout 5
+    if [ $? = 0 ]; then
+        mkdir -p $1/ssh $1/keyrings
+        cp .ssh/id_rsa $1/ssh/$(hostname)
+        cp .ssh/id_rsa.pub $1/ssh/$(hostname).pub
+        cp .local/share/keyrings/login.keyring \
+            $1/keyrings/login_$(hostname)_$(date +%Y-%m-%d).keyring
+        cp .local/share/keyrings/user.keystore \
+            $1/keyrings/user_$(hostname)_$(date +%Y-%m-%d).keystore
+        notify-send "Secrets saved."
+    fi
+}
+
+inotifywait --monitor --event create --format '%f' /dev/disk/by-uuid/ | \
     while read file; do
         case $file in
-            $uuid)
-                backup
+            $icybox)
+                backup /media/icybox
+                ;;
+            $lexar)
+                savesecrets /media/lexar
+                ;;
+            $lego)
+                savesecrets /media/lego
                 ;;
             *)
                 ;;
