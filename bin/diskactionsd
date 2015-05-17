@@ -3,7 +3,7 @@
 # devices with special actions
 icybox=fa7aa25e-c196-413d-b300-29c88fac79e0
 lexar=d8a65fc1-c21f-4f79-b2c7-b50a10bb5f46
-lego=
+lego=218a86d7-6025-44a8-9c68-816d5f15495c
 
 backup(){
     # Always ask, in case somebody forges a disk with the same uuid
