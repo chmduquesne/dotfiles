@@ -29,7 +29,7 @@ urxvtd -q -o -f
 connman-ui-gtk &
 pasystray &
 udiskie --tray &
-~/.bin/encbackmon &
+~/.bin/diskactionsd &
 telegram &
 skype &
 shutter --min_at_startup &
