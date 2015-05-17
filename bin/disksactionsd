@@ -7,7 +7,7 @@ lego=218a86d7-6025-44a8-9c68-816d5f15495c
 
 backup(){
     # Always ask, in case somebody forges a disk with the same uuid
-    zenity --question --text "Start a backup?" --timeout 5
+    zenity --question --text "Start a backup?" --timeout 30
     if [ $? = 0 ]; then
         notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
         report=$(rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
@@ -18,7 +18,7 @@ backup(){
 
 savesecrets(){
     # Always ask, in case somebody forges a disk with the same uuid
-    zenity --question --text "Save secrets?" --timeout 5
+    zenity --question --text "Save secrets?" --timeout 30
     if [ $? = 0 ]; then
         mkdir -p $1/ssh $1/keyrings
         cp .ssh/id_rsa $1/ssh/$(hostname)
