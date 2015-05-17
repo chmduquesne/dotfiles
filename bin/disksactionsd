@@ -7,28 +7,34 @@ lego=218a86d7-6025-44a8-9c68-816d5f15495c
 
 backup(){
     # Always ask, in case somebody forges a disk with the same uuid
-    zenity --question --text "Start a backup?" --timeout 30
-    if [ $? = 0 ]; then
-        notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
-        report=$(rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
-            "$HOME/" "$1" | tail -n 2)
-        notify-send -u critical "Backup finished." "$report"
-    fi
+    zenity --question --text "Start a backup?" --timeout 30 || return
+
+    notify-send -u critical "Backup starting!" "Do NOT unplug the disk"
+    report=$(rsync -avz --delete --exclude-from=$HOME/.backup.exclude \
+        "$HOME/" "$1" | tail -n 2)
+    notify-send -u critical "Backup finished." "$report"
 }
 
 savesecrets(){
     # Always ask, in case somebody forges a disk with the same uuid
-    zenity --question --text "Save secrets?" --timeout 30
-    if [ $? = 0 ]; then
-        mkdir -p $1/ssh $1/keyrings
-        cp .ssh/id_rsa $1/ssh/$(hostname)
-        cp .ssh/id_rsa.pub $1/ssh/$(hostname).pub
-        cp .local/share/keyrings/login.keyring \
-            $1/keyrings/login_$(hostname)_$(date +%Y-%m-%d).keyring
-        cp .local/share/keyrings/user.keystore \
-            $1/keyrings/user_$(hostname)_$(date +%Y-%m-%d).keystore
-        notify-send "Secrets saved."
-    fi
+    zenity --question --text "Save secrets?" --timeout 30 || return
+
+    mkdir -p $1/ssh $1/keyrings/backups/$(hostname)
+
+    cp .ssh/id_rsa $1/ssh/$(hostname)
+    cp .ssh/id_rsa.pub $1/ssh/$(hostname).pub
+
+    cp .local/share/keyrings/login.keyring \
+        $1/keyrings/backups/$(hostname)/login_$(date +%Y-%m-%d).keyring
+    cp .local/share/keyrings/user.keystore \
+        $1/keyrings/backups/$(hostname)/user_$(date +%Y-%m-%d).keystore
+
+    cp .local/share/keyrings/login.keyring \
+        $1/keyrings/login.keyring
+    cp .local/share/keyrings/user.keystore \
+        $1/keyrings/user.keystore
+
+    notify-send "Secrets saved."
 }
 
 inotifywait --monitor --event create --format '%f' /dev/disk/by-uuid/ | \
