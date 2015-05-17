@@ -33,6 +33,8 @@ savesecrets(){
 
 inotifywait --monitor --event create --format '%f' /dev/disk/by-uuid/ | \
     while read file; do
+        # sleep enough for the kernel to finish setting up the fs
+        sleep 1
         case $file in
             $icybox)
                 backup /media/icybox
