@@ -256,3 +256,5 @@ export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
 export GOPATH=${HOME}/code/golang
 export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin
+
+[ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
