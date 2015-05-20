@@ -146,6 +146,8 @@ set listchars=tab:>-,trail:\ ,extends:>,precedes:<
 augroup aspect
     autocmd BufRead * highlight SpecialKey cterm=reverse gui=reverse
     autocmd BufRead * highlight NonText    cterm=reverse gui=reverse
+    autocmd BufRead * highlight Trail      cterm=reverse gui=reverse
+    autocmd BufRead * 2match Trail /\s\+$\| \+\ze\t/
 augroup end
 let g:load_doxygen_syntax=1
 set foldmethod=syntax
