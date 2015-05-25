@@ -35,6 +35,7 @@ skype &
 shutter --min_at_startup &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 batterymon &
+~/.bin/keepasssyncd &
 
 ~/.bin/supergenpass-tray &
 #/home/me/.bin/hpass-tray &
@@ -42,7 +43,7 @@ batterymon &
 #~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
 
 ## automounted sshfs directories
-#afuse -o mount_template="sshfs %r:/ %m" \
+#afuse -o mount_template="sshfs -o reconnect %r:/ %m" \
 #      -o unmount_template="fusermount -u -z %m" \
 #      ~/.sshfs
 
