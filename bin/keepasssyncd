@@ -30,7 +30,7 @@ EOF
 
 sync(){
 
-download_remote_copy || exit
+download_remote_copy || return
 
 if [ "$(hash $remote)" == "$(hash $localcopy)" ]; then
     cp -p $localcopy $parent
@@ -40,7 +40,7 @@ fi
 
 if [ "$(hash $remote)" == "$(hash $parent)" ]; then
     if [ "$(hash $localcopy)" != "$(hash $parent)" ]; then
-        upload_local_copy || exit
+        upload_local_copy || return
         cp -p $localcopy $parent
         notify-send "uploaded new keepass db"
         return
