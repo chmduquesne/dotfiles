@@ -50,6 +50,7 @@ fi
 if [ "$(hash $localcopy)" == "$(hash $parent)" ]; then
     if [ "$(hash $remote)" != "$(hash $parent)" ]; then
         cp -p $remote $localcopy
+        cp -p $remote $parent
         notify-send "downloaded new keepass db"
         return
     fi
