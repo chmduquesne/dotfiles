@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mountdir=/media/$USER
+
 # devices with special actions
 icybox=fa7aa25e-c196-413d-b300-29c88fac79e0
 lexar=d8a65fc1-c21f-4f79-b2c7-b50a10bb5f46
@@ -19,15 +21,15 @@ savesecrets(){
     # Always ask, in case somebody forges a disk with the same uuid
     zenity --question --text "Save secrets?" --timeout 30 || return
 
-    mkdir -p $1/ssh $1/keyrings/backups/$(hostname)
+    mkdir -p $1/ssh $1/keyrings/backups/$(hostname)/$(date +%Y-%m-%d)
 
     cp .ssh/id_rsa $1/ssh/$(hostname)
     cp .ssh/id_rsa.pub $1/ssh/$(hostname).pub
 
     cp .local/share/keyrings/login.keyring \
-        $1/keyrings/backups/$(hostname)/login_$(date +%Y-%m-%d).keyring
+        $1/keyrings/backups/$(hostname)/$(date +%Y-%m-%d)/login.keyring
     cp .local/share/keyrings/user.keystore \
-        $1/keyrings/backups/$(hostname)/user_$(date +%Y-%m-%d).keystore
+        $1/keyrings/backups/$(hostname)/$(date +%Y-%m-%d)/user.keystore
 
     cp .local/share/keyrings/login.keyring \
         $1/keyrings/login.keyring
@@ -40,16 +42,16 @@ savesecrets(){
 inotifywait --monitor --event create --format '%f' /dev/disk/by-uuid/ | \
     while read file; do
         # sleep enough for the kernel to finish setting up the fs
-        sleep 1
+        sleep 5
         case $file in
             $icybox)
-                backup /media/icybox
+                backup $mountdir/icybox
                 ;;
             $lexar)
-                savesecrets /media/lexar
+                savesecrets $mountdir/lexar
                 ;;
             $lego)
-                savesecrets /media/lego
+                savesecrets $mountdir/lego
                 ;;
             *)
                 ;;
