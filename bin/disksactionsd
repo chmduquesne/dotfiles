@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mountdir=/media/$USER
+mountdir=/media
 
 # devices with special actions
 icybox=fa7aa25e-c196-413d-b300-29c88fac79e0
