@@ -1,14 +1,11 @@
 #!/bin/bash
+set -x
 
-mkdir -p .local/share/keepasssync
+keepasssyncdir=~/.local/share/keepasssync
 
-remote=~/.local/share/keepasssync/remote.kdb
-parent=~/.local/share/keepasssync/parent.kdb
-localcopy=~/.local/share/keepasssync/keepassx.kdb
-
-[ -f $remote ] || download_remote_copy
-[ -f $parent ] || cp -p $remote $parent
-[ -f $localcopy ] || cp -p $remote $localcopy
+remote=$keepasssyncdir/remote.kdb
+parent=$keepasssyncdir/parent.kdb
+localcopy=$keepasssyncdir/keepassx.kdb
 
 hash(){
     sha1sum $1 | cut -d\  -f1
@@ -16,14 +13,12 @@ hash(){
 
 download_remote_copy(){
 cat << EOF | sftp android@chmd.fr
-lcd ~/.local/share/keepasssync
 get -P keepassx.kdb remote.kdb
 EOF
 }
 
 upload_local_copy(){
 cat << EOF | sftp android@chmd.fr
-lcd ~/.local/share/keepasssync
 put -P keepassx.kdb
 EOF
 }
@@ -64,6 +59,13 @@ if [ "$(hash $localcopy)" != "$(hash $parent)" ]; then
 fi
 
 }
+
+mkdir -p $keepasssyncdir
+cd $keepasssyncdir
+
+[ -f $remote ] || download_remote_copy || exit
+[ -f $parent ] || cp -p $remote $parent || exit
+[ -f $localcopy ] || cp -p $remote $localcopy || exit
 
 while true; do
     sync
