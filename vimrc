@@ -40,6 +40,7 @@ Plugin 'tpope/vim-rsi'
 Plugin 'fatih/vim-go'
 Plugin 'Valloric/YouCompleteMe'
 Plugin 'tpope/vim-sensible'
+Plugin 'derekwyatt/vim-scala'
 call vundle#end()            " required
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
