@@ -1,10 +1,10 @@
-"3.8.2 (created: 2014/02/13 23:52:43)
+"3.9 (created: 2015/02/15 15:49:05)
 
 map <silent> l gt
 map <silent> h gT
 map <C-z> i
 map <C-v> i
-set toolbars=addons,bookmarks,nomenu,nonavigation,tabs
+set gui=none,tabs
 source! /home/me/.vimperatorrc.local
 
 " vim: set ft=vimperator:
