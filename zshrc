@@ -259,3 +259,4 @@ export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+#[ -d ~/code/external/zsh-completions ] && fpath=(~/code/external/zsh-completions/src $fpath)
