@@ -12,3 +12,5 @@
     insteadOf = git://
 #[http]
 #    sslVerify = false
+[ranch]
+    autosetuprebase = always
