@@ -18,7 +18,7 @@ set $mod Mod4
 # clear in small sizes. However, if you need a lot of unicode glyphs or
 # right-to-left text rendering, you should instead use pango for rendering and
 # chose a FreeType font, such as:
-font pango:Droid Sans Mono 10
+font pango:DejaVu Sans 9
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
@@ -221,7 +221,7 @@ bar {
                 focused_workspace  #657B83 #FDF6E3 #586E75
                 active_workspace   #FDF6E3 #002B36 #93A1A1
                 inactive_workspace #586E75 #002B36 #657B83
-                urgent_workspace   #2f343a #DC322F #FDF6E3
+                urgent_workspace   #859900 #DC322F #FDF6E3
         }
         status_command i3status
 }
