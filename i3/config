@@ -43,9 +43,6 @@ bindsym XF86MonBrightnessUp  exec  xbacklight -inc 10
 # lock screen
 bindsym Mod1+Control+l exec i3lock
 
-# copy primary to clipboard
-bindsym $mod+Control+y exec (xclip -o -selection primary | xclip -i -selection clipboard) && notify-send "Clipboard" "$(xclip -o -selection clipboard)"
-
 # change focus
 bindsym $mod+j focus left
 bindsym $mod+k focus down
