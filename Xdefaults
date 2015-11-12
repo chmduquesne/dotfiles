@@ -1,70 +1,33 @@
 /*
- *      font, background, foreground
+ *      font
  */
-*font:                                  xft:Monospace:pixelsize=12:antialias=true
-*background:                            #3f3f3f
-*foreground:                            #dcdccc
+*font:                                  xft:Droid Sans Mono:pixelsize=13
+
 
 /*
- *      xterm config
- * */
-xterm*saveLines:                        5000
-xterm*scrollBar:                        false
-xterm*colorUL:                          #86a2be
-xterm*bellIsUrgent:                     true
-xterm*customization:                    -color
-xterm*termName:                         xterm-256color
-xterm*scrollKey:                        true
-xterm*fastScroll:                       true
-xterm*charClass:                        33:48,35:48,37:48,43:48,45-47:48,61:48,63:48,64:48,95:48,126:48,35:48,58:48
-xterm*multiScroll:                      true
-xterm*faceName:                         xft:Monospace:pixelsize=12:antialias=true
-xterm*background:                       #3f3f3f
-xterm*foreground:                       #dcdccc
+ *      Xft
+ */
+Xft.antialias:                          true
+Xft.hinting:                            true
+Xft.autohint:                           false
+Xft.hintstyle:                          hintmedium
+Xft.lcdfilter:                          lcddefault
+!Xft.dpi:                                96
+Xft.rgba:                               rgb
+
 
 /*
  *      rxvt-unicode config
  * */
-urxvt*saveLines:                        5000
-urxvt*scrollBar:                        false
-urxvt*colorUL:                          #86a2be
-urxvt*urgentOnBell:                     true
-urxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback
-urxvt*matcher.button:                   1
-urxvt*url-launcher:                     firefox
-urxvt*transparent:                      false
-urxvt*shading:                          75
-urxvt*dynamicColors                     on
-!urxvt*fading:                           2%
-!urxvt*fadeColor:                        grey
-!urxvt*depth:                            32
-
-/*
- *      zenburn colors
- * */
-! black
-!*color0:                                rgba:3f/3f00/3f00/eeee
-*color0:                                #3f3f3f
-*color8:                                #709080
-! red
-*color1:                                #705050
-*color9:                                #dca3a3
-! green
-*color2:                                #60b48a
-*color10:                               #c3bf9f
-! yellow
-*color3:                                #dfaf8f
-*color11:                               #f0dfaf
-! blue
-*color4:                                #506070
-*color12:                               #94bff3
-! magenta
-*color5:                                #dc8cc3
-*color13:                               #ec93d3
-! orange (default cyan)
-*color6:                                #8cd0d3
-*color14:                               #93e0e3
-! white
-*color7:                                #dcdccc
-*color15:                               #ffffff
-
+URxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback,clipboard
+URxvt.letterSpace:                      0
+URxvt*saveLines:                        5000
+URxvt*scrollBar:                        false
+URxvt*colorUL:                          #86a2be
+URxvt*urgentOnBell:                     true
+URxvt*matcher.button:                   1
+URxvt*url-launcher:                     x-www-browser
+URxvt.keysym.Shift-Control-Y:           perl:clipboard:copy
+URxvt.keysym.Shift-Control-P:           perl:clipboard:paste
+URxvt.clipboard.copycmd:                xclip -i -selection clipboard
+URxvt.clipboard.pastecmd:               xclip -o -selection clipboard

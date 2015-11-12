@@ -4,6 +4,7 @@
 # apply X settings
 setxkbmap -layout us -variant intl
 xrdb -load ~/.Xdefaults
+xrdb -merge  ~/.Xresources
 xmodmap ~/.Xmodmap
 xautolock -locker i3lock &
 

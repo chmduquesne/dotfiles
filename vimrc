@@ -154,9 +154,10 @@ let g:load_doxygen_syntax=1
 set foldmethod=syntax
 set foldopen=all
 set nofoldenable
+set background=dark
 if &t_Co == 256
     try
-        colorscheme zenburn
+        colorscheme solarized
     catch E185
         colorscheme default
     endtry
