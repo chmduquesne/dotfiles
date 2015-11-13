@@ -1,47 +1,53 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "UPDATES
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+function! HasVundle()
+    return isdirectory(expand('$HOME/.vim/bundle/Vundle.vim'))
+endfunction
+if !HasVundle()
+    !git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+endif
 set nocompatible
 filetype off
 set runtimepath+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-Plugin 'gmarik/Vundle.vim'
-Plugin 'matchit.zip'
-Plugin 'DrawIt'
-Plugin 'Align'
-Plugin 'AnsiEsc.vim'
-Plugin 'Zenburn'
-Plugin 'pydoc.vim'
-Plugin 'cecutil'
-Plugin 'netrw.vim'
-Plugin 'visualstar.vim'
-Plugin 'Vimball'
-Plugin 'LargeFile'
-Plugin 'The-NERD-tree'
-Plugin 'file-line'
-Plugin 'tpope/vim-surround'
-Plugin 'tpope/vim-repeat'
-Plugin 'CTAGS-Highlighting'
-Plugin 'Tag-Signature-Balloons'
-Plugin 'hexHighlight.vim'
-Plugin 'rename.vim'
-Plugin 'toggle_option'
-Plugin 'recover.vim'
-Plugin 'clang-complete'
-Plugin 'Gundo'
-Plugin 'tpope/vim-markdown'
-Plugin 'tpope/vim-abolish'
-Plugin 'tpope/vim-sleuth'
-Plugin 'greplace.vim'
-Plugin 'junegunn/seoul256.vim'
-Plugin 'altercation/vim-colors-solarized'
-Plugin 'tpope/vim-rsi'
-Plugin 'fatih/vim-go'
-Plugin 'Valloric/YouCompleteMe'
-Plugin 'tpope/vim-sensible'
-Plugin 'derekwyatt/vim-scala'
-call vundle#end()            " required
+if HasVundle()
+    call vundle#begin()
+    Plugin 'VundleVim/Vundle.vim'
+    Plugin 'matchit.zip'
+    Plugin 'DrawIt'
+    Plugin 'Align'
+    Plugin 'AnsiEsc.vim'
+    Plugin 'Zenburn'
+    Plugin 'pydoc.vim'
+    Plugin 'cecutil'
+    Plugin 'netrw.vim'
+    Plugin 'visualstar.vim'
+    Plugin 'Vimball'
+    Plugin 'LargeFile'
+    Plugin 'The-NERD-tree'
+    Plugin 'file-line'
+    Plugin 'tpope/vim-surround'
+    Plugin 'tpope/vim-repeat'
+    Plugin 'CTAGS-Highlighting'
+    Plugin 'Tag-Signature-Balloons'
+    Plugin 'hexHighlight.vim'
+    Plugin 'rename.vim'
+    Plugin 'toggle_option'
+    Plugin 'recover.vim'
+    Plugin 'clang-complete'
+    Plugin 'Gundo'
+    Plugin 'tpope/vim-markdown'
+    Plugin 'tpope/vim-abolish'
+    Plugin 'tpope/vim-sleuth'
+    Plugin 'greplace.vim'
+    Plugin 'altercation/vim-colors-solarized'
+    Plugin 'tpope/vim-rsi'
+    Plugin 'fatih/vim-go'
+    Plugin 'Valloric/YouCompleteMe'
+    Plugin 'tpope/vim-sensible'
+    Plugin 'derekwyatt/vim-scala'
+    call vundle#end()
+endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MOTIONS
