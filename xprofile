@@ -25,7 +25,6 @@ DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 
 # various programs
 urxvtd -q -o -f
-#netmon &
 connman-ui-gtk &
 pasystray &
 udiskie --tray &
@@ -36,8 +35,8 @@ shutter --min_at_startup &
 export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 batterymon &
 ~/.bin/keepasssyncd &
-
 ~/.bin/supergenpass-tray &
+pulseaudio-dlna &
 #/home/me/.bin/hpass-tray &
 #~/.bin/google_authenticator &
 #~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &

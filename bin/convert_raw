@@ -24,10 +24,11 @@ for i in "$@"; do
     echo $PERCENT
     echo "#$i"
 
+    DNAME=$(dirname $i)
     BNAME=$(basename $(basename $i .DNG) .PEF)
 
     ufraw-batch \
-        --output=$BNAME.$EXT \
+        --output=$DNAME/$BNAME.$EXT \
         --embedded-image \
         --overwrite \
         --out-type=jpg \
@@ -36,7 +37,7 @@ for i in "$@"; do
         -TagsFromFile "$i" \
         -overwrite_original \
         --orientation \
-        $BNAME.$EXT
+        $DNAME/$BNAME.$EXT
 
     # Increase the number of files
     let "N=N+1"
