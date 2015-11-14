@@ -1,2 +1,1 @@
-remove Control = Control_R
-keysym Control_R = Multi_key
+keycode 135 = Multi_key

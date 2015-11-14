@@ -1,4 +1,0 @@
-# Write your default config options here!
-
-heartbeat-cmd="xscreensaver-command -deactivate >&- 2>&- &"
-utf8=yes
