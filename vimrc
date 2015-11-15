@@ -46,6 +46,7 @@ if HasVundle()
     Plugin 'Valloric/YouCompleteMe'
     Plugin 'tpope/vim-sensible'
     Plugin 'derekwyatt/vim-scala'
+    Plugin 'chriskempson/base16-vim'
     call vundle#end()
 endif
 
@@ -161,15 +162,15 @@ set foldmethod=syntax
 set foldopen=all
 set nofoldenable
 set background=dark
-if &t_Co == 256
-    try
-        colorscheme solarized
-    catch E185
-        colorscheme default
-    endtry
-else
-    colorscheme default
-endif
+"if &t_Co == 256
+"    try
+"        colorscheme base16
+"    catch E185
+"        colorscheme default
+"    endtry
+"else
+"    colorscheme default
+"endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "STATUS BAR
