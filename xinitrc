@@ -18,4 +18,4 @@ fi
 # do
 [ -f ~/.xprofile ] && source ~/.xprofile
 
-exec i3 > ~/.wm.log 2>&1
+exec dbus-launch i3 > ~/.wm.log 2>&1

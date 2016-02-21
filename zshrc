@@ -1,3 +1,6 @@
+# GPG
+export GPG_TTY=$(tty)
+
 # UTF8
 export LANG=en_US.UTF-8
 
@@ -160,7 +163,6 @@ alias l='ls -CF'
 export VISUAL=vim
 export EDITOR=vim
 alias vi='vim'
-alias sudo='nocorrect sudo'
 
 # BROWSER
 export BROWSER=firefox
@@ -208,6 +210,17 @@ alias gdb='gdb -q'
 #    }
 #    $CRONTABCMD ~/.crontab
 #fi
+
+# PASS
+alias pass='nocorrect pass'
+
+# SUDO
+export SUDO_ASKPASS=$HOME/.bin/sudo-askpass
+alias sudo='nocorrect sudo --askpass'
+
+# KEYCHAINS
+eval $(SSH_ASKPASS=$HOME/.bin/ssh-askpass \
+        keychain --timeout 120 --quiet --eval id_rsa </dev/null)
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)

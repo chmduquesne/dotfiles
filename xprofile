@@ -33,11 +33,11 @@ udiskie --tray &
 telegram &
 skype &
 shutter --min_at_startup &
-export $(gnome-keyring-daemon -c secrets,ssh,gpg)
 batterymon &
 ~/.bin/keepasssyncd &
 ~/.bin/supergenpass-tray &
 pulseaudio-dlna &
+redshift -l geoclue2 &
 #/home/me/.bin/hpass-tray &
 #~/.bin/google_authenticator &
 #~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &

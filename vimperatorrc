@@ -1,9 +1,10 @@
-"3.9 (created: 2015/02/15 15:49:05)
+"3.11.3 (created: 2016/01/30 14:42:44)
 
 map <silent> l gt
 map <silent> h gT
 map <C-z> i
 map <C-v> i
+map <C-y> i<C-y>
 set gui=none,tabs
 source! /home/me/.vimperatorrc.local
 
