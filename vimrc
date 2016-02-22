@@ -47,6 +47,7 @@ if HasVundle()
     Plugin 'tpope/vim-sensible'
     Plugin 'derekwyatt/vim-scala'
     Plugin 'chriskempson/base16-vim'
+    Plugin 'airblade/vim-gitgutter'
     call vundle#end()
 endif
 

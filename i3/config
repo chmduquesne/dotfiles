@@ -208,7 +208,6 @@ mode "resize" {
 
 bar {
         position top
-        separator_symbol •
         colors {
                 background #073642
                 statusline #FDF6E3
