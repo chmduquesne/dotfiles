@@ -38,6 +38,7 @@ batterymon &
 ~/.bin/supergenpass-tray &
 pulseaudio-dlna &
 redshift -l geoclue2 &
+lpass login --trust chmd@chmd.fr &
 #/home/me/.bin/hpass-tray &
 #~/.bin/google_authenticator &
 #~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &

@@ -1,2 +1,2 @@
 #!/bin/bash
-pass ssh/$(whoami)@$(hostname) | head -n1
+lpass show --notes ssh/$(whoami)@$(hostname) | head -n1

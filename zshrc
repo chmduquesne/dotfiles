@@ -213,6 +213,8 @@ alias gdb='gdb -q'
 
 # PASS
 alias pass='nocorrect pass'
+export LPASS_AGENT_TIMEOUT=43200
+alias lpass='nocorrect lpass'
 
 # SUDO
 export SUDO_ASKPASS=$HOME/.bin/sudo-askpass
@@ -220,7 +222,7 @@ alias sudo='nocorrect sudo --askpass'
 
 # KEYCHAINS
 eval $(SSH_ASKPASS=$HOME/.bin/ssh-askpass \
-        keychain --timeout 120 --quiet --eval id_rsa </dev/null)
+        keychain --quiet --eval id_rsa </dev/null)
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)
@@ -272,4 +274,4 @@ export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-#[ -d ~/code/external/zsh-completions ] && fpath=(~/code/external/zsh-completions/src $fpath)
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local

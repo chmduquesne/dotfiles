@@ -13,25 +13,17 @@ set runtimepath+=~/.vim/bundle/Vundle.vim
 if HasVundle()
     call vundle#begin()
     Plugin 'VundleVim/Vundle.vim'
-    Plugin 'matchit.zip'
-    Plugin 'DrawIt'
-    Plugin 'Align'
-    Plugin 'AnsiEsc.vim'
-    Plugin 'Zenburn'
     Plugin 'pydoc.vim'
     Plugin 'cecutil'
     Plugin 'netrw.vim'
     Plugin 'visualstar.vim'
-    Plugin 'Vimball'
     Plugin 'LargeFile'
-    Plugin 'The-NERD-tree'
     Plugin 'file-line'
     Plugin 'tpope/vim-surround'
     Plugin 'tpope/vim-repeat'
     Plugin 'CTAGS-Highlighting'
     Plugin 'Tag-Signature-Balloons'
     Plugin 'hexHighlight.vim'
-    Plugin 'rename.vim'
     Plugin 'toggle_option'
     Plugin 'recover.vim'
     Plugin 'clang-complete'
@@ -47,7 +39,7 @@ if HasVundle()
     Plugin 'tpope/vim-sensible'
     Plugin 'derekwyatt/vim-scala'
     Plugin 'chriskempson/base16-vim'
-    Plugin 'airblade/vim-gitgutter'
+    Plugin 'godlygeek/tabular'
     call vundle#end()
 endif
 
@@ -63,21 +55,14 @@ nnoremap E gE
 "GLOBAL WINDOWS HANDLING
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 let g:quickfix_state = 0 " 0 is closed, 1 is open
-let g:NERDTree_state = 0 " 0 is closed, 1 is open
 
-" Checks the two previous values. Triggers quickfix and nerdtree
-" accordingly and replaces the cursor in the right window.
+" Checks the previous value. Triggers quickfix accordingly and replaces
+" the cursor in the right window.
 function! UpdateTabState()
     if g:quickfix_state == 1
         copen | silent! cgetfile
     else
         cclose
-    endif
-    if g:NERDTree_state == 1
-        NERDTree
-        NERDTreeMirror
-    else
-        NERDTreeClose
     endif
     execute "normal \<c-w>\<c-w>"
 endfunction
@@ -87,17 +72,8 @@ augroup tabs
     autocmd TabEnter * call UpdateTabState()
 augroup END
 
-map <silent> <F3> :Toggle g:NERDTree_state<CR>:doautocmd tabs TabEnter<CR>
 map <silent> <space> :Toggle g:quickfix_state<CR>:doautocmd tabs TabEnter<CR>
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"BROWSING (NETRW-NERDTree)
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-let NERDTreeHijackNetrw=0
-let g:netrw_browsex_viewer="xdg-open"
-let g:netrw_liststyle=3
-let g:netrw_hide=1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "LOAD/SAVE
