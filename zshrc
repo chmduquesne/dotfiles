@@ -111,9 +111,6 @@ key[Right]=${terminfo[kcuf1]}
 [ -n ${key[Down]}      ] && bindkey "${key[Down]}"      down-line-or-search
 [ -n ${key[Right]}     ] && bindkey "${key[Right]}"     forward-char
 
-# or
-#[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}"    up-line-or-history
-#[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}"  down-line-or-history
 
 # Finally, make sure the terminal is in application mode, when zle is
 # active. Only then are the values from $terminfo valid.
@@ -144,15 +141,11 @@ setopt correct correct_all appendhistory autocd extendedglob nomatch notify auto
 unsetopt beep
 bindkey -e
 
-# LESS
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
-
 # SOME COLORS
 eval "`dircolors -b`"
 export LS_COLORS='di=38;5;108:fi=00:*svn-commit.tmp=31:ln=38;5;116:ex=38;5;186'
 alias ls='ls --color=always'
 alias grep='grep --color=always'
-alias less='less -R'
 
 # LS
 alias ll='ls -l'
@@ -167,19 +160,20 @@ alias vi='vim'
 # BROWSER
 export BROWSER=firefox
 
-# MANPAGES
-export PAGER='less'
+# LESS
+# https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
+export LESS='-F -i -J -M -R -W -x4 -X -z-4'
 export LESSCHARSET=UTF-8
-man() {
-    env LESS_TERMCAP_mb=$(printf "\e[1;31m") \
-    LESS_TERMCAP_md=$(printf "\e[1;31m") \
-    LESS_TERMCAP_me=$(printf "\e[0m") \
-    LESS_TERMCAP_se=$(printf "\e[0m") \
-    LESS_TERMCAP_so=$(printf "\e[1;44;33m") \
-    LESS_TERMCAP_ue=$(printf "\e[0m") \
-    LESS_TERMCAP_us=$(printf "\e[1;32m") \
-    man "$@"
-}
+export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
+export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
+export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
+export LESS_TERMCAP_so=$'\E[01;44;33m' # begin reverse video
+export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
+export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
+export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
+[ -x /usr/bin/lesspipe ] && export LESSOPEN='|lesspipe %s'
+[ -x /usr/bin/pygmentize ] && export LESSCOLORIZER='pygmentize'
+export PAGER='less'
 
 # MPD
 export MPD_PORT=6600
@@ -270,8 +264,11 @@ export PYTHONSTARTUP=~/.pythonrc
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
 export GOPATH=${HOME}/code/golang
-export PATH=${PATH}:${HOME}/.bin:${GOPATH}/bin
+export PATH=${GOPATH}/bin:${HOME}/.bin:${PATH}
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij

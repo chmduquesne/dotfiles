@@ -13,25 +13,19 @@ set runtimepath+=~/.vim/bundle/Vundle.vim
 if HasVundle()
     call vundle#begin()
     Plugin 'VundleVim/Vundle.vim'
-    Plugin 'pydoc.vim'
-    Plugin 'cecutil'
-    Plugin 'netrw.vim'
-    Plugin 'visualstar.vim'
-    Plugin 'LargeFile'
-    Plugin 'file-line'
+    Plugin 'vim-scripts/visualstar.vim'
+    Plugin 'mhinz/vim-hugefile'
+    Plugin 'bogado/file-line'
     Plugin 'tpope/vim-surround'
     Plugin 'tpope/vim-repeat'
-    Plugin 'CTAGS-Highlighting'
-    Plugin 'Tag-Signature-Balloons'
     Plugin 'hexHighlight.vim'
     Plugin 'toggle_option'
-    Plugin 'recover.vim'
+    Plugin 'chrisbra/Recover.vim'
     Plugin 'clang-complete'
-    Plugin 'Gundo'
+    Plugin 'sjl/gundo.vim'
     Plugin 'tpope/vim-markdown'
     Plugin 'tpope/vim-abolish'
     Plugin 'tpope/vim-sleuth'
-    Plugin 'greplace.vim'
     Plugin 'altercation/vim-colors-solarized'
     Plugin 'tpope/vim-rsi'
     Plugin 'fatih/vim-go'
@@ -295,7 +289,6 @@ set completeopt=menu
 "PYTHON
 augroup lang_python
     autocmd FileType python compiler pyunit
-    autocmd FileType python map K :Pydoc <C-r>=expand("<cword>")<CR><CR>
 augroup END
 
 "LATEX

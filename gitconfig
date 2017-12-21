@@ -12,5 +12,7 @@
     insteadOf = git://
 #[http]
 #    sslVerify = false
-[ranch]
+[branch]
     autosetuprebase = always
+[credential]
+    helper = /home/chmd/.bin/lpass-git-credentials
