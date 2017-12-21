@@ -1,0 +1,5 @@
+[Desktop Entry]
+Exec=/usr/bin/xautolock -locker i3lock
+Name=xautolock
+Type=Application
+Comment=fire up programs in case of user inactivity under X

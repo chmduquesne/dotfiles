@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=shutter
+Comment=Feature-rich Screenshot Tool
+Type=Application
+Exec=/usr/bin/shutter --min_at_startup

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=remmina
+Type=Application
+Exec=/usr/bin/remmina -i
+Comment=remote desktop client for GNOME desktop environment

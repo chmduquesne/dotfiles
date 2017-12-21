@@ -1,0 +1,5 @@
+[Desktop Entry]
+Comment=groupware suite for GNOME containing e-mail, calendar, addressbook, to-do...
+Type=Application
+Exec=/usr/bin/evolution
+Name=evolution

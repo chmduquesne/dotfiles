@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=update-notifier
+Type=Application
+Exec=/usr/bin/update-notifier
