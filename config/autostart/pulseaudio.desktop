@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=/usr/bin/start-pulseaudio-x11
-Comment=PulseAudio Sound Server X11 Startup Script
-Name=start-pulseaudio-x11
