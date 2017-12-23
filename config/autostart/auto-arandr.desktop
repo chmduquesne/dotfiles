@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=auto-arandr
+Type=Application
+Exec=/usr/local/bin/auto-arandr
