@@ -1,5 +1,5 @@
 [Desktop Entry]
 Name=afuse
 Comment=automounting file system implemented in user-space using FUSE
-Exec=/usr/bin/afuse -o mount_template="sshfs -o transform_symlinks %r:/ %m" -o unmount_template="fusermount -u -z %m" /remote
+Exec=/usr/bin/afuse -o mount_template="sshfs -o transform_symlinks %r:/ %m" -o unmount_template="fusermount -u -z %m" /mnt/sshfs
 Type=Application
