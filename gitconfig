@@ -8,8 +8,8 @@
     co = checkout
 [push]
     default = matching
-[url "https://"]
-    insteadOf = git://
+#[url "http://"]
+#    insteadOf = git://
 #[http]
 #    sslVerify = false
 [branch]

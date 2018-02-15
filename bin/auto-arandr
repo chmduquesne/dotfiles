@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# if arandr is not installed, exit
+hash arandr || exit
+
+connected="$(xrandr -q | grep '\<connected\>' | cut -d' ' -f1)"
+prev_connected="$connected"
+
+while true; do
+  connected="$(xrandr -q | grep '\<connected\>' | cut -d' ' -f1)"
+  disconnected="$(xrandr -q | grep '\<disconnected\>' | cut -d' ' -f1)"
+  if [ "$connected" != "$prev_connected" ]; then
+    for output in $(echo $connected); do
+      xrandr --output $output --auto
+    done
+    for output in $(echo $disconnected); do
+      xrandr --output $output --off
+    done
+    ( arandr & )
+  fi
+  prev_connected="$connected"
+  sleep 10
+done

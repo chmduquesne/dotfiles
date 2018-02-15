@@ -1,5 +1,0 @@
-[Desktop Entry]
-Exec=/usr/bin/krb5-auth-dialog
-Comment=Kerberos 5 credential checking
-Type=Application
-Name=krb5-auth-dialog

@@ -89,9 +89,9 @@ bindsym $mod+4 workspace 4:code
 bindsym $mod+5 workspace 5:code
 bindsym $mod+6 workspace 6:code
 bindsym $mod+7 workspace 7:code
-bindsym $mod+8 workspace 8:code
-bindsym $mod+9 workspace 9:code
-bindsym $mod+0 workspace 10:chat
+bindsym $mod+8 workspace 8:phone
+bindsym $mod+9 workspace 9:chat
+bindsym $mod+0 workspace 10:mail
 
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace 1:web
@@ -101,9 +101,9 @@ bindsym $mod+Shift+4 move container to workspace 4:code
 bindsym $mod+Shift+5 move container to workspace 5:code
 bindsym $mod+Shift+6 move container to workspace 6:code
 bindsym $mod+Shift+7 move container to workspace 7:code
-bindsym $mod+Shift+8 move container to workspace 8:code
-bindsym $mod+Shift+9 move container to workspace 9:code
-bindsym $mod+Shift+0 move container to workspace 10:chat
+bindsym $mod+Shift+8 move container to workspace 8:phone
+bindsym $mod+Shift+9 move container to workspace 9:chat
+bindsym $mod+Shift+0 move container to workspace 10:mail
 
 new_window 1pixel
 
@@ -173,5 +173,11 @@ bar {
         }
         status_command i3status
 }
+
+assign [class="Navigator"] 1:web
+assign [class="Evolution"] 10:mail
+assign [class="Hipchat"] 9:chat
+assign [class="Pidgin"] 9:chat
+assign [class="Linphone"] 8:phone
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
