@@ -1,0 +1,27 @@
+#!/bin/bash
+
+XComposeFormat(){
+  grep -v "^[[:space:]]*include"              | \
+  grep -v "^[[:space:]]*#"                    | \
+  grep -v "^[[:space:]]*$"                    | \
+  cut -d : -f2                                | \
+  sed 's/^[[:space:]]*//'                     | \
+  grep '^"."'                                 | \
+  sed -e 's/^"\(.\)".*#\s*\(.*\)$/\1: \L\2/g'
+}
+
+if [ "$1" != "" ]; then
+  case "$1" in
+    -f|--format)
+      XComposeFormat
+      exit
+      ;;
+    *)
+      echo "unknown option"
+      exit 1
+      ;;
+  esac
+fi
+
+symbol=$(cat ~/.emojis | dmenu -l 10 | cut -d ':' -f1)
+[ $? ] && xdotool type "$symbol"
