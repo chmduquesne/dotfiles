@@ -1,6 +1,14 @@
 #!/bin/bash
+#
+# Usage:
+#
+# Create the db (a good source is https://github.com/kragen/xcompose)
+# $ cat dotXCompose emoji-base ... | dmenu-compose --format > .dmenu-compose.db
+#
+# Use in i3
+# bindsym Menu exec ~/.bin/dmenu-compose
 
-XComposeFormat(){
+XComposeToDB(){
   grep -v "^[[:space:]]*include"              | \
   grep -v "^[[:space:]]*#"                    | \
   grep -v "^[[:space:]]*$"                    | \
@@ -13,7 +21,7 @@ XComposeFormat(){
 if [ "$1" != "" ]; then
   case "$1" in
     -f|--format)
-      XComposeFormat
+      XComposeToDB
       exit
       ;;
     *)
@@ -23,5 +31,4 @@ if [ "$1" != "" ]; then
   esac
 fi
 
-symbol=$(cat ~/.emojis | dmenu -l 10 | cut -d ':' -f1)
-[ $? ] && xdotool type "$symbol"
+cat ~/.dmenu-compose.db | dmenu -l 10 | cut -d ':' -f1 | xargs xdotool type

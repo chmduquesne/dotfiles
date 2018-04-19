@@ -1,26 +1,21 @@
 /*
  *      font
  */
-*font:                                  xft:DejaVu Sans Mono:pixelsize=12
+*font:                                  xft:Mono
 
 
 /*
  *      Xft
  */
 Xft.antialias:                          true
-Xft.hinting:                            true
-Xft.autohint:                           false
-Xft.hintstyle:                          hintmedium
-Xft.lcdfilter:                          lcddefault
-!Xft.dpi:                                96
-Xft.rgba:                               rgb
+Xft.scale:                              0.8
+Xft.hintstyle:                          hintfull
 
 
 /*
  *      rxvt-unicode config
  * */
 URxvt*perl-ext-common:                  default,selection,matcher,searchable-scrollback,clipboard
-URxvt.letterSpace:                      0
 URxvt*saveLines:                        5000
 URxvt*scrollBar:                        false
 URxvt*colorUL:                          #86a2be
