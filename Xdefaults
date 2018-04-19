@@ -8,7 +8,7 @@
  *      Xft
  */
 Xft.antialias:                          true
-Xft.scale:                              0.8
+Xft.scale:                              0.9
 Xft.hintstyle:                          hintfull
 
 
