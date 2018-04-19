@@ -1,14 +1,13 @@
 /*
  *      font
  */
-*font:                                  xft:Mono
+*font:                                  xft:Mono:pixelsize=12
 
 
 /*
  *      Xft
  */
 Xft.antialias:                          true
-Xft.scale:                              0.9
 Xft.hintstyle:                          hintfull
 
 
