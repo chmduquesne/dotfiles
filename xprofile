@@ -1,51 +1,50 @@
 # # set the extra screens
 
+if [ "$(hostname)" == "t450" ]; then
+
 # apply X settings
 # setxkbmap -layout us -variant intl
 # xrdb -load ~/.Xdefaults
 # xrdb -merge  ~/.Xresources
 
-# xmodmap ~/.Xmodmap
-# xautolock -locker i3lock &
-#
-# # save X and dbus settings in pam_environment (this makes them available
-# # to cron)
-# echo -n "
-# PATH                        DEFAULT=${PATH}
-# HOST                        DEFAULT=$(hostname)
-# USER                        DEFAULT=${USER}
-# XAUTHORITY                  DEFAULT=${XAUTHORITY}
-# DISPLAY                     DEFAULT=${DISPLAY}
-# DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
-# " > ~/.pam_environment
-#
-# # if we are in a virtualbox environment, launch the relevant VBoxClient
-# # commands
-# [ -f /usr/bin/VBoxClient ] && VBoxClient --clipboard &
-# [ -f /usr/bin/VBoxClient ] && VBoxClient --display &
-#
-# # various programs
-# urxvtd -q -o -f
-# connman-ui-gtk &
-# pasystray &
-# udiskie --tray &
-# ~/.bin/disksactionsd &
-# telegram &
-# skype &
-# shutter --min_at_startup &
-# batterymon &
-# ~/.bin/keepasssyncd &
-# ~/.bin/supergenpass-tray &
-# pulseaudio-dlna &
-# redshift -l geoclue2 &
-# lpass login --trust chmd@chmd.fr &
-# #/home/me/.bin/hpass-tray &
-# #~/.bin/google_authenticator &
-# #~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
-#
-# ## automounted sshfs directories
-# #afuse -o mount_template="sshfs -o reconnect %r:/ %m" \
-# #      -o unmount_template="fusermount -u -z %m" \
-# #      ~/.sshfs
-#
-# [ -f ~/.fehbg ] && (sleep 5 && sh ~/.fehbg)&
+# save X and dbus settings in pam_environment (this makes them available
+# to cron)
+echo -n "
+PATH                        DEFAULT=${PATH}
+HOST                        DEFAULT=$(hostname)
+USER                        DEFAULT=${USER}
+XAUTHORITY                  DEFAULT=${XAUTHORITY}
+DISPLAY                     DEFAULT=${DISPLAY}
+DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
+" > ~/.pam_environment
+
+# if we are in a virtualbox environment, launch the relevant VBoxClient
+# commands
+[ -f /usr/bin/VBoxClient ] && VBoxClient --clipboard &
+[ -f /usr/bin/VBoxClient ] && VBoxClient --display &
+
+# various programs
+urxvtd -q -o -f
+connman-ui-gtk &
+pasystray &
+udiskie --tray &
+~/.bin/disksactionsd &
+telegram-desktop &
+#skype &
+#shutter --min_at_startup &
+batterymon &
+#~/.bin/supergenpass-tray &
+pulseaudio-dlna &
+redshift -l geoclue2 &
+lpass login --trust chmd@chmd.fr &
+#~/.bin/google_authenticator &
+#~/.bin/notifybot.py 1>~/.cache/notifybot.out 2>~/.cache/notifybot.err &
+
+## automounted sshfs directories
+#afuse -o mount_template="sshfs -o reconnect %r:/ %m" \
+#      -o unmount_template="fusermount -u -z %m" \
+#      ~/.sshfs
+
+[ -f ~/.fehbg ] && (sleep 5 && sh ~/.fehbg)&
+
+fi

@@ -301,3 +301,5 @@ augroup END
 augroup lang_markdown
     autocmd Filetype markdown let g:trim_blank=0
 augroup END
+
+let g:ycm_server_python_interpreter = '/usr/bin/python3'
