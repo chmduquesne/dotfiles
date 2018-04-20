@@ -211,11 +211,11 @@ export LPASS_AGENT_TIMEOUT=43200
 alias lpass='nocorrect lpass'
 
 # SUDO
-export SUDO_ASKPASS=$HOME/.bin/sudo-askpass
+export SUDO_ASKPASS=$(which sudo-askpass)
 alias sudo='nocorrect sudo --askpass'
 
 # KEYCHAINS
-eval $(SSH_ASKPASS=$HOME/.bin/ssh-askpass \
+eval $(SSH_ASKPASS=ssh-askpass \
         keychain --quiet --eval id_rsa </dev/null)
 
 # IRSSI IN TMUX
