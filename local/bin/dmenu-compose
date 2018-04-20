@@ -31,4 +31,8 @@ if [ "$1" != "" ]; then
   esac
 fi
 
-cat ~/.dmenu-compose.db | dmenu -l 10 | cut -d ':' -f1 | xargs xdotool type
+symbol=$(cat ~/.dmenu-compose.db | dmenu -l 10 | cut -d ':' -f1)
+if [ $? ]; then
+  xdotool sleep 0.01
+  xdotool type $symbol
+fi
