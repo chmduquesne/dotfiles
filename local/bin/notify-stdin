@@ -1,0 +1,21 @@
+#!/usr/bin/python3
+
+import sys
+import gi
+gi.require_version('Gio', '2.0')
+from gi.repository import Gio
+
+Application = Gio.Application.new("notify.stdin", Gio.ApplicationFlags.FLAGS_NONE)
+Application.register()
+
+title = ""
+if len(sys.argv) > 1:
+    title = sys.argv[1]
+body = sys.stdin.read()
+
+if title or body:
+    Notification = Gio.Notification.new(title)
+    Notification.set_body(body)
+    Icon = Gio.ThemedIcon.new("dialog-information")
+    Notification.set_icon(Icon)
+    Application.send_notification(None, Notification)
