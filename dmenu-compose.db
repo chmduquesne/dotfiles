@@ -592,7 +592,7 @@
 ↑: upwards arrow ^
 →: rightwards arrow ->
 ↓: downwards arrow |v
-↔: left right arrow (kragen's)
+↔: left right arrow (kragen's) <->
 ↕: up down arrow (kragen's)
 ↵: downwards arrow with corner leftwards
 ↺: anticlockwise open circle arrow
@@ -601,7 +601,7 @@
 ⇑: upwards double arrow ^
 ⇒: rightwards double arrow ->
 ⇓: downwards double arrow |v
-⇔: left right double arrow
+⇔: left right double arrow <->
 ⇕: up down double arrow
 ⇜: leftwards squiggle arrow <-
 ⇝: rightwards squiggle arrow ->
@@ -1769,7 +1769,7 @@
 🔗: link symbol
 🔙: back with leftwards arrow above <-
 🔚: end with leftwards arrow above <-
-🔛: on with exclamation mark with left right arrow above
+🔛: on with exclamation mark with left right arrow above <->
 🔜: soon with rightwards arrow above ->
 🔝: top with upwards arrow above ^
 🔞: no one under eighteen symbol
