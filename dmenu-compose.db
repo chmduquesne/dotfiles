@@ -513,7 +513,6 @@
 №: numero sign
 ℘: script capital p
 ℙ: double-struck capital p
-ℙ: double-struck capital p
 ℚ: double-struck capital q (set of rational numbers)
 ℜ: black-letter capital r
 ℜ: black-letter capital r (real part)
@@ -589,31 +588,30 @@
 ↇ: roman numeral fifty thousand
 ↈ: roman numeral one hundred thousand
 ↉: vulgar fraction zero thirds
-←: leftwards arrow
-↑: upwards arrow
-→: rightwards arrow
-↓: downwards arrow
+←: leftwards arrow <-
+↑: upwards arrow ^
+→: rightwards arrow ->
+↓: downwards arrow |v
 ↔: left right arrow (kragen's)
 ↕: up down arrow (kragen's)
 ↵: downwards arrow with corner leftwards
 ↺: anticlockwise open circle arrow
 ↻: clockwise open circle arrow
-⇐: leftwards double arrow
-⇑: upwards double arrow
-⇒: rightwards double arrow
-⇓: downwards double arrow
-⇔: left right double arrow
+⇐: leftwards double arrow <-
+⇑: upwards double arrow ^
+⇒: rightwards double arrow ->
+⇓: downwards double arrow |v
 ⇔: left right double arrow
 ⇕: up down double arrow
-⇜: leftwards squiggle arrow
-⇝: rightwards squiggle arrow
-⇠: leftwards dashed arrow
-⇡: upwards dashed arrow
-⇢: rightwards dashed arrow
-⇣: downwards dashed arrow
-⇤: leftwards arrow to bar
-⇥: rightwards arrow to bar
-⇵: downwards arrow leftwards of upwards arrow
+⇜: leftwards squiggle arrow <-
+⇝: rightwards squiggle arrow ->
+⇠: leftwards dashed arrow <-
+⇡: upwards dashed arrow ^
+⇢: rightwards dashed arrow ->
+⇣: downwards dashed arrow |v
+⇤: leftwards arrow to bar <-
+⇥: rightwards arrow to bar ->
+⇵: downwards arrow leftwards of upwards arrow ^ |v
 ∀: for all
 ∂: partial differential
 ∃: there exists
@@ -877,8 +875,6 @@
 ⚞: three lines converging right
 ⚟: three lines converging left
 ⚠: warning sign
-⚠: warning sign
-⚡: high voltage sign
 ⚡: high voltage sign
 ⚢: doubled female sign
 ⚣: doubled male sign
@@ -966,7 +962,6 @@
 ⟳: clockwise gapped circle arrow
 ⦂: z notation type colon
 ⦃: left white curly bracket
-⦄: right white curly bracket
 ⦄: right white curly bracket
 ⦗: left black tortoise shell bracket
 ⦘: right black tortoise shell bracket
@@ -1754,7 +1749,7 @@
 📺: television
 📻: radio
 📿: prayer beads
-🔀: twisted rightwards arrows
+🔀: twisted rightwards arrows ->
 🔁: clockwise rightwards and leftwards open circle arrows
 🔂: clockwise rightwards and leftwards open circle arrows with circled one overlay
 🔅: low brightness symbol
@@ -1772,11 +1767,11 @@
 🔕: bell with cancellation stroke
 🔖: bookmark
 🔗: link symbol
-🔙: back with leftwards arrow above
-🔚: end with leftwards arrow above
+🔙: back with leftwards arrow above <-
+🔚: end with leftwards arrow above <-
 🔛: on with exclamation mark with left right arrow above
-🔜: soon with rightwards arrow above
-🔝: top with upwards arrow above
+🔜: soon with rightwards arrow above ->
+🔝: top with upwards arrow above ^
 🔞: no one under eighteen symbol
 🔥: fire
 🔦: electric torch
@@ -1921,9 +1916,9 @@
 🙎: person with pouting face
 🙏: person with folded hands
 🙬: leftwards rocket
-🙭: upwards rocket
-🙮: rightwards rocket
-🙯: downwards rocket
+🙭: upwards rocket ^
+🙮: rightwards rocket ->
+🙯: downwards rocket |v
 🚀: rocket
 🚁: helicopter
 🚆: train
