@@ -3,7 +3,9 @@
 # Usage:
 #
 # Create the db (a good source is https://github.com/kragen/xcompose)
-# $ cat dotXCompose emoji-base ... | dmenu-compose --format > .dmenu-compose.db
+# url="https://raw.githubusercontent.com/kragen/xcompose/master"
+# src=$url/{dotXCompose,emoji-base,frakturcompose,modletters-base,parens.compose}
+# curl $src | dmenu-compose -f | sort -u > ~/.dmenu-compose.db
 #
 # Use in i3
 # bindsym Menu exec ~/.bin/dmenu-compose
