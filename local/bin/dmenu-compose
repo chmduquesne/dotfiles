@@ -40,6 +40,6 @@ fi
 
 symbol=$(cat ~/.local/share/dmenu-compose.db | dmenu -l 10 | cut -d ':' -f1)
 if [ $? ]; then
-  xdotool sleep 0.2
+  xdotool sleep 0.2    # firefox needs time before being ready for input
   xdotool type $symbol
 fi
