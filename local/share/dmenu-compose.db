@@ -140,10 +140,10 @@
 ˑ: modifier letter half triangular colon
 ˒: modifier letter centred right half ring
 ˓: modifier letter centred left half ring
-˔: modifier letter up tack
-˕: modifier letter down tack
-˖: modifier letter plus sign
-˗: modifier letter minus sign
+˔: ^ modifier letter up tack
+˕: vv modifier letter down tack
+˖: + modifier letter plus sign
+˗: - modifier letter minus sign
 ˞: modifier letter rhotic hook
 ˟: modifier letter cross accent
 ˠ: modifier letter small gamma
@@ -470,12 +470,12 @@
 ⁂: asterism
 ⁃: hyphen bullet
 ⁄: fraction slash
-⁅: left square bracket with quill
-⁆: right square bracket with quill
-⁇: double question mark
-⁈: question exclamation mark
-⁉: exclamation question mark
-⁏: reversed semicolon
+⁅: [ left square bracket with quill
+⁆: ] right square bracket with quill
+⁇: ?? double question mark
+⁈: ?! question exclamation mark
+⁉: !? exclamation question mark
+⁏: ; reversed semicolon
 ⁑: two asterisks aligned vertically
 ⁒: commercial minus sign
 ⁦: left-to-right isolate
@@ -518,52 +518,52 @@
 ℈: scruple
 ℉: degree fahrenheit
 ℌ: black-letter capital h
-ℍ: double-struck capital h
+ℍ: math: H double-struck capital h
 ℎ: planck constant
 ℏ: planck constant over two pi
 ℑ: black-letter capital i
 ℑ: black-letter captial i (imaginary part)
 ℓ: script small l
-ℕ: double-struck capital n (natural number)
+ℕ: math: N double-struck capital n (natural number)
 №: numero sign
 ℘: script capital p
-ℙ: double-struck capital p
-ℚ: double-struck capital q (set of rational numbers)
+ℙ: math: P double-struck capital p
+ℚ: math: Q double-struck capital q (set of rational numbers)
 ℜ: black-letter capital r
 ℜ: black-letter capital r (real part)
-ℝ: double-struck capital r (set of real numbers)
+ℝ: math: R double-struck capital r (set of real numbers)
 ℞: prescription take
-ℤ: double-struck capital z (set of integers)
+ℤ: math: Z double-struck capital z (set of integers)
 ℥: ounce sign
 ℨ: black-letter capital z
 K: kelvin sign
 ℭ: black-letter capital c
 ℯ: script small e
-ℵ: alef symbol
-ℼ: double-struck small pi
-ℿ: double-struck capital pi
-⅀: double-struck n-ary summation
+ℵ: math: alef symbol
+ℼ: math: double-struck small pi
+ℿ: math: double-struck capital pi
+⅀: math: sigma: double-struck n-ary summation
 ⅇ: double-struck italic small e
 ⅈ: double-struck italic small i
 ⅉ: double-struck italic small j
 ⅋: turned ampersand
 ⅌: per sign
-⅐: vulgar fraction one seventh
-⅑: vulgar fraction one ninth
-⅒: vulgar fraction one tenth
-⅓: vulgar fraction one third
-⅔: vulgar fraction two thirds
-⅕: vulgar fraction one fifth
-⅖: vulgar fraction two fifths
-⅗: vulgar fraction three fifths
-⅘: vulgar fraction four fifths
-⅙: vulgar fraction one sixth
-⅚: vulgar fraction five sixths
-⅛: vulgar fraction one eighth
-⅜: vulgar fraction three eighths
-⅝: vulgar fraction five eighths
-⅞: vulgar fraction seven eighths
-⅟: fraction numerator one
+⅐: math: vulgar fraction one seventh
+⅑: math: vulgar fraction one ninth
+⅒: math: vulgar fraction one tenth
+⅓: math: vulgar fraction one third
+⅔: math: vulgar fraction two thirds
+⅕: math: vulgar fraction one fifth
+⅖: math: vulgar fraction two fifths
+⅗: math: vulgar fraction three fifths
+⅘: math: vulgar fraction four fifths
+⅙: math: vulgar fraction one sixth
+⅚: math: vulgar fraction five sixths
+⅛: math: vulgar fraction one eighth
+⅜: math: vulgar fraction three eighths
+⅝: math: vulgar fraction five eighths
+⅞: math: vulgar fraction seven eighths
+⅟: math: fraction numerator one
 Ⅰ: roman numeral one
 Ⅱ: roman numeral two
 Ⅲ: roman numeral three
@@ -615,9 +615,9 @@
 ⇑: ^ upwards double arrow
 ⇒: -> rightwards double arrow
 ⇓: vv downwards double arrow
-⇔: left right double arrow
-⇔: left right double arrow
-⇕: up down double arrow
+⇔: <> left right double arrow
+⇔: <> left right double arrow
+⇕: ^vv up down double arrow
 ⇜: <- leftwards squiggle arrow
 ⇝: -> rightwards squiggle arrow
 ⇠: <- leftwards dashed arrow
@@ -627,135 +627,133 @@
 ⇤: <- leftwards arrow to bar
 ⇥: -> rightwards arrow to bar
 ⇵: vv downwards arrow leftwards of upwards arrow
-∀: for all
-∂: partial differential
-∃: there exists
-∄: there does not exist
-∅: empty set
-∅: empty set (thanks jsled!)
-∇: nabla
-∈: element of
-∉: not an element of
-∉: not an element of (i have ∈ on my keyboard...)
-∋: contains as member  (i hope this doesn't conflict)
-∌: does not contain as member
-∎: end of proof
-∑: n-ary summation
-∓: minus or plus sign
-∗: asterisk operator
-∘: ring operator (function composition)
-√: square root
-∛: cube root
-∜: fourth root
-∞: infinity
-∧: logical and
-∨: logical or
-∩: intersection
-∪: union
-∫: integral
-∬: double integral
-∭: triple integral
-∮: contour integral
-∯: surface integral
-∰: volume integral
-∴: therefore
-∵: because
-∷: proportion -- not strictly 2 times colon
-≅: approximately equal to (it actually means "congruent"!)
-≈: almost equal to
-≔: colon equals
-≕: equals colon
-≝: equal to by definition
-≟: questioned equal to
-≠: not equal to
-≡: identical to
-≢: not identical to
-≤: less-than or equal to
-≥: greater-than or equal to
-≪: much less-than
-≫: much greater-than
-≬: between
-≸: neither less-than nor greater-than
-⊂: subset of
-⊃: superset of
-⊄: not a subset of
-⊆: subset of or equal to
-⊇: superset of or equal to
-⊏: square image of
-⊐: square original of
-⊑: square image of or equal to
-⊒: square original of or equal to
-⊕: circled plus
-⊖: circled minus
-⊗: circled times
-⊘: circled division slash
-⊛: circled asterisk operator
-⊢: right tack
-⊣: left tack
-⊤: down tack (opposite of false)
-⊥: up tack (bottom) or should we use u27c2 perpendicular?
-⊻: xor
-⋅: dot operator (dot product)
-⋘: very much less-than
-⋙: very much greater-than
-⋮: vertical ellipsis
-⋯: midline horizontal ellipsis
-⋰: up right diagonal ellipsis
-⋱: down right diagonal ellipsis
-⌈: left ceiling
-⌉: right ceiling
-⌊: left floor
-⌋: right floor
+∀: math: for all
+∂: math: partial differential
+∃: math: there exists
+∄: math: there does not exist
+∅: math: empty set
+∇: math: nabla
+∈: math: element of
+∉: math: not an element of
+∋: math: contains as member  (i hope this doesn't conflict)
+∌: math: does not contain as member
+∎: math: end of proof
+∑: math: sigma: n-ary summation
+∓: math: +- minus or plus sign
+∗: math: * asterisk operator
+∘: math: ring operator (function composition)
+√: math: sqrt: square root
+∛: math: cube root
+∜: math: fourth root
+∞: math: infinity
+∧: math: logical and
+∨: math: logical or
+∩: math: intersection
+∪: math: union
+∫: math: integral
+∬: math: double integral
+∭: math: triple integral
+∮: math: contour integral
+∯: math: surface integral
+∰: math: volume integral
+∴: math: therefore
+∵: math: because
+∷: math: proportion -- not strictly 2 times colon
+≅: math: approximately equal to (it actually means "congruent"!)
+≈: math: almost equal to
+≔: math: := colon equals
+≕: math: =: equals colon
+≝: math: = equal to by definition
+≟: math: = questioned equal to
+≠: math: != not equal to
+≡: math: = identical to
+≢: math: = not identical to
+≤: math: < less-than or equal to
+≥: math: > greater-than or equal to
+≪: math: < much less-than
+≫: math: > much greater-than
+≬: math: between
+≸: math: neither less-than nor greater-than
+⊂: math: subset of
+⊃: math: superset of
+⊄: math: not a subset of
+⊆: math: subset of or equal to
+⊇: math: superset of or equal to
+⊏: math: square image of
+⊐: math: square original of
+⊑: math: square image of or equal to
+⊒: math: square original of or equal to
+⊕: math: + circled plus
+⊖: math: - circled minus
+⊗: math: circled times
+⊘: math: circled division slash
+⊛: math: * circled asterisk operator
+⊢: math: right tack
+⊣: math: left tack
+⊤: math: down tack (opposite of false)
+⊥: math: up tack (bottom) or should we use u27c2 perpendicular?
+⊻: math: xor
+⋅: math: dot operator (dot product)
+⋘: math: < very much less-than
+⋙: math: > very much greater-than
+⋮: math: vertical ellipsis
+⋯: math: midline horizontal ellipsis
+⋰: math: up right diagonal ellipsis
+⋱: math: down right diagonal ellipsis
+⌈: math: left ceiling
+⌉: math: right ceiling
+⌊: math: left floor
+⌋: math: right floor
 ⌘: place of interest sign
-⌚: watch
-⌛: hourglass
+⌚: objects: watch
+⌛: objects: hourglass
 ⌤: up arrowhead between two horizontal bars; aka enter key, aka not amused.
-⌨: keyboard
+⌨: objects: keyboard
 ⍨: apl functional symbol tilde diaeresis
-⍾: bell symbol (or aliens landing) -- &-a-l-i-e-n ?
+⍾: bell symbol (or aliens landing)
 ⏎: return symbol
 ⏨: decimal exponent symbol
 ␣: open box
-⑴: parenthesized digit one
-⑵: parenthesized digit two
-⑶: parenthesized digit three
-⑷: parenthesized digit four
-⑸: parenthesized digit five
-⑹: parenthesized digit six
-⑺: parenthesized digit seven
-⑻: parenthesized digit eight
-⑼: parenthesized digit nine
-⑽: parenthesized number ten
-⑾: parenthesized number eleven
-⑿: parenthesized number twelve
-⒀: parenthesized number thirteen
-⒁: parenthesized number fourteen
-⒂: parenthesized number fifteen
-⒃: parenthesized number sixteen
-⒄: parenthesized number seventeen
-⒅: parenthesized number eighteen
-⒆: parenthesized number nineteen
-⒇: parenthesized number twenty
-⒈: digit one full stop
-⒉: digit two full stop
-⒊: digit three full stop
-⒋: digit four full stop
-⒌: digit five full stop
-⒍: digit six full stop
-⒎: digit seven full stop
-⒏: digit eight full stop
-⒐: digit nine full stop
-⒑: number ten full stop
-⒒: number eleven full stop
-⒓: number twelve full stop
-⒔: number thirteen full stop
-⒕: number fourteen full stop
-⒖: number fifteen full stop
-⒗: number sixteen full stop
-⒘: number seventeen full stop
-⒙: number eighteen full stop
-⒚: number nineteen full stop
-⒛: number twenty full stop
+⑴: 1 parenthesized digit one
+⑵: 2 parenthesized digit two
+⑶: 3 parenthesized digit three
+⑷: 4 parenthesized digit four
+⑸: 5 parenthesized digit five
+⑹: 6 parenthesized digit six
+⑺: 7 parenthesized digit seven
+⑻: 8 parenthesized digit eight
+⑼: 9 parenthesized digit nine
+⑽: 10 parenthesized number ten
+⑾: 11 parenthesized number eleven
+⑿: 12 parenthesized number twelve
+⒀: 13 parenthesized number thirteen
+⒁: 14 parenthesized number fourteen
+⒂: 15 parenthesized number fifteen
+⒃: 16 parenthesized number sixteen
+⒄: 17 parenthesized number seventeen
+⒅: 18 parenthesized number eighteen
+⒆: 19 parenthesized number nineteen
+⒇: 20 parenthesized number twenty
+⒈: 1 digit one full stop
+⒉: 2 digit two full stop
+⒊: 3 digit three full stop
+⒋: 4 digit four full stop
+⒌: 5 digit five full stop
+⒍: 6 digit six full stop
+⒎: 7 digit seven full stop
+⒏: 8 digit eight full stop
+⒐: 9 digit nine full stop
+⒑: 10 number ten full stop
+⒒: 11 number eleven full stop
+⒓: 12 number twelve full stop
+⒔: 13 number thirteen full stop
+⒕: 14 number fourteen full stop
+⒖: 15 number fifteen full stop
+⒗: 16 number sixteen full stop
+⒘: 17 number seventeen full stop
+⒙: 18 number eighteen full stop
+⒚: 19 number nineteen full stop
+⒛: 20 number twenty full stop
 ⒜: parenthesized latin small letter a
 ⒝: parenthesized latin small letter b
 ⒞: parenthesized latin small letter c
@@ -782,32 +780,32 @@
 ⒳: parenthesized latin small letter x
 ⒴: parenthesized latin small letter y
 ⒵: parenthesized latin small letter z
-⓫: negative circled number eleven
-⓬: negative circled number twelve
-⓭: negative circled number thirteen
-⓮: negative circled number fourteen
-⓯: negative circled number fifteen
-⓰: negative circled number sixteen
-⓱: negative circled number seventeen
-⓲: negative circled number eighteen
-⓳: negative circled number nineteen
-⓴: negative circled number twenty
-⓵: double circled digit one
-⓶: double circled digit two
-⓷: double circled digit three
-⓸: double circled digit four
-⓹: double circled digit five
-⓺: double circled digit six
-⓻: double circled digit seven
-⓼: double circled digit eight
-⓽: double circled digit nine
-⓾: double circled number ten
-⓿: negative circled digit zero
+⓫: 11 negative circled number eleven
+⓬: 12 negative circled number twelve
+⓭: 13 negative circled number thirteen
+⓮: 14 negative circled number fourteen
+⓯: 15 negative circled number fifteen
+⓰: 16 negative circled number sixteen
+⓱: 17 negative circled number seventeen
+⓲: 18 negative circled number eighteen
+⓳: 19 negative circled number nineteen
+⓴: 20 negative circled number twenty
+⓵: 1 double circled digit one
+⓶: 2 double circled digit two
+⓷: 3 double circled digit three
+⓸: 4 double circled digit four
+⓹: 5 double circled digit five
+⓺: 6 double circled digit six
+⓻: 7 double circled digit seven
+⓼: 8 double circled digit eight
+⓽: 9 double circled digit nine
+⓾: 10 double circled number ten
+⓿: 0 negative circled digit zero
 ◌: dotted circle
-★: black star
-☆: white star
-☉: sun (sunday)
-☎: black telephone
+★: people: black star
+☆: people: white star
+☉: nature: sun (sunday)
+☎: objects: black telephone
 ☐: ballot box
 ☑: ballot box with check
 ☒: ballot box with x
@@ -816,12 +814,12 @@
 ☗: black shogi piece
 ☘: shamrock
 ☙: reversed rotated floral heart bullet
-☚: black left pointing index
-☛: black right pointing index
-☜: white left pointing index
-☝: white up pointing index
-☞: white right pointing index
-☟: white down pointing index
+☚: < black left pointing index
+☛: > black right pointing index
+☜: < white left pointing index
+☝: ^ white up pointing index
+☞: vv white right pointing index
+☟: vv white down pointing index
 ☠: skull and crossbones
 ☢: radioactive sign
 ☣: biohazard sign
@@ -829,18 +827,18 @@
 ☭: hammer and sickle
 ☮: peace symbol
 ☯: yin yang
-☹: white frowning face
-☺: white smiling face
-☻: black smiling face
-☽: first quarter moon (monday)
-☿: mercury (wednesday)
+☹: people: white frowning face
+☺: people: white smiling face
+☻: people: black smiling face
+☽: nature: first quarter moon (monday)
+☿: nature: mercury (wednesday)
 ♀: female sign
 ♂: male sign
 ♃: jupiter (thursday)
 ♄: saturn (saturday)
 ♅: uranus (or ⛢ u26e2?)
 ♆: neptune
-♇: pluto (ok, it isn't a planet anymore, but we still love it.)
+♇: pluto
 ♈: aries
 ♉: taurus
 ♊: gemini
@@ -909,7 +907,7 @@
 ⛉: turned white shogi piece
 ⛊: turned black shogi piece
 ⛎: ophiuchus
-⛤: pentagram (pentalpha, get it?)
+⛤: pentagram
 ✈: airplane
 ✉: envelope
 ✌: victory hand
@@ -928,69 +926,69 @@
 ✨: sparkles
 ✪: circled white star
 ✯: pinwheel star
-✱: heavy asterisk
-❄: snowflake
-❇: sparkle
-❈: heavy sparkle
+✱: * heavy asterisk
+❄: * snowflake
+❇: * sparkle
+❈: * heavy sparkle
 ❖: black diamond minus white x
 ❣: heavy heart exclamation mark ornament
 ❥: rotated heavy black heart bullet
 ❦: floral heart
 ❧: rotated floral heart bullet
-❨: medium left parenthesis ornament
-❩: medium right parenthesis ornament
-❪: medium flattened left parenthesis ornament
-❫: medium flattened right parenthesis ornament
-❬: medium left-pointing angle bracket ornament
-❭: medium right-pointing angle bracket ornament
-❰: heavy left-pointing angle bracket ornament
-❱: heavy right-pointing angle bracket ornament
-❲: light left tortoise shell bracket ornament
-❳: light right tortoise shell bracket ornament
-❴: medium left curly bracket ornament
-❵: medium right curly bracket ornament
-❶: dingbat negative circled digit one
-❷: dingbat negative circled digit two
-❸: dingbat negative circled digit three
-❹: dingbat negative circled digit four
-❺: dingbat negative circled digit five
-❻: dingbat negative circled digit six
-❼: dingbat negative circled digit seven
-❽: dingbat negative circled digit eight
-❾: dingbat negative circled digit nine
-❿: dingbat negative circled number ten
+❨: ( medium left parenthesis ornament
+❩: ) medium right parenthesis ornament
+❪: ( medium flattened left parenthesis ornament
+❫: ) medium flattened right parenthesis ornament
+❬: < medium left-pointing angle bracket ornament
+❭: > medium right-pointing angle bracket ornament
+❰: < heavy left-pointing angle bracket ornament
+❱: > heavy right-pointing angle bracket ornament
+❲: [ light left tortoise shell bracket ornament
+❳: ] light right tortoise shell bracket ornament
+❴: { medium left curly bracket ornament
+❵: } medium right curly bracket ornament
+❶: 1 dingbat negative circled digit one
+❷: 2 dingbat negative circled digit two
+❸: 3 dingbat negative circled digit three
+❹: 4 dingbat negative circled digit four
+❺: 5 dingbat negative circled digit five
+❻: 6 dingbat negative circled digit six
+❼: 7 dingbat negative circled digit seven
+❽: 8 dingbat negative circled digit eight
+❾: 9 dingbat negative circled digit nine
+❿: 10 dingbat negative circled number ten
 ⟅: left s-shaped bag delimiter
 ⟆: right s-shaped bag delimiter
 ⟌: long division
-⟦: mathematical left white square bracket
-⟧: mathematical right white square bracket
-⟨: mathematical left angle bracket
-⟩: mathematical right angle bracket
-⟪: mathematical left double angle bracket
-⟫: mathematical right double angle bracket
-⟬: mathematical left white tortoise shell bracket
-⟭: mathematical right white tortoise shell bracket
-⟮: mathematical left flattened parenthesis
-⟯: mathematical right flattened parenthesis
+⟦: math: [ mathematical left white square bracket
+⟧: math: ] mathematical right white square bracket
+⟨: math: < mathematical left angle bracket
+⟩: math: > mathematical right angle bracket
+⟪: math: < mathematical left double angle bracket
+⟫: math: > mathematical right double angle bracket
+⟬: math: [ mathematical left white tortoise shell bracket
+⟭: math: ] mathematical right white tortoise shell bracket
+⟮: math: ( mathematical left flattened parenthesis
+⟯: math: ) mathematical right flattened parenthesis
 ⟲: anticlockwise gapped circle arrow
 ⟳: clockwise gapped circle arrow
 ⦂: z notation type colon
-⦃: left white curly bracket
-⦄: right white curly bracket
-⦗: left black tortoise shell bracket
-⦘: right black tortoise shell bracket
-⧘: left wiggly fence
-⧙: right wiggly fence
-⧚: left double wiggly fence
-⧛: right double wiggly fence
-⨋: sum/integral
-⨌: quadruple integral
-⨓: integral around point
-⨕: semicircular pole integral
-⨘: geometric integral
-⨛: upper integral
-⨜: lower integral
-⨯: cross product
+⦃: math: { left white curly bracket
+⦄: math: } right white curly bracket
+⦗: math: [ left black tortoise shell bracket
+⦘: math: ] right black tortoise shell bracket
+⧘: math: left wiggly fence
+⧙: math: right wiggly fence
+⧚: math: left double wiggly fence
+⧛: math: right double wiggly fence
+⨋: math: sum/integral
+⨌: math: quadruple integral
+⨓: math: integral around point
+⨕: math: semicircular pole integral
+⨘: math: geometric integral
+⨛: math: upper integral
+⨜: math: lower integral
+⨯: math: x cross product
 ⨾: z notation relational composition
 ⬚: dotted square
 Ɐ: latin capital letter turned a
@@ -998,16 +996,15 @@
 ⱽ: modifier letter capital v
 ⵯ: tifinagh modifier letter labialization mark
 ⸎: editorial coronis
-⸘: inverted interrobang (if you have a ¡ key.  otherwise...? "?i" maybe?
-⸘: inverted interrobang, standard now.
+⸘: inverted interrobang
 ⸙: palm branch
 ⸚: hyphen with diaeresis
-⸢: top left half bracket
-⸣: top right half bracket
-⸤: bottom left half bracket
-⸥: bottom right half bracket
-⸨: left double parenthesis
-⸩: right double parenthesis
+⸢: [ top left half bracket
+⸣: ] top right half bracket
+⸤: [ bottom left half bracket
+⸥: ] bottom right half bracket
+⸨: ( left double parenthesis
+⸩: ) right double parenthesis
 ⸮: reversed question mark
 ⸯ: vertical tilde
 ⸲: turned comma
@@ -1020,8 +1017,8 @@
 ⹁: reversed comma
 ⹂: double low-reversed-9 quotation mark
 〃: ditto mark
-『: left white corner bracket
-』: right white corner bracket
+『: [ left white corner bracket
+』: ] right white corner bracket
 Ꙫ: cyrillic capital letter binocular o * used in the dual of words based on the root for 'eye'
 ꙫ: cyrillic small letter binocular o
 Ꙭ: cyrillic capital letter double monocular o * used in the dual of words based on the root for 'eye'
@@ -1116,8 +1113,8 @@
 ︎: text selector
 ️: emoji selector
 ﻿: zero width no-break space (byte order mark)
-｢: halfwidth left corner bracket
-｣: halfwidth right corner bracket
+｢: [ halfwidth left corner bracket
+｣: ] halfwidth right corner bracket
 𝄞: musical symbol g clef
 𝄡: musical symbol c clef
 𝄢: musical symbol f clef
@@ -1773,7 +1770,7 @@
 🔉: speaker with one sound wave
 🔊: speaker with three sound waves
 🔋: battery
-🔌: electric plug
+🔌: electric plug charging
 🔑: key
 🔒: lock
 🔓: open lock
