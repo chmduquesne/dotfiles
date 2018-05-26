@@ -73,7 +73,7 @@ zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 setopt prompt_subst
-PROMPT='%n@%M:%~/$vcs_info_msg_0_ %(!.#.$) '
+PROMPT='%n@%M:%~/$vcs_info_msg_0_%(!.#.$) '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
 
