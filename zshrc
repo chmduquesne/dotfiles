@@ -272,3 +272,7 @@ export PATH=${GOPATH}/bin:${HOME}/.bin:${PATH}
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
+
+if type pipenv >/dev/null; then
+    eval "$(pipenv --completion)"
+fi

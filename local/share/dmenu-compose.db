@@ -76,20 +76,42 @@
 ʡ: latin letter glottal stop with stroke
 ʢ: latin letter reversed glottal stop with stroke
 ʬ: latin letter bilabial percussive
+ᵃ: superscript letter small a
+ᵇ: superscript letter small b
+ᶜ: superscript letter small c
+ᵈ: superscript letter small d
+ᵉ: superscript letter small e
+ᶠ: superscript letter small f
+ᵍ: superscript letter small g
+ʰ: superscript letter small h
+ᶦ: superscript letter small i
+ʲ: superscript letter small j
+ᵏ: superscript letter small k
+ˡ: superscript letter small l
+ᵐ: superscript letter small m
+ⁿ: superscript letter small n
+ᵒ: superscript letter small o
+ᵖ: superscript letter small p
+ʳ: superscript letter small r
+ˢ: superscript letter small s
+ᵗ: superscript letter small t
+ᵘ: superscript letter small u
+ᵛ: superscript letter small v
+ʷ: superscript letter small w
+ˣ: superscript letter small x
+ʸ: superscript letter small y
+ᶻ: superscript letter small z
+⁺: superscript plus
+⁻: superscript minus
 ʰ: modifier letter small h
-ʰ: superscript h
 ʱ: modifier letter small h with hook
 ʲ: modifier letter small j
-ʲ: superscript j
 ʳ: modifier letter small r
-ʳ: superscript r
 ʴ: modifier letter small turned r
 ʵ: modifier letter small turned r with hook
 ʶ: modifier letter small capital inverted r
 ʷ: modifier letter small w
-ʷ: superscript w
 ʸ: modifier letter small y
-ʸ: superscript y
 ʹ: modifier letter prime
 ʹ: modifier letter prime, canonically equivalent to u0374 greek numeral sign
 ʺ: modifier letter double prime
@@ -460,10 +482,6 @@
 ⁧: right-to-left isolate
 ⁨: first strong isolate
 ⁩: pop directional isolate
-ⁱ: superscript i
-⁺: superscript plus
-⁻: superscript minus
-ⁿ: superscript n
 ₀: subscript zero
 ₁: subscript one
 ₂: subscript two
