@@ -1,4 +1,4 @@
 [Desktop Entry]
 Name=auto-arandr
 Type=Application
-Exec=/home/cduquesne/.bin/auto-arandr
+Exec=auto-arandr

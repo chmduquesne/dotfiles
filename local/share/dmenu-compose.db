@@ -437,19 +437,23 @@
 ‎: left-to-right mark
 ‏: right-to-left mark
 ―: horizontal bar
-‘: left single quotation mark
-‘: left single quotation mark (high 6)
-’: right single quotation mark
-’: right single quotation mark (high 9)
-‚: single low-9 quotation mark
-‚: single low-9 quotation mark (quote resembling a comma)
-‛: single high-reversed-9 quotation mark
-“: left double quotation mark
-“: left double quotation mark (66)
-”: right double quotation mark
-”: right double quotation mark (99)
-„: double low-9 quotation mark
-‟: double high-reversed-9 quotation mark
+«: " left angle quotation mark
+»: " right angle quotation mark
+‚: ' single low-9 quotation mark
+„: " double low-9 quotation mark
+⹂: " double low-reversed-9 quotation mark
+’: ' right single quotation mark
+”: " right double quotation mark
+‘: ' left single quotation mark
+“: " left double quotation mark
+‘: ' left single quotation mark (high 6)
+“: " left double quotation mark (66)
+’: ' right single quotation mark (high 9)
+”: " right double quotation mark (99)
+‛: ' single high-reversed-9 quotation mark
+‟: " double high-reversed-9 quotation mark
+‚: ' single low-9 quotation mark (quote resembling a comma)
+„: " double low-9 quotation mark
 †: dagger
 ‡: double dagger
 •: bullet
