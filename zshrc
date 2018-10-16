@@ -73,7 +73,10 @@ zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 setopt prompt_subst
-PROMPT='%F{green}%n@%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
+#PROMPT='%F{green}%n@%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
+host_color=$(color_hash $(hostname))
+user_color=$(color_hash $USER)
+PROMPT='$user_color%n%f@$host_color%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
 

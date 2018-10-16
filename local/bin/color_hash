@@ -1,0 +1,10 @@
+#!/bin/sh
+
+color_hash() {
+  input_to_number=$(printf "%d" 0x$(echo "$@" | md5sum | cut -b -8))
+  nb_supported_colors=$(infocmp -1 | sed -n -e "s/^\t*colors#\([0-9]x\?[0-9]*\),.*/\1/p")
+  color_number=$(( 1 + input_to_number % (nb_supported_colors - 1) ))
+  tput setaf $color_number
+}
+
+color_hash "$@"
