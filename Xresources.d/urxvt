@@ -1,17 +1,4 @@
 /*
- *      font
- */
-*font:                                  xft:Mono:pixelsize=12,xft:Symbola:pixelsize=10
-
-
-/*
- *      Xft
- */
-Xft.antialias:                          true
-Xft.hintstyle:                          hintfull
-
-
-/*
  *      rxvt-unicode config
  * */
 URxvt.perl-ext-common:                  default,selection,matcher,searchable-scrollback,clipboard

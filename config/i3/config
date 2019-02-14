@@ -177,9 +177,6 @@ bar {
 }
 
 assign [class="Navigator"] 1:web
-assign [class="Evolution"] 10:mail
-assign [class="Hipchat"] 9:chat
-assign [class="Pidgin"] 9:chat
-assign [class="Linphone"] 8:phone
+assign [class="starleaf-breeze"] 8:phone
 
 exec bash -c "dex -ave i3 > ~/.dex.log"

@@ -1,0 +1,5 @@
+/*
+ *      Xft
+ */
+Xft.antialias:                          true
+Xft.hintstyle:                          hintfull

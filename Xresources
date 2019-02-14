@@ -1,1 +1,4 @@
-Xresources.d/base16-solarized.dark.256.xresources
+#include ".Xresources.d/common"
+#include ".Xresources.d/colors"
+#include ".Xresources.d/urxvt"
+#include ".Xresources.d/xft"
