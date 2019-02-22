@@ -28,6 +28,10 @@ bindsym XF86MonBrightnessUp  exec  xbacklight -inc 10
 # lock screen
 bindsym Mod1+Control+l exec i3lock
 
+# capture screen
+bindsym Print --release exec "scrot -s /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
+bindsym Shift+Print exec "scrot /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
+
 # change focus
 bindsym $mod+j focus left
 bindsym $mod+k focus down
@@ -183,5 +187,6 @@ bar {
 
 assign [class="Navigator"] 1:web
 assign [class="starleaf-breeze"] 8:phone
+assign [class="Slack"] 9:chat
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
