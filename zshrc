@@ -73,9 +73,12 @@ zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 setopt prompt_subst
-#PROMPT='%F{green}%n@%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
-host_color=$(color_hash $(hostname))
-user_color=$(color_hash $USER)
+host_color=red
+host_color=green
+if type color_hash > /dev/null; then
+    user_color=$(color_hash $USER)
+    host_color=$(color_hash $(hostname))
+fi
 PROMPT='%F{$user_color}%n%f@%F{$host_color}%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
@@ -105,10 +108,10 @@ key[Right]=${terminfo[kcuf1]}
 [ -n ${key[Backspace]} ] && bindkey "${key[Backspace]}" backward-delete-char
 [ -n ${key[Insert]}    ] && bindkey "${key[Insert]}"    overwrite-mode
 [ -n ${key[Home]}      ] && bindkey "${key[Home]}"      beginning-of-line
-[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}" history-beginning-search-backward
+[ -n ${key[PageUp]}    ] && bindkey "${key[PageUp]}"    history-beginning-search-backward
 [ -n ${key[Delete]}    ] && bindkey "${key[Delete]}"    delete-char
 [ -n ${key[End]}       ] && bindkey "${key[End]}"       end-of-line
-[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}" history-beginning-search-forward
+[ -n ${key[PageDown]}  ] && bindkey "${key[PageDown]}"  history-beginning-search-forward
 [ -n ${key[Up]}        ] && bindkey "${key[Up]}"        up-line-or-search
 [ -n ${key[Left]}      ] && bindkey "${key[Left]}"      backward-char
 [ -n ${key[Down]}      ] && bindkey "${key[Down]}"      down-line-or-search
@@ -267,7 +270,7 @@ export PYTHONSTARTUP=~/.pythonrc
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
 export GOPATH=${HOME}/code/golang
-export PATH=${GOPATH}/bin:${HOME}/.bin:${PATH}
+export PATH=${GOPATH}/bin:${PATH}
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -276,6 +279,4 @@ export PATH=${GOPATH}/bin:${HOME}/.bin:${PATH}
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
 
-if type pipenv >/dev/null; then
-    eval "$(pipenv --completion)"
-fi
+(type pipenv >/dev/null) && source <(pipenv --completion)
