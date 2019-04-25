@@ -8,7 +8,7 @@ export LANG=en_US.UTF-8
 export PULSE_LATENCY_MSEC=60
 
 # TMUX
-if which tmux 2>&1 >/dev/null; then
+if type tmux > /dev/null; then
     # if no session is started, start a new session
     if [ -z "$TMUX" ]; then
         tmux
@@ -73,12 +73,8 @@ zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 setopt prompt_subst
-host_color=red
-host_color=green
-if type color_hash > /dev/null; then
-    user_color=$(color_hash $USER)
-    host_color=$(color_hash $(hostname))
-fi
+{type color_hash > /dev/null} && user_color=$(color_hash $USER) || user_color=red
+{type color_hash > /dev/null} && host_color=$(color_hash $(hostname)) || host_color=green
 PROMPT='%F{$user_color}%n%f@%F{$host_color}%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'
@@ -177,13 +173,9 @@ export LESS_TERMCAP_so=$'\E[01;44;33m' # begin reverse video
 export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
 export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
 export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
-[ -x /usr/bin/lesspipe ] && export LESSOPEN='|lesspipe %s'
-[ -x /usr/bin/pygmentize ] && export LESSCOLORIZER='pygmentize'
+{type lesspipe > /dev/null} && export LESSOPEN='|lesspipe %s'
+{type pygmentize > /dev/null} && export LESSCOLORIZER='pygmentize'
 export PAGER='less'
-
-# MPD
-export MPD_PORT=6600
-export MPD_HOST='localhost'
 
 scanimage() {
     PNM=$(mktemp --suffix=.pnm)
@@ -221,8 +213,8 @@ export SUDO_ASKPASS=$(which sudo-askpass)
 alias sudo='nocorrect sudo --askpass'
 
 # KEYCHAINS
-eval $(SSH_ASKPASS=ssh-askpass \
-        keychain --quiet --eval id_rsa </dev/null)
+{type keychain > /dev/null} && {type ssh-askpass > /dev/null} && \
+    source <(SSH_ASKPASS=ssh-askpass keychain --quiet --eval id_rsa </dev/null)
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)
@@ -279,4 +271,4 @@ export PATH=${GOPATH}/bin:${PATH}
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
 
-(type pipenv >/dev/null) && source <(pipenv --completion)
+{type pipenv >/dev/null} && source <(pipenv --completion)
