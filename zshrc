@@ -144,10 +144,10 @@ unsetopt beep
 bindkey -e
 
 # SOME COLORS
-eval "`dircolors -b`"
-export LS_COLORS='di=38;5;108:fi=00:*svn-commit.tmp=31:ln=38;5;116:ex=38;5;186'
-alias ls='ls --color=always'
-alias grep='grep --color=always'
+source <(dircolors -b)
+#export LS_COLORS='di=38;5;108:fi=00:*svn-commit.tmp=31:ln=38;5;116:ex=38;5;186'
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
 
 # LS
 alias ll='ls -l'
@@ -163,9 +163,8 @@ alias vi='vim'
 export BROWSER=firefox
 
 # LESS
-# https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
+export PAGER='less'
 export LESS='-F -i -J -M -R -W -x4 -X -z-4'
-export LESSCHARSET=UTF-8
 export LESS_TERMCAP_mb=$'\E[1;31m'     # begin bold
 export LESS_TERMCAP_md=$'\E[1;36m'     # begin blink
 export LESS_TERMCAP_me=$'\E[0m'        # reset bold/blink
@@ -174,8 +173,7 @@ export LESS_TERMCAP_se=$'\E[0m'        # reset reverse video
 export LESS_TERMCAP_us=$'\E[1;32m'     # begin underline
 export LESS_TERMCAP_ue=$'\E[0m'        # reset underline
 {type lesspipe > /dev/null} && export LESSOPEN='|lesspipe %s'
-{type pygmentize > /dev/null} && export LESSCOLORIZER='pygmentize'
-export PAGER='less'
+{type pygmentize > /dev/null} && export LESSOPEN='|pygmentize -g %s'
 
 scanimage() {
     PNM=$(mktemp --suffix=.pnm)
@@ -271,4 +269,6 @@ export PATH=${GOPATH}/bin:${PATH}
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
 
-{type pipenv >/dev/null} && source <(pipenv --completion)
+{type pipenv > /dev/null} && source <(pipenv --completion)
+{type kubectl > /dev/null} && source <(kubectl completion zsh)
+{type minikube > /dev/null} && source <(minikube completion zsh)
