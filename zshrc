@@ -143,16 +143,20 @@ setopt correct correct_all appendhistory autocd extendedglob nomatch notify auto
 unsetopt beep
 bindkey -e
 
-# SOME COLORS
-source <(dircolors -b)
-#export LS_COLORS='di=38;5;108:fi=00:*svn-commit.tmp=31:ln=38;5;116:ex=38;5;186'
-alias ls='ls --color=auto'
-alias grep='grep --color=auto'
-
 # LS
 alias ll='ls -l'
 alias la='ls -A'
 alias l='ls -CF'
+source <(dircolors -p |\
+    perl -pe 's/^((CAP|S[ET]|O[TR]|M|E)\w+).*/$1 00/' |\
+    perl -pe 's/^(DIR).*/$1 38;5;108/' |\
+    perl -pe 's/^(LINK).*/$1 38;5;116/' |\
+    perl -pe 's/^(EXEC).*/$1 38;5;186/' |\
+    dircolors -)
+alias ls='ls --color=auto'
+
+# GREP
+alias grep='grep --color=auto'
 
 # EDITOR
 export VISUAL=vim
