@@ -273,6 +273,9 @@ export PATH=${GOPATH}/bin:${PATH}
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
 
-{type pipenv > /dev/null} && source <(pipenv --completion)
+# Completions
+{type pipenv >/dev/null} && source <(pipenv --completion)
 {type kubectl > /dev/null} && source <(kubectl completion zsh)
 {type minikube > /dev/null} && source <(minikube completion zsh)
+
+export ENV="local"

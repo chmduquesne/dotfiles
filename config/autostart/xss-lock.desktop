@@ -1,5 +1,5 @@
 [Desktop Entry]
-Exec=/usr/bin/xautolock -locker i3lock
-Name=xautolock
+Exec=/usr/bin/xss-lock i3lock
+Name=xss-lock
 Type=Application
 Comment=fire up programs in case of user inactivity under X

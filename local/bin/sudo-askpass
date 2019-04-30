@@ -1,2 +1,2 @@
 #!/bin/bash
-pass hosts/$(whoami)@$(hostname) | head -n1
+pass show hosts/$(whoami)@$(hostname) | head -n1
