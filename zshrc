@@ -1,11 +1,9 @@
-# GPG
-export GPG_TTY=$(tty)
-
 # UTF8
 export LANG=en_US.UTF-8
 
 # PULSEAUDIO
-export PULSE_LATENCY_MSEC=60
+# Still useful?
+#export PULSE_LATENCY_MSEC=60
 
 # TMUX
 if type tmux > /dev/null; then
@@ -19,42 +17,29 @@ if type tmux > /dev/null; then
     done
 fi
 
-# DETECT SSH
-#is_ssh(){
-#    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-#        return 0
-#    else
-#        # parent pid of the shell is sshd
-#        case $(ps -o comm= -p $PPID) in
-#            sshd|*/sshd) return 0;;
-#        esac
-#    fi
-#    return 1
-#}
-
 # NOTIFICATION UPON COMMAND COMPLETION
 REPORTTIME=3
-notify=$(which notify-send 2>/dev/null)
-if [ -n "$notify" -a -x "$notify" ]; then
-    notify-hook(){
-        [ $? -eq 0 ] && _URGENCY="low" || _URGENCY="critical"
-        _CMD=$(eval "history -1 | sed 's/\ \+[0-9]\+\ \+//'")
-        _RUNTIME="Runtime: $_ELAPSED_TIME seconds"
-        $notify -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
-    }
 
-    notify-preexec-hook() {
-        _CMD_START_TIME=$SECONDS
-        _ELAPSED_TIME=0
-    }
+notify-hook(){
+    [ $? -eq 0 ] && _URGENCY="low" || _URGENCY="critical"
+    _CMD=$(eval "history -1 | sed 's/\ \+[0-9]\+\ \+//'")
+    _RUNTIME="Runtime: $_ELAPSED_TIME seconds"
+    if type notify-send > /dev/null; then
+        notify-send -u $_URGENCY "$USER@$HOST" "$_CMD\n$_RUNTIME"
+    fi
+}
 
-    notify-precmd-hook() {
-        (( _CMD_START_TIME >= 0 )) && \
-            _ELAPSED_TIME=$(( SECONDS-_CMD_START_TIME ))
-        _CMD_START_TIME=-1
-        (( _ELAPSED_TIME >= $REPORTTIME )) && notify-hook
-    }
-fi
+notify-preexec-hook() {
+    _CMD_START_TIME=$SECONDS
+    _ELAPSED_TIME=0
+}
+
+notify-precmd-hook() {
+    (( _CMD_START_TIME >= 0 )) && \
+        _ELAPSED_TIME=$(( SECONDS-_CMD_START_TIME ))
+    _CMD_START_TIME=-1
+    (( _ELAPSED_TIME >= $REPORTTIME )) && notify-hook
+}
 
 [ -z $preexec_functions ] && preexec_functions=()
 preexec_functions=($preexec_functions notify-preexec-hook)
@@ -63,7 +48,6 @@ preexec_functions=($preexec_functions notify-preexec-hook)
 precmd_functions=($precmd_functions notify-precmd-hook)
 
 # VCS
-[ -z $precmd_functions ] && precmd_functions=()
 precmd_functions=($precmd_functions vcs_info)
 autoload -U promptinit
 autoload -Uz vcs_info

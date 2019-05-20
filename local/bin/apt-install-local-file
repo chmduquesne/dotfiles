@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+deb=$(readlink -f "$1")
+
+zenity --question --text "This will install $(basename $deb). Are you sure you want to proceed?"
+if [ $? != 0 ]; then
+    notify-send "Installation cancelled" "$deb"
+    exit
+fi
+
+export SUDO_ASKPASS=$(which sudo-askpass)
+sudo --askpass  apt install $deb
+if [ $? == 0 ]; then
+    notify-send "Installation successful" "$deb"
+else
+    notify-send "Installation failed" "$deb"
+fi
