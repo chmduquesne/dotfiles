@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+
+i3_cmd = 'i3-msg -t get_tree'
+
+def get_layout():
+    get_tree = subprocess.Popen(i3_cmd.split(), stdout=subprocess.PIPE)
+    stdout = get_tree.communicate()[0]
+    try:
+        tree = json.loads(stdout)
+    except ValueError:
+        tree = {}
+    return tree
+
+def any_fullscreen_window(node):
+    if node['window']:
+        return node['fullscreen_mode'] == 1
+    return any(any_fullscreen_window(n) for n in node.get('nodes', ''))
+
+def xset_screensaver(arg):
+    subprocess.call(f'xset s {arg}'.split())
+
+if __name__ == '__main__':
+    if any_fullscreen_window(get_layout()):
+        xset_screensaver('off')
+    else:
+        xset_screensaver('on')
