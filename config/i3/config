@@ -203,3 +203,4 @@ assign [class="Slack"] $ws9
 assign [class="teams-for-linux"] $ws9
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
+exec_always "disable-standby-fs"
