@@ -235,7 +235,8 @@ uuid()
 
 sqlite()
 {
-    python -c "import apsw;apsw.main()" -init ~/.sqliterc $@
+    [ -f ~/.sqliterc ] || touch ~/.sqliterc
+    python3 -c "import apsw;apsw.main()" -init ~/.sqliterc $@
 }
 
 # Don't bug me with mails, I've already got notifications
