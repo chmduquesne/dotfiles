@@ -13,9 +13,9 @@ set $ws6 6:💾
 set $ws7 7:💾
 set $ws8 8:☎️
 set $ws9 9:💬
-set $ws0 10:📩
+set $ws0 10:📟
 
-font pango:DejaVu Sans 9
+font pango:Emoji One Color 9
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
