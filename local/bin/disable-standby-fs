@@ -21,15 +21,14 @@ def find_fullscreen(con):
 
 def set_dpms(state):
     if state:
-        print('xset s on')
         call(['xset', 's', 'on'])
         call(['xset', '+dpms'])
-        call(['notify-send', 'App left fullscreen', 'Reactivating screensaver'])
+        call(['xset', 'dpms', '0', '0', '300'])
+        call(['notify-send', '💻 activating screensaver'])
     else:
-        print('xset s off')
         call(['xset', 's', 'off'])
         call(['xset', '-dpms'])
-        call(['notify-send', 'App went fullscreen', 'Deactivating screensaver'])
+        call(['notify-send', '💻 deactivating screensaver'])
 
 
 def on_fullscreen_mode(i3, e):

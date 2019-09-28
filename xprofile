@@ -1,6 +1,7 @@
 # apply X settings
 setxkbmap -layout us -variant intl
 xrdb -load ~/.Xresources
+xset s 300
 
 # configure default screen layout
 [ -f ~/.screenlayout/arandr.sh ] && . ~/.screenlayout/arandr.sh
@@ -15,7 +16,3 @@ xrdb -load ~/.Xresources
 #DISPLAY                     DEFAULT=${DISPLAY}
 #DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 #" > ~/.pam_environment
-
-# various programs
-#nm-applet &
-#starleaf-breeze --start-minimised &
