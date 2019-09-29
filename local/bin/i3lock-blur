@@ -1,0 +1,7 @@
+#!/bin/bash
+
+img="$HOME/.cache/i3lock.png"
+
+scrot -o $img
+convert $img -blur 0x8 $img
+i3lock -i $img "$@"

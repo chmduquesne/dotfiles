@@ -1,5 +1,5 @@
 [Desktop Entry]
-Exec=xss-lock -- i3lock-pixelate -n -f
+Exec=xss-lock -- i3lock-blur -n -f
 Name=xss-lock
 Type=Application
 Comment=fire up programs in case of user inactivity under X
