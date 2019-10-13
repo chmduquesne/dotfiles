@@ -1,21 +1,38 @@
-#!/usr/bin/python3
+#!/usr/bin/bash
+xargs -0 -I% notify-send "$@" %
 
-import sys
-import gi
-gi.require_version('Gio', '2.0')
-from gi.repository import Gio
-
-Application = Gio.Application.new("notify.stdin", Gio.ApplicationFlags.FLAGS_NONE)
-Application.register()
-
-title = ""
-if len(sys.argv) > 1:
-    title = sys.argv[1]
-body = sys.stdin.read()
-
-if title or body:
-    Notification = Gio.Notification.new(title)
-    Notification.set_body(body)
-    Icon = Gio.ThemedIcon.new("dialog-information")
-    Notification.set_icon(Icon)
-    Application.send_notification(None, Notification)
+##!/usr/bin/python3
+#import sys
+#import gi
+#import argparse
+#
+#gi.require_version('Gio', '2.0')
+#from gi.repository import Gio
+#
+#parser = argparse.ArgumentParser(description='create a notification')
+#parser.add_argument('--urgency', choices=['low', 'normal', 'critical'], default='low', help='Specifies the urgency level (low, normal, critical)')
+#parser.add_argument('--expire-time', type=int, default=10000, help='Specifies the timeout in milliseconds at which to expire the notification')
+#parser.add_argument('--app-name', help='Specifies the app name for the icon')
+#parser.add_argument('--icon', help='Specifies an icon filename or stock icon to display')
+#parser.add_argument('--category', help='TYPE[,TYPE...] Specifies the notification category')
+#parser.add_argument('--hint', help='TYPE:NAME:VALUE Specifies basic extra data to pass. Valid types are int, double, string and byte.')
+#parser.add_argument('title', nargs='?', help='Specifies the title of the notification')
+#parser.add_argument('body', nargs='?', help='Specifies the body of the notification')
+#args = parser.parse_args()
+#
+#body = args.body
+#if body == None:
+#    body = sys.stdin.read()
+#
+#app = Gio.Application.new("notify.stdin", Gio.ApplicationFlags.FLAGS_NONE)
+#app.register()
+#
+#if args.title or body:
+#    notification = Gio.Notification.new(args.title)
+#    notification.set_body(body)
+#    if args.icon:
+#        icon = Gio.ThemedIcon.new(args.icon)
+#        notification.set_icon(icon)
+#    if args.urgency:
+#        pass
+#    app.send_notification(None, notification)

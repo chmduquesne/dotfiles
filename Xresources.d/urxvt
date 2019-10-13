@@ -11,5 +11,5 @@ URxvt.url-launcher:                     x-www-browser
 URxvt.keysym.Mod4-y:                    perl:clipboard:copy
 URxvt.keysym.Mod4-p:                    perl:clipboard:paste
 URxvt.clipboard.autocopy:               false
-URxvt.clipboard.copycmd:                xclip -i -selection clipboard && notify-send "In clipboard" "$(xclip -o -selection clipboard)"
+URxvt.clipboard.copycmd:                xclip -i -selection clipboard && xclip -o -selection clipboard | xargs -0 -I% notify-send "In clipboard" %
 URxvt.clipboard.pastecmd:               xclip -o -selection clipboard
