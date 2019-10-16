@@ -10,7 +10,7 @@ set $ws3 3:📈
 set $ws4 4:💾
 set $ws5 5:💾
 set $ws6 6:💾
-set $ws7 7:💾
+set $ws7 7:🎵
 set $ws8 8:☎️
 set $ws9 9:💬
 set $ws0 10:📟
@@ -201,6 +201,7 @@ assign [class="Navigator"] $ws1
 assign [class="starleaf-breeze"] $ws8
 assign [class="Slack"] $ws9
 assign [class="teams-for-linux"] $ws9
+assign [class="spotify"] $ws7
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
 exec_always "disable-standby-fs"
