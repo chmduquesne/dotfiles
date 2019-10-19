@@ -1,7 +1,9 @@
 #!/bin/bash
 
-img="$HOME/.cache/i3lock.png"
+img="$HOME/.cache/i3lock-blur.png"
+lock="$HOME/.local/share/lock.png"
 
 scrot -o $img
 convert $img -blur 0x8 $img
+convert $img $lock -gravity center -composite $img
 i3lock -i $img "$@"
