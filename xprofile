@@ -1,7 +1,8 @@
 # apply X settings
 setxkbmap -layout us -variant intl
 xrdb -load ~/.Xresources
-xset s 300
+xset +dpms
+xset dpms 0 0 300
 
 # configure default screen layout
 [ -f ~/.screenlayout/arandr.sh ] && . ~/.screenlayout/arandr.sh

@@ -23,7 +23,6 @@ def set_dpms(state):
     if state:
         call(['xset', 's', 'on'])
         call(['xset', '+dpms'])
-        call(['xset', 'dpms', '0', '0', '300'])
         call(['notify-send', '💻 activating screensaver'])
     else:
         call(['xset', 's', 'off'])
