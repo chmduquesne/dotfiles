@@ -1,9 +1,29 @@
 #!/bin/bash
 
-img="$HOME/.cache/i3lock-blur.png"
+img="/tmp/i3lock-blur.png"
 lock="$HOME/.local/share/lock.png"
 
-scrot -o $img
-convert $img -blur 0x8 $img
+scrot $img
+case "$(( RANDOM % 6 ))" in
+#case "6" in
+    0)
+        convert $img -scale 10% -scale 1000% $img
+        ;;
+    1)
+        convert $img -scale 2.5% -resize 4000% $img
+        ;;
+    2)
+        convert $img -spread 5 $img
+        ;;
+    3)
+        convert $img -paint 3 $img
+        ;;
+    4)
+        convert $img -morphology OpenI Disk $img
+        ;;
+    5)
+        convert $img -emboss 0x2 $img
+        ;;
+esac
 convert $img $lock -gravity center -composite $img
 i3lock -i $img "$@"
