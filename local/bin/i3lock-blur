@@ -3,27 +3,25 @@
 img="/tmp/i3lock-blur.png"
 lock="$HOME/.local/share/lock.png"
 
-scrot $img
-case "$(( RANDOM % 6 ))" in
-#case "6" in
-    0)
-        convert $img -scale 10% -scale 1000% $img
-        ;;
-    1)
-        convert $img -scale 2.5% -resize 4000% $img
-        ;;
-    2)
-        convert $img -spread 5 $img
-        ;;
-    3)
-        convert $img -paint 3 $img
-        ;;
-    4)
-        convert $img -morphology OpenI Disk $img
-        ;;
-    5)
-        convert $img -emboss 0x2 $img
-        ;;
-esac
-convert $img $lock -gravity center -composite $img
+[[ $(identify $lock) =~ ([0-9]+)x([0-9]+) ]]
+img_width=${BASH_REMATCH[1]}
+img_height=${BASH_REMATCH[2]}
+
+rm -f $img
+scrot -z $img
+convert $img -scale 2.5% -resize 4000% $img
+
+while read line; do
+    if [[ $line =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+) ]]; then
+        width=${BASH_REMATCH[1]}
+        height=${BASH_REMATCH[2]}
+        x=${BASH_REMATCH[3]}
+        y=${BASH_REMATCH[4]}
+        pos_x=$((x+width/2-img_width/2))
+        pos_y=$((y+height/2-img_height/2))
+        add_lock="$add_lock $lock -geometry +$pos_x+$pos_y -composite"
+    fi
+done <<< $(xrandr)
+convert $img $add_lock $img
+
 i3lock -i $img "$@"
