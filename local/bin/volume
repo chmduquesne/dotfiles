@@ -1,0 +1,29 @@
+#!/bin/bash
+
+arg=$1
+
+case $arg in
+  up)
+    amixer --quiet set Master 5%+
+    ;;
+  down)
+    amixer --quiet set Master 5%-
+    ;;
+  *)
+    echo "$1: wrong argument"
+    ;;
+esac
+[[ $(amixer get Master|grep %) =~ \[([0-9]+)%\] ]]
+level=${BASH_REMATCH[1]}
+
+emoji=🔇
+if [ $level -gt 0 ]; then
+  emoji=🔈
+fi
+if [ $level -gt 33 ]; then
+  emoji=🔉
+fi
+if [ $level -gt 66 ]; then
+  emoji=🔊
+fi
+notify-send -u low "$emoji $level%"

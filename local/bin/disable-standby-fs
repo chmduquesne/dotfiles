@@ -30,11 +30,6 @@ def set_dpms(state):
         call(['xset', 's', 'off'])
         call(['xset', '-dpms'])
         call(['notify-send', 'DUNST_COMMAND_PAUSE'])
-        Popen(['yad', '--notification',
-            '--text', 'Enable notifications',
-            '--image', 'dialog-information'
-            '--timeout', '10', '--command',
-            'notify-send DUNST_COMMAND_RESUME'])
 
 
 def on_fullscreen_mode(i3, e):

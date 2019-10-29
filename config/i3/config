@@ -31,9 +31,9 @@ bindsym $mod+r exec dmenu_run_history -l 10
 # There also is the (new) i3-dmenu-desktop which only displays applications
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
-bindsym $mod+d exec --no-startup-id i3-dmenu-desktop
-bindsym XF86AudioLowerVolume exec amixer --quiet set Master 5%- && notify-send "🔉" "$(amixer get Master|grep %)"
-bindsym XF86AudioRaiseVolume exec amixer --quiet set Master 5%+ && notify-send "🔉" "$(amixer get Master|grep %)"
+bindsym $mod+d exec notify-send DUNST_COMMAND_RESUME
+bindsym XF86AudioLowerVolume exec volume down
+bindsym XF86AudioRaiseVolume exec volume up
 bindsym XF86MonBrightnessDown exec xbacklight -dec 10
 bindsym XF86MonBrightnessUp exec xbacklight -inc 10
 
