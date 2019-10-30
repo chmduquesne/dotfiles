@@ -34,6 +34,7 @@ bindsym $mod+r exec dmenu_run_history -l 10
 bindsym $mod+d exec notify-send DUNST_COMMAND_RESUME
 bindsym XF86AudioLowerVolume exec volume down
 bindsym XF86AudioRaiseVolume exec volume up
+bindsym $mod+minus exec amixer set Capture toggle
 bindsym XF86MonBrightnessDown exec xbacklight -dec 10
 bindsym XF86MonBrightnessUp exec xbacklight -inc 10
 
