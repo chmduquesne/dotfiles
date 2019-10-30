@@ -15,73 +15,68 @@ general {
 }
 
 order += "ipv6"
-order += "disk /"
-order += "run_watch DHCP"
-order += "run_watch VPN"
 order += "wireless _first_"
 order += "ethernet _first_"
+order += "run_watch VPN"
+order += "disk /"
 order += "load"
 order += "tztime local"
+order += "volume_status"
 order += "battery 0"
 order += "battery 1"
-order += "volume_status"
 
 ipv6 {
-        format_up = "%ip"
-        format_down = "ipv6: ❌"
+        format_up = " %ip"
+        format_down = ""
 }
 
 wireless _first_ {
-        format_up = "📶: (%quality at %essid) %ip"
-        format_down = "📶: ❌"
+        format_up = ": (%quality at %essid) %ip"
+        format_down = ": "
 }
 
 ethernet _first_ {
         # if you use %speed, i3status requires root privileges
-        format_up = "🔌: %ip (%speed)"
-        format_down = "🔌: ❌"
+        format_up = ": %ip (%speed)"
+        format_down = ": "
 }
 
 battery 0 {
         format = "%status %percentage"
-        status_chr = "🔌"
-        status_bat = "🔋"
-        status_full = "✅"
-        #status_unk = "❌"
+        status_chr = ""
+        status_bat = ""
+        status_full = ""
+        #status_unk = ""
 }
 
 battery 1 {
         format = "%status %percentage"
-        status_chr = "🔌"
-        status_bat = "🔋"
-        status_full = "✅"
-        #status_unk = "❌"
-}
-
-run_watch DHCP {
-        pidfile = "/var/run/dhclient*.pid"
-        format = "dhcp: ✅"
-        format_down = "dhcp: ❌"
+        status_chr = ""
+        status_bat = ""
+        status_full = ""
+        #status_unk = ""
 }
 
 run_watch VPN {
         pidfile = "/var/run/vpnc/pid"
-        format = "vpnc: ✅"
-        format_down = "vpnc: ❌"
+        format = "vpnc: "
+        format_down = "vpnc: "
 }
 
 tztime local {
-        format = "📅 %Y-%m-%d 🕐 %H:%M:%S"
+        format = " %Y-%m-%d  %H:%M:%S"
 }
 
 load {
-        format = "🐎 %5min"
+        format = " %5min"
 }
 
 disk "/" {
-        format = "💽 %avail"
+        format = " %avail"
 }
 
 volume_status {
         is_input = "true"
+        format = ""
+        format_muted = ""
 }
