@@ -24,6 +24,7 @@ order += "load"
 order += "tztime local"
 order += "battery 0"
 order += "battery 1"
+order += "volume_status"
 
 ipv6 {
         format_up = "%ip"
@@ -37,8 +38,8 @@ wireless _first_ {
 
 ethernet _first_ {
         # if you use %speed, i3status requires root privileges
-        format_up = "E: %ip (%speed)"
-        format_down = "E: ❌"
+        format_up = "🔌: %ip (%speed)"
+        format_down = "🔌: ❌"
 }
 
 battery 0 {
@@ -79,4 +80,8 @@ load {
 
 disk "/" {
         format = "💽 %avail"
+}
+
+volume_status {
+        is_input = "true"
 }
