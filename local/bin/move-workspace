@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for output in $(xrandr | grep '\<connected\>' | cut -d' ' -f1); do
+  if [[ $output =~ (eDP(-?[0-9]\+)*|LVDS(-?[0-9]\+)*) ]]; then
+    if grep -q close /proc/acpi/button/lid/*/state; then
+      break
+    fi
+  fi
+  monitors="$monitors $output"
+done
+target=left
+if [ $(echo "$monitors" | wc -w) -gt 2 ]; then
+  target=$(echo $monitors| tr ' ' '\n' | dmenu -p "Monitor")
+  [ $? ] && exit
+fi
+i3-msg move workspace to output $target
