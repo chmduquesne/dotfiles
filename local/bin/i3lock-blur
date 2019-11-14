@@ -1,27 +1,53 @@
 #!/bin/bash
 
-img="/tmp/i3lock-blur.png"
-lock="$HOME/.local/share/lock.png"
+sleep_delay=3
 
-[[ $(identify $lock) =~ ([0-9]+)x([0-9]+) ]]
-img_width=${BASH_REMATCH[1]}
-img_height=${BASH_REMATCH[2]}
+locker(){
+    img="/tmp/i3lock-blur.png"
+    lock="$HOME/.local/share/lock.png"
 
-rm -f $img
-scrot -z $img
-convert $img -scale 2.5% -resize 4000% $img
+    # Get the lock image dimensions
+    [[ $(identify $lock) =~ ([0-9]+)x([0-9]+) ]]
+    img_width=${BASH_REMATCH[1]}
+    img_height=${BASH_REMATCH[2]}
 
-while read line; do
-    if [[ $line =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+) ]]; then
-        width=${BASH_REMATCH[1]}
-        height=${BASH_REMATCH[2]}
-        x=${BASH_REMATCH[3]}
-        y=${BASH_REMATCH[4]}
-        pos_x=$((x+width/2-img_width/2))
-        pos_y=$((y+height/2-img_height/2))
-        add_lock="$add_lock $lock -geometry +$pos_x+$pos_y -composite"
-    fi
-done <<< $(xrandr)
-convert $img $add_lock $img
+    # Take a screenshot and blur it
+    rm -f $img
+    scrot -z $img
+    convert $img -scale 2.5% -resize 4000% $img
 
-i3lock -i $img "$@"
+    # Add the lock image in the center of each screen
+    while read line; do
+        if [[ $line =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+) ]]; then
+            width=${BASH_REMATCH[1]}
+            height=${BASH_REMATCH[2]}
+            x=${BASH_REMATCH[3]}
+            y=${BASH_REMATCH[4]}
+            pos_x=$((x+width/2-img_width/2))
+            pos_y=$((y+height/2-img_height/2))
+            add_lock="$add_lock $lock -geometry +$pos_x+$pos_y -composite"
+        fi
+    done <<< $(xrandr)
+    convert $img $add_lock $img
+
+    # Launch i3lock
+    i3lock -n -f -i $img
+}
+
+# kill locker if we get killed
+trap 'kill %%' TERM INT
+
+if [[ -e /dev/fd/${XSS_SLEEP_LOCK_FD:--1} ]]; then
+    # lock fd is open, make sure the locker does not inherit a copy
+    echo "Locking because we are going to sleep"
+    locker {XSS_SLEEP_LOCK_FD}<&- &
+
+    sleep $sleep_delay
+
+    # now close our fd (only remaining copy) to indicate we're ready to sleep
+    exec {XSS_SLEEP_LOCK_FD}<&-
+else
+    locker &
+fi
+
+wait # for locker to exit
