@@ -183,6 +183,7 @@ set_from_resource $color20 i3wm.color20 #839496
 set_from_resource $color21 i3wm.color21 #eee8d5
 
 bar {
+        font pango:FontAwesome, 9
         position top
         colors {
                 background $color0

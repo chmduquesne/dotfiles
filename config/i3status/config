@@ -26,40 +26,40 @@ order += "battery 0"
 order += "battery 1"
 
 ipv6 {
-        format_up = "📎 %ip"
+        format_up = " %ip"
         format_down = ""
 }
 
 wireless _first_ {
-        format_up = "📶: (%quality at %essid) %ip"
-        format_down = "📶: "
+        format_up = " (%quality at %essid) %ip"
+        format_down = " ❌"
 }
 
 ethernet _first_ {
         # if you use %speed, i3status requires root privileges
-        format_up = "➰: %ip (%speed)"
-        format_down = "➰: "
+        format_up = " %ip (%speed)"
+        format_down = " ❌"
 }
 
 battery 0 {
         format = "%status %percentage"
-        status_chr = "⚡"
-        status_bat = "🔋"
-        status_full = "✅"
+        status_chr = ""
+        status_bat = ""
+        status_full = ""
         status_unk = "❗"
 }
 
 battery 1 {
         format = "%status %percentage"
-        status_chr = "⚡"
-        status_bat = "🔋"
-        status_full = "✅"
+        status_chr = ""
+        status_bat = ""
+        status_full = ""
         status_unk = "❗"
 }
 
 run_watch VPN {
         pidfile = "/var/run/vpnc/pid"
-        format = "vpnc: 🔒"
+        format = "vpnc: "
         format_down = ""
 }
 
@@ -68,11 +68,11 @@ tztime local {
 }
 
 load {
-        format = "📉 %5min"
+        format = " %5min"
 }
 
 disk "/" {
-        format = "💽 %avail"
+        format = " %avail"
 }
 
 volume_status {
