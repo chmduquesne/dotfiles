@@ -14,13 +14,12 @@ attach(){
 
 terminate(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to terminate")
-  #TODO
   [ $? != 0 ] && return
-  sockinfo=$(ss -lpx src "$SESSIONSDIR/$session")
-  [ $(echo "$sockinfo" | wc -l) != 2 ] && echo "Could not close $session" && return
-  sockinfo=$(echo "$sockinfo" | tail -n1 | grep "users:(([^)]\+))$")
-  [ -z "$sockinfo" ] && echo "Could not close $session" && return
-  echo "$sockinfo"
+  sockinfo=$(ss -xlpH src "$SESSIONSDIR/$session" | awk -F' ' '{print $NF}')
+  [ -z "$sockinfo" ] && \
+    echo "Could not identify process for $session" && return
+  pid=$(echo "$sockinfo" | awk -F, '{print $2}' | sed 's/pid=//')
+  kill $pid
 }
 
 arg=$1
