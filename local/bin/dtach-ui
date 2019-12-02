@@ -1,0 +1,28 @@
+#!/bin/bash
+
+SESSIONSDIR=$HOME/.dtach
+
+new(){
+  session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
+  dtach -A $SESSIONSDIR/$session $1
+}
+
+attach(){
+  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to attach")
+  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
+}
+
+terminate(){
+  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to terminate")
+  #TODO
+  [ $? != 0 ] && return
+  sockinfo=$(ss -lpx src "$SESSIONSDIR/$session")
+  [ $(echo "$sockinfo" | wc -l) != 2 ] && echo "Could not close $session" && return
+  sockinfo=$(echo "$sockinfo" | tail -n1 | grep "users:(([^)]\+))$")
+  [ -z "$sockinfo" ] && echo "Could not close $session" && return
+  echo "$sockinfo"
+}
+
+arg=$1
+shift
+$arg $@
