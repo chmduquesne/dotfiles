@@ -2,26 +2,59 @@
 
 SESSIONSDIR=$HOME/.dtach
 
+err(){
+  >&2 echo "$@"
+}
+
 new(){
   session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
-  dtach -A $SESSIONSDIR/$session $1
+  dtach -A $SESSIONSDIR/$session env DTACH=1 $@
 }
 
-attach(){
-  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to attach")
-  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
+join(){
+  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
+  [ $? == 0 ] && DTACH=1 dtach -a "$SESSIONSDIR/$session"
 }
 
-terminate(){
-  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to terminate")
+_kill(){
+  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to kill")
   [ $? != 0 ] && return
   sockinfo=$(ss -xlpH src "$SESSIONSDIR/$session" | awk -F' ' '{print $NF}')
   [ -z "$sockinfo" ] && \
-    echo "Could not identify process for $session" && return
+    err "Could not identify process for $session" && return
   pid=$(echo "$sockinfo" | awk -F, '{print $2}' | sed 's/pid=//')
   kill $pid
 }
 
-arg=$1
-shift
-$arg $@
+loop(){
+  while true; do
+    read -n1 -p "(J)oin | (n)ew | (k)ill | (q)uit " choice
+    case $choice in
+      j)
+        join
+        ;;
+      n)
+        new $(basename $SHELL)
+        ;;
+      k)
+        _kill
+        ;;
+      q)
+        break
+        ;;
+      "")
+        join
+        ;;
+      *)
+        echo "Could not interpret choice"
+        ;;
+    esac
+  done
+}
+
+if [ -n "$DTACH" ]; then
+  err "You are already within a session"
+  exit 1
+fi
+
+loop
