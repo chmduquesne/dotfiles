@@ -8,12 +8,12 @@ err(){
 
 new(){
   session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
-  dtach -A $SESSIONSDIR/$session env DTACH=1 $@
+  dtach -A $SESSIONSDIR/$session env DTACH=1 "$@"
 }
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
-  [ $? == 0 ] && DTACH=1 dtach -a "$SESSIONSDIR/$session"
+  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
 }
 
 _kill(){
@@ -28,16 +28,16 @@ _kill(){
 
 loop(){
   while true; do
-    read -n1 -p "(J)oin | (n)ew | (k)ill | (q)uit " choice
+    read -n1 -p "(J)oin | (k)ill | (n)ew | (q)uit " choice
     case $choice in
       j)
         join
         ;;
-      n)
-        new $(basename $SHELL)
-        ;;
       k)
         _kill
+        ;;
+      n)
+        new $(basename $SHELL)
         ;;
       q)
         break
@@ -49,12 +49,20 @@ loop(){
         echo "Could not interpret choice"
         ;;
     esac
+    clear
+    [ -z "$(ls -1 $SESSIONSDIR)" ] && err "No session left" && break
   done
 }
 
 if [ -n "$DTACH" ]; then
   err "You are already within a session"
   exit 1
+fi
+
+if [ -n "$1" ]; then
+  new "$@"
+elif [ -z "$(ls -1 $SESSIONSDIR)" ]; then
+  new "$(basename $SHELL)"
 fi
 
 loop

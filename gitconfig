@@ -1,6 +1,6 @@
 [user]
     name = Christophe-Marie Duquesne
-    email = chmd@chmd.fr
+    email = christophe-marie.duquesne@flixbus.com
 [alias]
     st = status
     ci = commit
@@ -14,5 +14,5 @@
 #    sslVerify = false
 [branch]
     autosetuprebase = always
-[credential]
-    helper = /home/chmd/.bin/lpass-git-credentials
+[url "git@gitlab.mfb.io:"]
+	insteadOf = https://gitlab.mfb.io/
