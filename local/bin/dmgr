@@ -8,16 +8,24 @@ err(){
 
 new(){
   session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
-  dtach -A $SESSIONSDIR/$session env DTACH=1 "$@"
+  dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
+  #echo "$session"
 }
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
-  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
+  [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
+  #echo "$session"
+}
+
+join_last(){
+  session=$(ls -1 $SESSIONSDIR | sort | tail -n1)
+  [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
+  #echo "$session"
 }
 
 _kill(){
-  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to kill")
+  session=$(ls -1 "$SESSIONSDIR" | fzf --prompt "Select session to kill")
   [ $? != 0 ] && return
   sockinfo=$(ss -xlpH src "$SESSIONSDIR/$session" | awk -F' ' '{print $NF}')
   [ -z "$sockinfo" ] && \
@@ -26,31 +34,64 @@ _kill(){
   kill $pid
 }
 
+no_session(){
+  [ -z "$(ls -1 $SESSIONSDIR)" ]
+}
+
+finished(){
+  ! [ -S "$SESSIONSDIR/$1" ]
+}
+
 loop(){
   while true; do
-    read -n1 -p "(J)oin | (k)ill | (n)ew | (q)uit " choice
+    #if [ -n "$curr_session" ] && finished "$curr_session"; then
+    #  join_last
+    #  continue
+    #fi
+    prompt="(J)oin | (k)ill | (n)ew | (q)uit "
+    if no_session; then
+      prompt="(N)ew | (q)uit "
+    fi
+    read -n1 -p "$prompt" choice
+    if no_session; then
+      case $choice in
+        j|k)
+          choice="invalid"
+          ;;
+        "")
+          choice="n"
+          ;;
+      esac
+    fi
     case $choice in
       j)
         join
+        #curr_session=$(join)
         ;;
       k)
         _kill
+        #curr_session=$(_kill)
         ;;
       n)
         new $(basename $SHELL)
+        #curr_session=$(new $(basename $SHELL))
         ;;
       q)
         break
         ;;
       "")
         join
+        #curr_session=$(join)
         ;;
       *)
-        echo "Could not interpret choice"
+        echo "Invalid choice"
         ;;
     esac
-    clear
-    [ -z "$(ls -1 $SESSIONSDIR)" ] && err "No session left" && break
+    echo -e "\033[1K"
+    if no_session; then
+      err "No session left"
+      break
+    fi
   done
 }
 
@@ -60,9 +101,8 @@ if [ -n "$DTACH" ]; then
 fi
 
 if [ -n "$1" ]; then
+  #curr_session=$(new "$@")
   new "$@"
-elif [ -z "$(ls -1 $SESSIONSDIR)" ]; then
-  new "$(basename $SHELL)"
 fi
 
 loop
