@@ -79,7 +79,6 @@ loop(){
         ;;
       *)
         msg "Invalid choice"
-        continue
         ;;
     esac
   done
