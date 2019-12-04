@@ -54,7 +54,7 @@ finished(){
 
 loop(){
   while has_sessions; do
-    if has_sessions && finished "$ACTIVE_SESSION"; then
+    if finished "$ACTIVE_SESSION"; then
       join_last
       continue
     fi
