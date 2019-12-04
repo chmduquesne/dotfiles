@@ -16,7 +16,7 @@ new(){
   msg "Creating $session" && sleep 1
   dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
 
-  CURR_SESSION=$session
+  ACTIVE_SESSION=$session
 }
 
 join(){
@@ -24,7 +24,7 @@ join(){
   msg "Joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
 
-  CURR_SESSION=$session
+  ACTIVE_SESSION=$session
 }
 
 join_last(){
@@ -32,7 +32,7 @@ join_last(){
   msg "Auto-joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
 
-  CURR_SESSION=$session
+  ACTIVE_SESSION=$session
 }
 
 _kill(){
@@ -80,7 +80,7 @@ loop(){
         continue
         ;;
     esac
-    if has_sessions && finished "$CURR_SESSION"; then
+    if has_sessions && finished "$ACTIVE_SESSION"; then
       join_last
     fi
   done
@@ -94,14 +94,15 @@ if [ -n "$DTACH" ]; then
   exit 1
 fi
 
+# Make sure there is at least one active session
 if [ -n "$1" ]; then
   new "$@"
 elif ! has_sessions; then
   new $SHELL
 fi
 
-if [ -z "CURR_SESSION" ]; then
-  CURR_SESSION=$(ls -1 $SESSIONSDIR | sort | tail -n1)
+if [ -z "ACTIVE_SESSION" ]; then
+  ACTIVE_SESSION=$(ls -1 $SESSIONSDIR | sort | tail -n1)
 fi
 
 loop

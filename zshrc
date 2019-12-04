@@ -6,15 +6,20 @@ export LANG=en_US.UTF-8
 #export PULSE_LATENCY_MSEC=60
 
 # TMUX
-if type tmux > /dev/null; then
-    # if no session is started, start a new session
-    if [ -z "$TMUX" ]; then
-        tmux
-    fi
-    # when quitting tmux, try to attach
-    while [ -z "$TMUX" ]; do
-        tmux attach || break
-    done
+#if type tmux > /dev/null; then
+#    # if no session is started, start a new session
+#    if [ -z "$TMUX" ]; then
+#        tmux
+#    fi
+#    # when quitting tmux, try to attach
+#    while [ -z "$TMUX" ]; do
+#        tmux attach || break
+#    done
+#fi
+
+# DMGR
+if [ -z "$DTACH" ]; then
+    dmgr
 fi
 
 # NOTIFICATION UPON COMMAND COMPLETION
