@@ -6,9 +6,14 @@ err(){
   >&2 echo "$@"
 }
 
+msg(){
+    echo -e "\033[1K"
+    echo "$@"
+}
+
 new(){
-  session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
-  echo "Creating $session" && sleep 1
+  session="$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
+  msg "Creating $session" && sleep 1
   dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
 
   CURR_SESSION=$session
@@ -16,7 +21,7 @@ new(){
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
-  echo "Joining $session" && sleep 1
+  msg "Joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
 
   CURR_SESSION=$session
@@ -24,7 +29,7 @@ join(){
 
 join_last(){
   session=$(ls -1 $SESSIONSDIR | sort | tail -n1)
-  echo "Joining $session" && sleep 1
+  msg "Auto-joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
 
   CURR_SESSION=$session
@@ -37,50 +42,23 @@ _kill(){
   [ -z "$sockinfo" ] && \
     err "Could not identify process for $session" && return
   pid=$(echo "$sockinfo" | awk -F, '{print $2}' | sed 's/pid=//')
-  echo "Killing $session" && sleep 1
+  msg "Killing $session" && sleep 1
   kill $pid
 }
 
-no_session(){
-  [ -z "$(ls -1 $SESSIONSDIR)" ]
+has_sessions(){
+  [ -n "$(ls -1 $SESSIONSDIR)" ]
 }
 
 finished(){
-  ! [ -S "$SESSIONSDIR/$1" ]
+  [ -n "$1" ] && ! [ -S "$SESSIONSDIR/$1" ]
 }
 
-#prompt(){
-#  valid_choices=$1
-#  prompt=""
-#  for choice in $(echo $valid_choices | tr '|' ' '); do
-#    case $choice in
-#      j)
-#
-#  done
-#}
-
 loop(){
-  while true; do
-    if ([ -n "$CURR_SESSION" ] && finished "$CURR_SESSION"); then
-      join_last
-      continue
-    fi
+  while has_sessions; do
     prompt="(J)oin | (k)ill | (n)ew | (q)uit "
-    if no_session; then
-      prompt="(N)ew | (q)uit "
-    fi
     read -n1 -p "$prompt" choice
     choice=$(echo $choice | tr '[:upper:]' '[:lower:]')
-    if no_session; then
-      case $choice in
-        j|k)
-          choice="invalid"
-          ;;
-        "")
-          choice="n"
-          ;;
-      esac
-    fi
     case $choice in
       j)
         join
@@ -89,7 +67,7 @@ loop(){
         _kill
         ;;
       n)
-        new $(basename $SHELL)
+        new $SHELL
         ;;
       q)
         break
@@ -98,16 +76,17 @@ loop(){
         join
         ;;
       *)
-        echo "Invalid choice"
+        msg "Invalid choice"
+        continue
         ;;
     esac
-    echo -e "\033[1K"
-    # TODO skip if invalid choice
-    if no_session; then
-      err "No session left"
-      break
+    if has_sessions && finished "$CURR_SESSION"; then
+      join_last
     fi
   done
+  if ! has_sessions; then
+    msg "No session left"
+  fi
 }
 
 if [ -n "$DTACH" ]; then
@@ -117,6 +96,12 @@ fi
 
 if [ -n "$1" ]; then
   new "$@"
+elif ! has_sessions; then
+  new $SHELL
+fi
+
+if [ -z "CURR_SESSION" ]; then
+  CURR_SESSION=$(ls -1 $SESSIONSDIR | sort | tail -n1)
 fi
 
 loop
