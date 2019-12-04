@@ -54,6 +54,10 @@ finished(){
 
 loop(){
   while has_sessions; do
+    if has_sessions && finished "$ACTIVE_SESSION"; then
+      join_last
+      continue
+    fi
     prompt="(J)oin | (k)ill | (n)ew | (q)uit "
     read -n1 -p "$prompt" choice
     choice=$(echo $choice | tr '[:upper:]' '[:lower:]')
@@ -78,9 +82,6 @@ loop(){
         continue
         ;;
     esac
-    if has_sessions && finished "$ACTIVE_SESSION"; then
-      join_last
-    fi
   done
   if ! has_sessions; then
     msg "No session left"
