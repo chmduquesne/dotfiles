@@ -19,7 +19,7 @@ export LANG=en_US.UTF-8
 
 # DMGR
 if [ -z "$DTACH" ]; then
-    dmgr
+    dmgr zsh
 fi
 
 # NOTIFICATION UPON COMMAND COMPLETION

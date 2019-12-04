@@ -13,7 +13,6 @@ msg(){
 
 new(){
   session="$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
-  msg "Creating $session" && sleep 1
   dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
 
   ACTIVE_SESSION=$session
@@ -21,7 +20,6 @@ new(){
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
-  msg "Joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
