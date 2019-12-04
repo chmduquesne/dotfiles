@@ -8,20 +8,26 @@ err(){
 
 new(){
   session="$1-$(date +%Y-%m-%d_%H:%M:%S)"
+  echo "Creating $session" && sleep 1
   dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
-  #echo "$session"
+
+  CURR_SESSION=$session
 }
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
+  echo "Joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
-  #echo "$session"
+
+  CURR_SESSION=$session
 }
 
 join_last(){
   session=$(ls -1 $SESSIONSDIR | sort | tail -n1)
+  echo "Joining $session" && sleep 1
   [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
-  #echo "$session"
+
+  CURR_SESSION=$session
 }
 
 _kill(){
@@ -31,6 +37,7 @@ _kill(){
   [ -z "$sockinfo" ] && \
     err "Could not identify process for $session" && return
   pid=$(echo "$sockinfo" | awk -F, '{print $2}' | sed 's/pid=//')
+  echo "Killing $session" && sleep 1
   kill $pid
 }
 
@@ -42,17 +49,28 @@ finished(){
   ! [ -S "$SESSIONSDIR/$1" ]
 }
 
+#prompt(){
+#  valid_choices=$1
+#  prompt=""
+#  for choice in $(echo $valid_choices | tr '|' ' '); do
+#    case $choice in
+#      j)
+#
+#  done
+#}
+
 loop(){
   while true; do
-    #if [ -n "$curr_session" ] && finished "$curr_session"; then
-    #  join_last
-    #  continue
-    #fi
+    if ([ -n "$CURR_SESSION" ] && finished "$CURR_SESSION"); then
+      join_last
+      continue
+    fi
     prompt="(J)oin | (k)ill | (n)ew | (q)uit "
     if no_session; then
       prompt="(N)ew | (q)uit "
     fi
     read -n1 -p "$prompt" choice
+    choice=$(echo $choice | tr '[:upper:]' '[:lower:]')
     if no_session; then
       case $choice in
         j|k)
@@ -66,28 +84,25 @@ loop(){
     case $choice in
       j)
         join
-        #curr_session=$(join)
         ;;
       k)
         _kill
-        #curr_session=$(_kill)
         ;;
       n)
         new $(basename $SHELL)
-        #curr_session=$(new $(basename $SHELL))
         ;;
       q)
         break
         ;;
       "")
         join
-        #curr_session=$(join)
         ;;
       *)
         echo "Invalid choice"
         ;;
     esac
     echo -e "\033[1K"
+    # TODO skip if invalid choice
     if no_session; then
       err "No session left"
       break
@@ -101,7 +116,6 @@ if [ -n "$DTACH" ]; then
 fi
 
 if [ -n "$1" ]; then
-  #curr_session=$(new "$@")
   new "$@"
 fi
 
