@@ -13,14 +13,14 @@ msg(){
 
 new(){
   session="$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
-  dtach -Az "$SESSIONSDIR/$session" env DTACH=1 "$@"
+  dtach -A "$SESSIONSDIR/$session" -z env DTACH=1 "$@"
 
   ACTIVE_SESSION=$session
 }
 
 join(){
   session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
-  [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
+  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
@@ -28,7 +28,7 @@ join(){
 join_last(){
   session=$(ls -1 $SESSIONSDIR | sort | tail -n1)
   msg "Auto-joining $session" && sleep 1
-  [ $? == 0 ] && dtach -az "$SESSIONSDIR/$session"
+  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
@@ -95,12 +95,8 @@ fi
 # Make sure there is at least one active session
 if [ -n "$1" ]; then
   new "$@"
-elif ! has_sessions; then
+else
   new $SHELL
-fi
-
-if [ -z "ACTIVE_SESSION" ]; then
-  ACTIVE_SESSION=$(ls -1 $SESSIONSDIR | sort | tail -n1)
 fi
 
 loop
