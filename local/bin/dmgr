@@ -7,16 +7,37 @@ err(){
 }
 
 msg(){
-    echo -e "\033[1K"
-    echo "$@"
+  echo -e "\033[1K"
+  echo "$@"
 }
 
 name_session(){
   echo "$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
 }
 
+active(){
+  [ -S "$SESSIONSDIR/$1" ]
+}
+
+has_client(){
+  [ -n "$(ss -xH src $SESSIONSDIR/$1)" ]
+}
+
 select_session(){
-  ls -1 $SESSIONSDIR | fzf --prompt "$@"
+  sessions="$(ls -1 $SESSIONSDIR)"
+  [ -z "$sessions" ] && return 1
+  shown=$(for session in $sessions; do
+    if has_client $session; then
+      echo "* $session"
+    else
+      echo "  $session"
+    fi
+  done)
+  echo "$shown" | fzf --prompt "$@" | tr -d '* '
+}
+
+autoselect_session(){
+  ls -1 $SESSIONSDIR | tail -n1
 }
 
 new(){
@@ -28,22 +49,22 @@ new(){
 
 join(){
   session=$(select_session "Select session to join")
-  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
+  [ -n "$session" ] && dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
 
 join_last(){
-  session=$(ls -1 $SESSIONSDIR | sort | tail -n1)
+  session=$(autoselect_session)
   msg "Auto-joining $session" && sleep 1
-  [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
+  [ -n "$session" ] && dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
 
 _kill(){
   session=$(select_session "Select session to kill")
-  [ $? != 0 ] && return
+  [ -z "$session" ] && return
   sockinfo=$(ss -xlpH src "$SESSIONSDIR/$session" | awk -F' ' '{print $NF}')
   [ -z "$sockinfo" ] && \
     err "Could not identify process for $session" && return
@@ -56,13 +77,9 @@ has_sessions(){
   [ -n "$(ls -1 $SESSIONSDIR)" ]
 }
 
-finished(){
-  [ -n "$1" ] && ! [ -S "$SESSIONSDIR/$1" ]
-}
-
 loop(){
   while has_sessions; do
-    if finished "$ACTIVE_SESSION"; then
+    if ! active "$ACTIVE_SESSION"; then
       join_last
       continue
     fi
@@ -94,7 +111,7 @@ loop(){
 }
 
 if [ -n "$DTACH" ]; then
-  err "You are already within a session"
+  err "Already within a session"
   exit 1
 fi
 
