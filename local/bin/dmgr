@@ -11,8 +11,12 @@ msg(){
     echo "$@"
 }
 
+name_session(){
+  echo "$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
+}
+
 new(){
-  session="$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
+  session=$(name_session "$@")
   dtach -A "$SESSIONSDIR/$session" -r winch -z env DTACH=1 "$@"
 
   ACTIVE_SESSION=$session
