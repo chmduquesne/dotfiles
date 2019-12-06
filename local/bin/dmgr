@@ -60,6 +60,7 @@ loop(){
     fi
     prompt="(J)oin | (k)ill | (n)ew | (q)uit "
     read -n1 -p "$prompt" choice
+    [ -z $choice ] && choice=j
     choice=$(echo $choice | tr '[:upper:]' '[:lower:]')
     case $choice in
       j)
@@ -73,9 +74,6 @@ loop(){
         ;;
       q)
         break
-        ;;
-      "")
-        join
         ;;
       *)
         msg "Invalid choice"
