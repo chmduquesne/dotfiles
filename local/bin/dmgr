@@ -49,15 +49,17 @@ new(){
 
 join(){
   session=$(select_session "Select session to join")
-  [ -n "$session" ] && dtach -a "$SESSIONSDIR/$session"
+  [ -z $session ] && return
+  dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
 
 join_last(){
   session=$(autoselect_session)
+  [ -z $session ] && return
   msg "Auto-joining $session" && sleep 1
-  [ -n "$session" ] && dtach -a "$SESSIONSDIR/$session"
+  dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
 }
