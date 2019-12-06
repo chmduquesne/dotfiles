@@ -91,10 +91,11 @@ if [ -n "$DTACH" ]; then
 fi
 
 # Make sure there is at least one active session
-if [ -n "$1" ]; then
-  new "$@"
+if [ -z "$1" ]; then
+  cmd="$SHELL"
 else
-  new $SHELL
+  cmd="$@"
 fi
+new "$cmd"
 
 loop
