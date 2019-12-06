@@ -15,6 +15,10 @@ name_session(){
   echo "$(basename $1)-$(date +%Y-%m-%d_%H:%M:%S)"
 }
 
+select_session(){
+  ls -1 $SESSIONSDIR | fzf --prompt "$@"
+}
+
 new(){
   session=$(name_session "$@")
   dtach -A "$SESSIONSDIR/$session" -r winch -z env DTACH=1 "$@"
@@ -23,7 +27,7 @@ new(){
 }
 
 join(){
-  session=$(ls -1 $SESSIONSDIR | fzf --prompt "Select session to join")
+  session=$(select_session "Select session to join")
   [ $? == 0 ] && dtach -a "$SESSIONSDIR/$session"
 
   ACTIVE_SESSION=$session
@@ -38,7 +42,7 @@ join_last(){
 }
 
 _kill(){
-  session=$(ls -1 "$SESSIONSDIR" | fzf --prompt "Select session to kill")
+  session=$(select_session "Select session to kill")
   [ $? != 0 ] && return
   sockinfo=$(ss -xlpH src "$SESSIONSDIR/$session" | awk -F' ' '{print $NF}')
   [ -z "$sockinfo" ] && \
