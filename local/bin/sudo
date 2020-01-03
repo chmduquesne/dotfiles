@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# If a yubikey is plugged in, call `sudo --askpass`; otherwise, call
+# `sudo` normally (this goes with the `sudo-askpass` shell script)
+
+REAL_SUDO=/usr/bin/sudo
+
+if lsusb | grep Yubikey > /dev/null; then
+  export SUDO_ASKPASS=$(which sudo-askpass)
+  exec $REAL_SUDO --askpass "$@"
+else
+  exec $REAL_SUDO "$@"
+fi

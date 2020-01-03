@@ -196,12 +196,6 @@ alias gdb='gdb -q'
 
 # PASS
 alias pass='nocorrect pass'
-export LPASS_AGENT_TIMEOUT=43200
-alias lpass='nocorrect lpass'
-
-# SUDO
-export SUDO_ASKPASS=$(which sudo-askpass)
-alias sudo='nocorrect sudo --askpass'
 
 # KEYCHAINS
 {type keychain > /dev/null} && {type ssh-askpass > /dev/null} && \
@@ -254,14 +248,13 @@ export PYTHONSTARTUP=~/.pythonrc
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
 export GOPATH=${HOME}/code/golang
-export PATH=${GOPATH}/bin:${PATH}
+export PATH=${PATH}:${GOPATH}/bin
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-export PATH="$PATH:$HOME/code/selfcompiled/intellij/idea-IC-171.4424.56/bin" # Intellij
+#export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 
 # Completions
 {type pipenv >/dev/null} && source <(pipenv --completion)
