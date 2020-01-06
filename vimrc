@@ -29,7 +29,7 @@ if HasVundle()
     Plugin 'altercation/vim-colors-solarized'
     Plugin 'tpope/vim-rsi'
     Plugin 'fatih/vim-go'
-    Plugin 'Valloric/YouCompleteMe'
+    Plugin 'ycm-core/YouCompleteMe'
     Plugin 'tpope/vim-sensible'
     Plugin 'derekwyatt/vim-scala'
     Plugin 'chriskempson/base16-vim'
