@@ -26,6 +26,7 @@ def set_dpms(state):
         call(['xset', '+dpms'])
         call(['notify-send', '💻 screensaver enabled'])
     else:
+        call(['xset', 's', 'off'])
         call(['xset', '-dpms'])
         call(['notify-send', 'DUNST_COMMAND_PAUSE'])
 
