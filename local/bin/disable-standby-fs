@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 from subprocess import call, Popen
 import i3ipc
 
+TIMEOUT = '600'
+
 i3 = i3ipc.Connection()
 
 parser = ArgumentParser(prog='disable-standby-fs',
@@ -23,9 +25,9 @@ def set_dpms(state):
     if state:
         call(['notify-send', 'DUNST_COMMAND_RESUME'])
         call(['xset', 's', 'on'])
-        call(['xset', 's', '600'])
+        call(['xset', 's', TIMEOUT])
         call(['xset', '+dpms'])
-        call(['xset', 'dpms' ,'0', '0', '600'])
+        call(['xset', 'dpms' ,'0', '0', TIMEOUT])
         call(['notify-send', '💻 screensaver enabled'])
     else:
         call(['xset', 's', 'off'])
