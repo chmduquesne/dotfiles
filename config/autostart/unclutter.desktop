@@ -1,0 +1,5 @@
+[Desktop Entry]
+Comment=hide the mouse
+Name=unclutter
+Exec=unclutter
+Type=Application
