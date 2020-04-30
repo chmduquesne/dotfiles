@@ -1,0 +1,5 @@
+[Desktop Entry]
+Exec=/usr/bin/pulseaudio-dlna
+Name=pulseaudio-dlna
+Comment=Stream audio to DLNA devices and Chromecasts
+Type=Application
