@@ -1,22 +1,3 @@
 #!/bin/bash
 
-shopt -s nullglob globstar
-
-action="show"
-[[ $1 == "otp" ]] && action="otp"
-
-prefix=${PASSWORD_STORE_DIR-~/.password-store}
-password_files=( "$prefix"/**/*.gpg )
-password_files=( "${password_files[@]#"$prefix"/}" )
-password_files=( "${password_files[@]%.gpg}" )
-
-# Get the WM_CLASS attribute of the focused window
-wmclass=$(xprop -id $(xdotool getwindowfocus) WM_CLASS | cut -d'"' -f2)
-
-# Select the entry
-entry=$(printf '%s\n' "${password_files[@]}" | grep "$wmclass" | head -n1)
-
-[[ -n $entry ]] || exit
-
-pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } | \
-    xdotool type --clearmodifiers --file -
+passmenu --xfilter --type "$@"
