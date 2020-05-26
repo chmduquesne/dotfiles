@@ -1,7 +1,0 @@
-#!/bin/bash
-
-shopt -s nullglob globstar
-
-wmclass=$(xprop -id $(xdotool getwindowfocus) WM_CLASS | cut -d'"' -f2)
-( sleep 0.2 && xdotool type --clearmodifiers "$wmclass" ) &
-passmenu --type
