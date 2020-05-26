@@ -2,25 +2,64 @@
 
 shopt -s nullglob globstar
 
+action="show"
 typeit=0
-if [[ $1 == "--type" ]]; then
-	typeit=1
-	shift
-fi
+xfilter=0
+while [[ -n $1 ]]; do
+	case "$1" in
+		'--type')
+			typeit=1
+			shift
+			continue
+		;;
+		'--xfilter')
+			xfilter=1
+			shift
+			continue
+		;;
+		'otp')
+			action="otp"
+			shift
+			continue
+		;;
+		*)
+			echo "$1: unexpected argument" >&2
+			exit 1
+		;;
+	esac
+done
 
 prefix=${PASSWORD_STORE_DIR-~/.password-store}
 password_files=( "$prefix"/**/*.gpg )
 password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
 
-password=$(printf '%s\n' "${password_files[@]}" | dmenu "$@")
+# Get all entries
+entries=$(printf '%s\n' "${password_files[@]}")
 
-[[ -n $password ]] || exit
+# Filter entries with the wmclass if necessary
+if [[ $xfilter -eq 1 ]]; then
+	wmclass=$(xprop -id $(xdotool getwindowfocus) WM_CLASS | cut -d'"' -f2)
+	entries=$(grep $wmclass <<< "$entries")
+fi
+
+# Choose an entry if there is more than one choice
+if [[ $(grep -c . <<< "$entries") -gt 1 ]]; then
+	entry=$(dmenu <<< "$entries")
+else
+	entry=$(head -n1 <<< "$entries")
+fi
+
+[[ -n $entry ]] || exit
 
 if [[ $typeit -eq 0 ]]; then
-	pass show -c "$password" 2>/dev/null
-	notify-send "passmenu" "Copied $password to clipboard. Will clear in 45 seconds."
+	pass "$action" -c "$entry" 2>/dev/null
+	if [ $? == 0 ]; then
+		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds."
+	else
+		notify-send "passmenu" "Error: $entry is not in the password store."
+	fi
 else
-	pass show "$password" | { IFS= read -r pass; printf %s "$pass"; } |
+	pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
 		xdotool type --clearmodifiers --file -
 fi
