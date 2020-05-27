@@ -2,6 +2,11 @@
 
 shopt -s nullglob globstar
 
+# If this program is named xpass, set default arguments
+if [[ $(basename $0) == "xpass" ]]; then
+	set -- "--type" "--xfilter" "$@"
+fi
+
 action="show"
 typeit=0
 xfilter=0
@@ -29,12 +34,11 @@ while [[ -n $1 ]]; do
 	esac
 done
 
+# Get all entries
 prefix=${PASSWORD_STORE_DIR-~/.password-store}
 password_files=( "$prefix"/**/*.gpg )
 password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
-
-# Get all entries
 entries=$(printf '%s\n' "${password_files[@]}")
 
 # Filter entries with the wmclass if necessary
@@ -43,7 +47,7 @@ if [[ $xfilter -eq 1 ]]; then
 	entries=$(grep $wmclass <<< "$entries")
 fi
 
-# Choose an entry if there is more than one choice
+# Skip dmenu if there is less than one choice
 if [[ $(grep -c . <<< "$entries") -gt 1 ]]; then
 	entry=$(dmenu <<< "$entries")
 else
@@ -57,7 +61,7 @@ if [[ $typeit -eq 0 ]]; then
 	if [ $? == 0 ]; then
 		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds."
 	else
-		notify-send "passmenu" "Error: $entry is not in the password store."
+		notify-send "passmenu" "Error: could not fetch $entry from the password store."
 	fi
 else
 	pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
