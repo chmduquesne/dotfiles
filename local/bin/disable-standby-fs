@@ -2,7 +2,14 @@
 
 from argparse import ArgumentParser
 from subprocess import call, Popen
-import i3ipc
+import sys
+
+try:
+    import i3ipc
+except ImportError:
+    call(['notify-send', '-u', 'critical', 'Could not import i3ipc!'])
+    sys.exit(1)
+
 
 TIMEOUT = '600'
 
