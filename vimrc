@@ -136,7 +136,7 @@ set background=dark
 if &t_Co == 256
     try
         colorscheme base16
-    catch E185
+    catch /^Vim\%((\a\+)\)\=:E185:/
         colorscheme default
     endtry
 else
