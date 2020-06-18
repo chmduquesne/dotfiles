@@ -44,7 +44,7 @@ entries=$(printf '%s\n' "${password_files[@]}")
 # Filter entries with the wmclass if necessary
 if [[ $xfilter -eq 1 ]]; then
 	wmclass=$(xprop -id $(xdotool getwindowfocus) WM_CLASS | cut -d'"' -f2)
-	entries=$(grep $wmclass <<< "$entries")
+	entries=$(grep -I $wmclass <<< "$entries")
 fi
 
 # Skip dmenu if there is less than one choice

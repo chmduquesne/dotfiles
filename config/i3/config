@@ -46,7 +46,7 @@ bindsym Print --release exec "scrot -s /tmp/screenshot-$(date +%F_%T).png -e 'xc
 bindsym Shift+Print exec "scrot /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
 
 # type
-bindsym $mod+t --release exec "bash -c 'xdotool type --clearmodifiers $(xclip -o -selection clipboard)'"
+bindsym $mod+p --release exec xdopaste
 
 # change focus
 bindsym $mod+j focus left
