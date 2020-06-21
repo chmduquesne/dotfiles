@@ -15,4 +15,6 @@
 [branch]
     autosetuprebase = always
 [url "git@gitlab.mfb.io:"]
-	insteadOf = https://gitlab.mfb.io/
+    insteadOf = https://gitlab.mfb.io/
+[pull]
+    rebase = true
