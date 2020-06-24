@@ -41,10 +41,12 @@ password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
 entries=$(printf '%s\n' "${password_files[@]}")
 
-# Filter entries with the wmclass if necessary
+# Filter entries with the window manager attributes
 if [[ $xfilter -eq 1 ]]; then
-	wmclass=$(xprop -id $(xdotool getwindowfocus) WM_CLASS | cut -d'"' -f2)
-	entries=$(grep -I $wmclass <<< "$entries")
+	windowid=$(xdotool getwindowfocus)
+	wmclass=$(xprop -id $windowid WM_CLASS | cut -d'"' -f2 | tr -cd "[:alnum:] -")
+	wmname=$(xprop -id $windowid WM_NAME | cut -d'"' -f2 | tr -cd "[:alnum:] -")
+	entries=$(grep -P "($wmclass|$wmname)" <<< "$entries")
 fi
 
 # Skip dmenu if there is less than one choice
