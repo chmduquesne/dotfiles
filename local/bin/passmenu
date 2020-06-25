@@ -2,12 +2,6 @@
 
 shopt -s nullglob globstar
 
-# If this program is named xpass, set default arguments
-prog=$(basename $0)
-if [[ "$prog" == "xpass" ]]; then
-	set -- "--type" "--xprop" "$@"
-fi
-
 action="show"
 typeit=0
 xprop=0
@@ -50,7 +44,7 @@ if [[ $xprop -eq 1 ]]; then
 	entry=$(grep -P "($wmclass|$wmname)" <<< "$entry")
 	# No matching entry, let's warn the user
 	[[ -z "$entry" ]] && \
-		notify-send "$prog" "No match found for '$wmname' nor '$wmclass'"
+		notify-send "passmenu" "No match found for '$wmname' nor '$wmclass'"
 fi
 
 # If there is more than 1 entry, launch dmenu
@@ -62,9 +56,9 @@ fi
 if [[ $typeit -eq 0 ]]; then
 	pass "$action" -c "$entry" 2>/dev/null
 	if [ $? == 0 ]; then
-		notify-send "$prog" "Copied $entry to clipboard. Will clear in 45 seconds."
+		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds."
 	else
-		notify-send "$prog" "Error: could not fetch $entry from the password store."
+		notify-send "passmenu" "Error: could not fetch $entry from the password store."
 	fi
 else
 	pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
