@@ -3,13 +3,14 @@
 shopt -s nullglob globstar
 
 # If this program is named xpass, set default arguments
-if [[ $(basename $0) == "xpass" ]]; then
-	set -- "--type" "--xfilter" "$@"
+prog=$(basename $0)
+if [[ "$prog" == "xpass" ]]; then
+	set -- "--type" "--xprop" "$@"
 fi
 
 action="show"
 typeit=0
-xfilter=0
+xprop=0
 while [[ -n $1 ]]; do
 	case "$1" in
 		'--type')
@@ -17,8 +18,8 @@ while [[ -n $1 ]]; do
 			shift
 			continue
 		;;
-		'--xfilter')
-			xfilter=1
+		'--xprop')
+			xprop=1
 			shift
 			continue
 		;;
@@ -41,31 +42,35 @@ password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
 entries=$(printf '%s\n' "${password_files[@]}")
 
-# Filter entries with the window manager attributes
-if [[ $xfilter -eq 1 ]]; then
+# If required, filter based on the window manager attributes
+if [[ $xprop -eq 1 ]]; then
 	windowid=$(xdotool getwindowfocus)
 	wmclass=$(xprop -id $windowid WM_CLASS | cut -d'"' -f2 | tr -cd "[:alnum:] -")
 	wmname=$(xprop -id $windowid WM_NAME | cut -d'"' -f2 | tr -cd "[:alnum:] -")
 	entries=$(grep -P "($wmclass|$wmname)" <<< "$entries")
+	# Empty list, let's warn the user
+	[[ -z "$entries" ]] && \
+		notify-send "$prog" "No entry found for '$wmname' nor '$wmclass'"
 fi
 
-# Skip dmenu if there is less than one choice
+# If the number of entries requires further choosing, launch dmenu
 if [[ $(grep -c . <<< "$entries") -gt 1 ]]; then
 	entry=$(dmenu <<< "$entries")
 else
 	entry=$(head -n1 <<< "$entries")
 fi
 
+# Nothing chosen
 [[ -n $entry ]] || exit
 
 if [[ $typeit -eq 0 ]]; then
 	pass "$action" -c "$entry" 2>/dev/null
 	if [ $? == 0 ]; then
-		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds."
+		notify-send "$prog" "Copied $entry to clipboard. Will clear in 45 seconds."
 	else
-		notify-send "passmenu" "Error: could not fetch $entry from the password store."
+		notify-send "$prog" "Error: could not fetch $entry from the password store."
 	fi
 else
 	pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
-		xdotool type --clearmodifiers --file -
+		xdotool type --clearmodifiers --file - && xdotool key KP_Enter
 fi
