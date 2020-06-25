@@ -40,27 +40,23 @@ prefix=${PASSWORD_STORE_DIR-~/.password-store}
 password_files=( "$prefix"/**/*.gpg )
 password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
-entries=$(printf '%s\n' "${password_files[@]}")
+entry=$(printf '%s\n' "${password_files[@]}")
 
 # If required, filter based on the window manager attributes
 if [[ $xprop -eq 1 ]]; then
 	windowid=$(xdotool getwindowfocus)
 	wmclass=$(xprop -id $windowid WM_CLASS | cut -d'"' -f2 | tr -cd "[:alnum:] -")
 	wmname=$(xprop -id $windowid WM_NAME | cut -d'"' -f2 | tr -cd "[:alnum:] -")
-	entries=$(grep -P "($wmclass|$wmname)" <<< "$entries")
-	# Empty list, let's warn the user
-	[[ -z "$entries" ]] && \
-		notify-send "$prog" "No entry found for '$wmname' nor '$wmclass'"
+	entry=$(grep -P "($wmclass|$wmname)" <<< "$entry")
+	# No matching entry, let's warn the user
+	[[ -z "$entry" ]] && \
+		notify-send "$prog" "No match found for '$wmname' nor '$wmclass'"
 fi
 
-# If the number of entries requires further choosing, launch dmenu
-if [[ $(grep -c . <<< "$entries") -gt 1 ]]; then
-	entry=$(dmenu <<< "$entries")
-else
-	entry=$(head -n1 <<< "$entries")
-fi
+# If there is more than 1 entry, launch dmenu
+[[ $(grep -c . <<< "$entry") -gt 1 ]] && entry=$(dmenu <<< "$entry")
 
-# Nothing chosen
+# If we end up with no entry, exit
 [[ -n $entry ]] || exit
 
 if [[ $typeit -eq 0 ]]; then
