@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
+#
+# Enhanced version of passmenu
+#
+# Usage: passmenu [--type|--xprop] [otp]
+#
+# List of improvements:
+# * `--typeit` sends an extra Enter key press to immediately validate the
+#   password after typing it
+# * `--xprop` grabs the window manager attributes WM_CLASS and WM_NAME
+#   from the focused window and only shows choices which include those
+# * if there is only one matching entry, it is chosen immediately without
+#   involving dmenu
+# * Feedback is displayed via notify-send popups
+# * Extra arguments are transferred to pass so it can be used with otp
 
 shopt -s nullglob globstar
 
@@ -37,7 +51,6 @@ if [[ $xprop -eq 1 ]]; then
 		notify-send "passmenu" "No match found for $wmname nor $wmclass"
 fi
 
-# If there is more than 1 entry, launch dmenu
 [[ $(grep -c . <<< "$entry") -gt 1 ]] && entry=$(dmenu <<< "$entry")
 
 [[ -n $entry ]] || exit
