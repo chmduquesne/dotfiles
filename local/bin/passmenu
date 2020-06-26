@@ -2,7 +2,6 @@
 
 shopt -s nullglob globstar
 
-action="show"
 typeit=0
 xprop=0
 while [[ -n $1 ]]; do
@@ -17,50 +16,37 @@ while [[ -n $1 ]]; do
 			shift
 			continue
 		;;
-		'otp')
-			action="otp"
-			shift
-			continue
-		;;
 		*)
-			echo "$1: unexpected argument" >&2
-			exit 1
+			break
 		;;
 	esac
 done
 
-# Get all entries
 prefix=${PASSWORD_STORE_DIR-~/.password-store}
 password_files=( "$prefix"/**/*.gpg )
 password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
 entry=$(printf '%s\n' "${password_files[@]}")
 
-# If required, filter based on the window manager attributes
 if [[ $xprop -eq 1 ]]; then
 	windowid=$(xdotool getwindowfocus)
 	wmclass=$(xprop -id $windowid WM_CLASS | cut -d'"' -f2 | tr -cd "[:alnum:] -")
 	wmname=$(xprop -id $windowid WM_NAME | cut -d'"' -f2 | tr -cd "[:alnum:] -")
 	entry=$(grep -P "($wmclass|$wmname)" <<< "$entry")
-	# No matching entry, let's warn the user
-	[[ -z "$entry" ]] && \
-		notify-send "passmenu" "No match found for '$wmname' nor '$wmclass'"
+	[[ -z "$entry" ]] &&
+		notify-send "passmenu" "No match found for $wmname nor $wmclass"
 fi
 
 # If there is more than 1 entry, launch dmenu
 [[ $(grep -c . <<< "$entry") -gt 1 ]] && entry=$(dmenu <<< "$entry")
 
-# If we end up with no entry, exit
 [[ -n $entry ]] || exit
 
 if [[ $typeit -eq 0 ]]; then
-	pass "$action" -c "$entry" 2>/dev/null
-	if [ $? == 0 ]; then
-		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds."
-	else
+	pass "$@" -c "$entry" 2>/dev/null &&
+		notify-send "passmenu" "Copied $entry to clipboard. Will clear in 45 seconds." ||
 		notify-send "passmenu" "Error: could not fetch $entry from the password store."
-	fi
 else
-	pass "$action" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
+	pass "$@" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
 		xdotool type --clearmodifiers --file - && xdotool key KP_Enter
 fi
