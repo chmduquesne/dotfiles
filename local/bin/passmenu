@@ -5,13 +5,15 @@
 # Usage: passmenu [--type|--xprop] [otp]
 #
 # List of improvements:
-# * `--typeit` sends an extra Enter key press to immediately validate the
-#   password after typing it
-# * `--xprop` grabs the window manager attributes WM_CLASS and WM_NAME
-#   from the focused window and only shows choices which include those
-# * if there is only one matching entry, it is chosen immediately without
-#   involving dmenu
-# * Feedback is displayed via notify-send popups
+# * The `--type` option has been modified to also send an extra Enter key
+#   press to immediately validate the password after typing it
+# * An option `--xprop` was added. When used, it grabs the window manager
+#   attributes WM_CLASS and WM_NAME from the focused window and only shows
+#   choices which include those
+# * When there is only one matching entry, it is chosen immediately without
+#   involving dmenu, to remove useless key presses
+# * User feedback is displayed via notify-send popups to allow launching
+#   the program from a shortcut instead of the terminal
 # * Extra arguments are transferred to pass so it can be used with otp
 
 shopt -s nullglob globstar
