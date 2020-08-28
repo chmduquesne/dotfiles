@@ -1,3 +1,4 @@
 #!/bin/bash
 
-xdotool type --clearmodifiers "$(xclip -o -selection clipboard)"
+xdotool type --clearmodifiers --delay 0 "$(xclip -o -selection clipboard)"
+xdotool keyup super

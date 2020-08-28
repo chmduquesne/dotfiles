@@ -1,5 +1,5 @@
 [Desktop Entry]
 Comment=Deactivate the keyboard while typing
 Name=syndaemon
-Exec=syndaemon
+Exec=syndaemon -i 0.5 -t -K -R
 Type=Application
