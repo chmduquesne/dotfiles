@@ -8,8 +8,7 @@ if [ $? != 0 ]; then
     exit
 fi
 
-export SUDO_ASKPASS=$(which sudo-askpass)
-sudo --askpass  apt install $deb
+sudo apt install $deb
 if [ $? == 0 ]; then
     notify-send "Installation successful" "$deb"
 else
