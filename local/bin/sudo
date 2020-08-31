@@ -1,15 +1,20 @@
 #!/bin/bash
 
-# If a yubikey is plugged in, call `sudo --askpass`; otherwise, call
-# `sudo` normally (this goes with the `sudo-askpass` shell script)
+# If a yubikey is plugged in, call `sudo --askpass`, otherwise fallback
+# to the real sudo.
 
-# Get the real sudo path
-SCRIPTDIR=$(dirname $(which $0))
-PATH_WITHOUT_SCRIPTDIR=$(echo $PATH | tr ":" "\n" | grep -v "$SCRIPTDIR" | tr "\n" ":")
-REAL_SUDO=$(env PATH=$PATH_WITHOUT_SCRIPTDIR which sudo)
+# This script must live in a directory which has higher priority than the
+# one of sudo. Typically, ~/.local/bin will do the trick.
 
+# First, get the real sudo by searching the path stripped from the
+# directory of this script
+script_dir=$(dirname $(which $0))
+search_path=$(echo $PATH | sed s:"$script_dir\:"::)
+real_sudo=$(env PATH=$search_path which sudo)
+
+# Find out if a Yubikey is in
 if lsusb | grep Yubikey > /dev/null; then
-  exec env SUDO_ASKPASS=$(which sudo-askpass) $REAL_SUDO --askpass "$@"
+  exec env SUDO_ASKPASS=$(which sudo-askpass) $real_sudo --askpass "$@"
 else
-  exec $REAL_SUDO "$@"
+  exec $real_sudo "$@"
 fi
