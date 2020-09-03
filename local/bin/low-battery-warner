@@ -1,0 +1,10 @@
+#!/bin/bash
+
+CAPACITY=/sys/class/power_supply/BAT0/capacity
+
+while true; do
+    if [ "$(cat $CAPACITY)" -le 10 ]; then
+        notify-send -u critical -i battery-low "Low battery" "Charge me ⚡"
+    fi
+    sleep 60
+done
