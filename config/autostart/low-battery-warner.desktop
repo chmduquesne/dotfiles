@@ -1,0 +1,5 @@
+[Desktop Entry]
+Comment=Big red popup when the battery is low
+Name=low-battery-warner
+Exec=low-battery-warner
+Type=Application
