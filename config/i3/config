@@ -210,6 +210,7 @@ assign [class="discord"]         → $ws8
 assign [class="Microsoft"]       → $ws9
 assign [class="spotify"]         → $ws7
 assign [class="Steam"]           → $ws6
+assign [class="Among Us"]        → $ws6
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
 exec_always "disable-standby-fs"

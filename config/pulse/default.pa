@@ -1,5 +1,1 @@
 .include /etc/pulse/default.pa
-
-.nofail
-.include denoised.pa
-.fail
