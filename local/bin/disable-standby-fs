@@ -28,9 +28,9 @@ def find_fullscreen(con):
     return [c for c in con.descendants() if c.type == 'con' and c.fullscreen_mode]
 
 
-def set_dpms(state):
-    if state:
-        call(['notify-send', 'DUNST_COMMAND_RESUME'])
+def set_dpms(enabled):
+    if enabled:
+        call(['dunstctl', 'set-paused', 'false'])
         call(['xset', 's', 'on'])
         call(['xset', 's', TIMEOUT])
         call(['xset', '+dpms'])
@@ -39,7 +39,7 @@ def set_dpms(state):
     else:
         call(['xset', 's', 'off'])
         call(['xset', '-dpms'])
-        call(['notify-send', 'DUNST_COMMAND_PAUSE'])
+        call(['dunstctl', 'set-paused', 'true'])
 
 
 def on_fullscreen_mode(i3, e):
