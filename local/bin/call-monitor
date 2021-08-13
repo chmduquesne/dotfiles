@@ -1,11 +1,13 @@
 #!/bin/bash
 
+not_a_call_app="(parec)"
+
 on_a_call(){
     pacmd list-source-outputs |
         sed 's/^    index:/|index:/g' |
         tr -d '\n' |
         tr '|' '\n' |
-        egrep 'application.name = "(Skype|teams)"' |
+        egrep -v "application.name = \"$not_a_call_app\"" |
         grep -q 'state: RUNNING'
 }
 
