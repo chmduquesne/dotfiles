@@ -124,8 +124,8 @@ compinit
 
 # HISTORY
 HISTFILE=~/.histfile
-HISTSIZE=1000
-SAVEHIST=1000
+HISTSIZE=100000
+SAVEHIST=100000
 
 # SHELL OPTIONS
 setopt correct correct_all appendhistory autocd extendedglob nomatch notify auto_pushd
@@ -253,6 +253,8 @@ export PATH=${PATH}:${GOPATH}/bin
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
+[ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 
 #export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
 

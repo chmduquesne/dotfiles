@@ -1,0 +1,35 @@
+#!/bin/bash
+
+card=$(pactl list cards | grep Name: | cut -d' ' -f2 | grep bluez)
+
+[ -z $card ] && echo "No bluetooth headset found" && exit 1
+
+current_profile=$(
+  pactl list cards |
+    sed 's/^Card/|Card/g' |
+    tr -d '\n' |
+    sed 's/|Card/\nCard/g' |
+    grep $card |
+    tr '\t' '\n' |
+    grep '^Active Profile:' |
+    cut -d' ' -f3
+)
+
+profile=$current_profile
+
+case $1 in
+  "on")
+    profile=headset_head_unit
+    ;;
+  "off")
+    profile=a2dp_sink
+    ;;
+  "toggle")
+    [ $profile == a2dp_sink ] && profile=headset_head_unit || profile=a2dp_sink
+    ;;
+  *)
+    ;;
+esac
+
+pactl set-card-profile $card $profile
+echo "profile: $profile"
