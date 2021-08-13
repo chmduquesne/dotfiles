@@ -1,0 +1,22 @@
+#!/bin/bash
+
+on_a_call(){
+    pacmd list-source-outputs |
+        sed 's/^    index:/|index:/g' |
+        tr -d '\n' |
+        tr '|' '\n' |
+        egrep 'application.name = "(Skype|teams)"' |
+        grep -q 'state: RUNNING'
+}
+
+stdbuf -oL pactl subscribe |
+    grep --line-buffered 'source-output' |
+    while read line; do
+        if on_a_call; then
+            notify-send "call mode on"
+            callmode on
+        else
+            notify-send "call mode off"
+            callmode off
+        fi
+    done
