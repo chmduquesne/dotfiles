@@ -1,25 +1,16 @@
 # UTF8
 export LANG=en_US.UTF-8
 
-# PULSEAUDIO
-# Still useful?
-#export PULSE_LATENCY_MSEC=60
-
 # TMUX
-#if type tmux > /dev/null; then
-#    # if no session is started, start a new session
-#    if [ -z "$TMUX" ]; then
-#        tmux
-#    fi
-#    # when quitting tmux, try to attach
-#    while [ -z "$TMUX" ]; do
-#        tmux attach || break
-#    done
-#fi
-
-# DMGR
-if [ -z "$DTACH" ]; then
-    dmgr zsh
+if type tmux > /dev/null; then
+    # if no session is started, start a new session
+    if [ -z "$TMUX" ]; then
+        tmux
+    fi
+    # when quitting tmux, try to attach
+    while [ -z "$TMUX" ]; do
+        tmux attach || break
+    done
 fi
 
 # NOTIFICATION UPON COMMAND COMPLETION
