@@ -223,7 +223,7 @@ nmap t :tabedit ./
 nmap T :tabedit <C-R>%
 map H <C-o>
 map L <C-i>
-set switchbuf=usetab,useopen,newtab
+set switchbuf=useopen,split
 let mapleader = ","
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -301,5 +301,10 @@ augroup END
 augroup lang_markdown
     autocmd Filetype markdown let g:trim_blank=0
 augroup END
+
+"STRUCTURIZR
+augroup structurizr
+    autocmd BufNewFile,BufRead *.dsl set tw=1000
+augroup end
 
 let g:ycm_server_python_interpreter = '/usr/bin/python3'
