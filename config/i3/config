@@ -49,10 +49,10 @@ bindsym Shift+Print exec "scrot /tmp/screenshot-$(date +%F_%T).png -e 'xclip -se
 bindsym $mod+p --release exec xdopaste
 
 # change focus
-bindsym $mod+j focus left
-bindsym $mod+k focus down
-bindsym $mod+l focus up
-bindsym $mod+m focus right
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
 
 # alternatively, you can use the cursor keys:
 bindsym $mod+Left focus left
@@ -61,10 +61,10 @@ bindsym $mod+Up focus up
 bindsym $mod+Right focus right
 
 # move focused window
-bindsym $mod+Shift+j move left
-bindsym $mod+Shift+k move down
-bindsym $mod+Shift+l move up
-bindsym $mod+Shift+m move right
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
 
 # alternatively, you can use the cursor keys:
 bindsym $mod+Shift+Left move left
@@ -76,10 +76,10 @@ bindsym $mod+Shift+Right move right
 bindsym $mod+x exec move-workspace
 
 # split in horizontal orientation
-bindsym $mod+h split h
+bindsym $mod+n split v
 
 # split in vertical orientation
-bindsym $mod+v split v
+bindsym $mod+v split n
 
 # enter fullscreen mode for the focused container
 bindsym $mod+f fullscreen
