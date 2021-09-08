@@ -9,7 +9,7 @@
 # First, get the real sudo by searching the path stripped from the
 # directory of this script
 script_dir=$(dirname $(which $0))
-search_path=$(echo $PATH | sed s:"$script_dir\:"::)
+search_path=$(echo $PATH | sed s:"$script_dir\:"::g)
 real_sudo=$(env PATH=$search_path which sudo)
 
 # check if we invoked sudo with an option that is compatible with
