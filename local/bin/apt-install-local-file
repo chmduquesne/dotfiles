@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# This script is meant to ease the installation of downloaded .deb files
+# via firefox. It goes hand in hand with
+# local/share/applications/apt-install-local-file.desktop
 
 deb=$(readlink -f "$1")
 
