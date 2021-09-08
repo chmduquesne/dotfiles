@@ -1,8 +1,0 @@
-#!env zsh
-
-FIRST=$1
-LAST=${@[$#]}
-
-PTO_FILENAME=/tmp/$(basename $FIRST .JPG)-$(basename $LAST .JPG).pto
-pto_gen $@ -o "$PTO_FILENAME"
-hugin "$PTO_FILENAME"
