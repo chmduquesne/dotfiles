@@ -1,0 +1,21 @@
+#!/bin/bash
+
+iface=$1
+
+state=$(ip addr show dev $iface | head -n1 | grep -oP '(?<=state )[^ ]*')
+
+[ "$state" == "DOWN" ] && echo " ❌" && exit
+
+v4=$(ip addr show dev $iface |
+    grep "\<inet\>"  |
+    awk '{print $2}' |
+    head -n1 |
+    cut -d/ -f1)
+v6=$(ip addr show dev $iface |
+    grep "\<inet6\>" |
+    awk '{print $2}' |
+    grep -v "^f"     |
+    head -n1         |
+    cut -d/ -f1)
+
+echo " $v6|$v4"
