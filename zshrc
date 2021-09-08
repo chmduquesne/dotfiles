@@ -53,8 +53,8 @@ zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' formats ' [%b%u%c]'
 zstyle ':vcs_info:*' actionformats ' [%b%u%c]'
 setopt prompt_subst
-{type color_hash > /dev/null} && user_color=$(color_hash $USER) || user_color=red
-{type color_hash > /dev/null} && host_color=$(color_hash $(hostname)) || host_color=green
+{type color-hash > /dev/null} && user_color=$(color-hash $USER) || user_color=red
+{type color-hash > /dev/null} && host_color=$(color-hash $(hostname)) || host_color=green
 PROMPT='%F{$user_color}%n%f@%F{$host_color}%M%f:%~/$vcs_info_msg_0_%(!.#.$) '
 #RPROMPT='$vcs_info_msg_0_'
 alias -s git='git clone'

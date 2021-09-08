@@ -1,9 +1,19 @@
 #!/bin/bash
 
+# Usage: callmode [on|off|toggle]
+# Switch the profile of the connected bluetoot headset
+#
+# on: profile set to headset_head_unit
+# off: profile set to a2dp_sink
+# toggle: switch between profile
+
+# find the card which handles bluetooth
 card=$(pactl list cards | grep Name: | cut -d' ' -f2 | grep bluez)
 
+# if nothing is found, exit immediately
 [ -z $card ] && echo "No bluetooth headset found" && exit 1
 
+# profile currently applied to the card
 current_profile=$(
   pactl list cards |
     sed 's/^Card/|Card/g' |
@@ -15,8 +25,8 @@ current_profile=$(
     cut -d' ' -f3
 )
 
+# handle the option (on|off|toggle)
 profile=$current_profile
-
 case $1 in
   "on")
     profile=headset_head_unit
@@ -31,5 +41,6 @@ case $1 in
     ;;
 esac
 
+# apply the profile and exit
 pactl set-card-profile $card $profile
 echo "profile: $profile"
