@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# If a yubikey is plugged in, call `sudo --askpass`, otherwise fallback
-# to the real sudo.
-
 # This script must live in a directory which has higher priority than the
 # one of sudo. Typically, ~/.local/bin will do the trick.
+
+# It is meant to leverage pass (see https://www.passwordstore.org/) in
+# order to give the password to sudo: if a yubikey is plugged in, it will
+# call `sudo --askpass`, and use the wrapper sudo-askpass, as the program
+# to read the password from. Otherwise it falls back to the real sudo.
+# You are expected to provide this wrapper in the PATH.
 
 # First, get the real sudo by searching the path stripped from the
 # directory of this script
