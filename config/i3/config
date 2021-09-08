@@ -79,7 +79,7 @@ bindsym $mod+x exec move-workspace
 bindsym $mod+n split v
 
 # split in vertical orientation
-bindsym $mod+v split n
+bindsym $mod+v split h
 
 # enter fullscreen mode for the focused container
 bindsym $mod+f fullscreen
