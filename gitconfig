@@ -18,3 +18,5 @@
     insteadOf = https://gitlab.mfb.io/
 [pull]
     rebase = true
+[init]
+	defaultBranch = main
