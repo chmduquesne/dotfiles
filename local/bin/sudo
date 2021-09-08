@@ -12,9 +12,20 @@ script_dir=$(dirname $(which $0))
 search_path=$(echo $PATH | sed s:"$script_dir\:"::)
 real_sudo=$(env PATH=$search_path which sudo)
 
+# check if we invoked sudo with an option that is compatible with
+# using --askpass
+can_use_askpass=true
+for arg in "$@"; do
+  case "$arg" in
+    -S|--stdin)
+      can_use_askpass=false
+      ;;
+  esac
+done
+
 # Find out if a Yubikey is in
-if lsusb | grep Yubikey > /dev/null; then
+if lsusb | grep Yubikey > /dev/null && $can_use_askpass; then
   exec env SUDO_ASKPASS=$(which sudo-askpass) $real_sudo --askpass "$@"
-else
-  exec $real_sudo "$@"
 fi
+
+exec $real_sudo "$@"
