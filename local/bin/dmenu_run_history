@@ -1,4 +1,5 @@
 #!/bin/sh
+# From https://tools.suckless.org/dmenu/scripts/dmenu_run_with_command_history/
 
 cachedir=${XDG_CACHE_HOME:-"$HOME/.cache"}
 if [ -d "$cachedir" ]; then
