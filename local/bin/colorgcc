@@ -1,5 +1,0 @@
-#!/bin/bash
-
-/usr/bin/gcc $@ 2>&1 | source-highlight --lang-def=errors.lang \
-                                   --outlang-def=esc.outlang
-
