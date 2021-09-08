@@ -1,11 +1,15 @@
-# apply X settings
-setxkbmap -layout us -variant intl
-xrdb -load ~/.Xresources
-xset +dpms
-xset dpms 0 0 300
+# An xprofile file, ~/.xprofile and /etc/xprofile, allows you to execute
+# commands at the beginning of the X user session - before the window
+# manager is started.
 
-# configure default screen layout
-[ -f ~/.screenlayout/arandr.sh ] && . ~/.screenlayout/arandr.sh
+# set the keyboard layout
+setxkbmap -layout us -variant intl
+
+# Enable DPMS features
+xset +dpms
+
+# Standby: 0 Suspend:0 Off:600 -> turn the screen off after 10 minutes
+xset dpms 0 0 300
 
 ## save X and dbus settings in pam_environment (this makes them available
 ## to cron)
