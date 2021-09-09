@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=xfce4-panel
+Comment=xfce4 panel
+Exec=/usr/bin/xfce4-panel --disable-wm-check
+Type=Application

@@ -185,22 +185,22 @@ set_from_resource $color19 i3wm.color19 #586e75
 set_from_resource $color20 i3wm.color20 #839496
 set_from_resource $color21 i3wm.color21 #eee8d5
 
-bar {
-        font pango:FontAwesome, 9
-        position top
-        colors {
-                background $color0
-                statusline $color15
-                separator  $color8
-
-                # class            #border  #bg      #text
-                focused_workspace  $color8  $color15 $color19
-                active_workspace   $color15 $color0  $color7
-                inactive_workspace $color19 $color0  $color8
-                urgent_workspace   $color2  $color9  $color15
-        }
-        status_command py3status
-}
+#bar {
+#        font pango:FontAwesome, 9
+#        position top
+#        colors {
+#                background $color0
+#                statusline $color15
+#                separator  $color8
+#
+#                # class            #border  #bg      #text
+#                focused_workspace  $color8  $color15 $color19
+#                active_workspace   $color15 $color0  $color7
+#                inactive_workspace $color19 $color0  $color8
+#                urgent_workspace   $color2  $color9  $color15
+#        }
+#        status_command py3status
+#}
 
 assign [class="Navigator"]       → $ws1
 assign [class="starleaf-breeze"] → $ws8
