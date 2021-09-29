@@ -5,6 +5,9 @@
 # set the keyboard layout
 setxkbmap -layout us -variant intl
 
+# load xresources
+xrdb -load ~/.Xresources
+
 # Enable DPMS features
 xset +dpms
 
@@ -21,3 +24,5 @@ xset dpms 0 0 300
 #DISPLAY                     DEFAULT=${DISPLAY}
 #DBUS_SESSION_BUS_ADDRESS    DEFAULT=${DBUS_SESSION_BUS_ADDRESS}
 #" > ~/.pam_environment
+
+[ -f ~/.xprofile.$(hostname) ] && source ~/.xprofile.$(hostname)

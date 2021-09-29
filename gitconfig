@@ -6,6 +6,8 @@
     ci = commit
     br = branch
     co = checkout
+    search = !git rev-list --all | xargs git grep -F
+    delete-old = !git branch --format '%(refname:short)' --merged | egrep --invert-match 'main|master' | xargs -I % git branch --delete %
 [push]
     default = matching
 #[url "http://"]
