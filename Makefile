@@ -1,21 +1,17 @@
 FILES=$(filter-out . .. .hg .hgignore README Makefile,$(wildcard *))
-LINKRULES=$(FILES:%=link.%)
-REMOVERULES=$(FILES:%=rm.%)
+DOTFILES=$(FILES:%=$(HOME)/.%)
 
 all: install
 
-link.%: %
-	@echo "Creating the symbolic link $(HOME)/.$<"
-	@ln -s $(PWD)/$< $(HOME)/.$<
+$(HOME)/.%: %
+	@echo "Creating the symbolic link $@"
+	@ln -s $(PWD)/$< $@
 
-rm.%: %
-	@echo "Removing $(HOME)/.$<"
-	@rm -rf $(HOME)/.$<
+install: $(DOTFILES)
 
-install: $(LINKRULES)
-	@echo "config installed!"
-
-uninstall: $(REMOVERULES)
-	@echo "config uninstalled!"
+uninstall:
+	rm -f $(DOTFILES)
 
 clean: uninstall
+
+.PHONY: all install uninstall clean
