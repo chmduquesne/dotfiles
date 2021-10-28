@@ -1,16 +1,17 @@
-FILES=$(filter-out README Makefile,$(wildcard *))
-DOTFILES=$(FILES:%=$(HOME)/.%)
+SRC := $(filter-out README Makefile,$(wildcard *))
+DST := $(SRC:%=$(HOME)/.%)
 
 all: install
 
+# How a target in $HOME relates to a file in this directory
 $(HOME)/.%: %
-	@echo "Creating the symbolic link $@"
+	@echo "Creating $@ -> $(PWD)/$<"
 	@ln -s $(PWD)/$< $@
 
-install: $(DOTFILES)
+install: $(DST)
 
 uninstall:
-	rm -f $(DOTFILES)
+	rm -f $(DST)
 
 clean: uninstall
 
