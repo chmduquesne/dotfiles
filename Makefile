@@ -1,4 +1,4 @@
-FILES=$(filter-out . .. .hg .hgignore README Makefile,$(wildcard *))
+FILES=$(filter-out README Makefile,$(wildcard *))
 DOTFILES=$(FILES:%=$(HOME)/.%)
 
 all: install
