@@ -1,0 +1,6 @@
+/*
+ *      dpi
+ */
+#ifdef SRVR_flixbox
+    *dpi:                                   196
+#endif
