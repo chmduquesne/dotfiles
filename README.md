@@ -1,4 +1,4 @@
-Chmd's Dotfiles
+chmd's dotfiles
 ===============
 
 If you like this stuff, you should be interested in knowing about the way
