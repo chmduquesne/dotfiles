@@ -1,4 +1,4 @@
-SRC := $(filter-out README Makefile,$(wildcard *))
+SRC := $(filter-out README.md Makefile,$(wildcard *))
 DST := $(SRC:%=$(HOME)/.%)
 
 all: install
