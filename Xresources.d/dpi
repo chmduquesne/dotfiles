@@ -1,6 +1,9 @@
 /*
  *      dpi
  */
+! Few people know it, but Xresource supports CPP preprocessor
+! directives. The following snippet will only apply to a machine which
+! hostname is `flixbox`
 #ifdef SRVR_flixbox
     *dpi:                                   196
 #endif

@@ -1,19 +1,12 @@
-! .Xresources is used to set X resources, which are configuration
-! parameters for X client applications.
+! Configuration parameters for X client applications.
 !
-! Among other things they can be used to:
-!
-! * configure terminal preferences (e.g. terminal colors)
-! * set DPI, anti-aliasing, hinting and other X font settings
-! * change the Xcursor theme
-! * theme XScreenSaver
-! * configure low-level X applications like: xorg-xclock, xpdf, rxvt-unicode
-!
-! It is automatically loaded by /etc/X11/xinit/xinitrc, and can be reloaded via
+! This file is automatically loaded by /etc/X11/xinit/xinitrc, and can be
+! reloaded using the command:
 ! xrdb ~/.Xresources
 !
-! To see the currently loaded resources
+! To see the currently loaded X resources:
 ! xrdb -query -all
+
 
 #include ".Xresources.d/common"
 #include ".Xresources.d/colors"
