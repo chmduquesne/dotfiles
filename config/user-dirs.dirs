@@ -7,7 +7,7 @@
 #
 XDG_DESKTOP_DIR="$HOME/"
 XDG_DOCUMENTS_DIR="$HOME/documents"
-XDG_DOWNLOAD_DIR="$HOME/documents/downloads"
+XDG_DOWNLOAD_DIR="$HOME/downloads"
 XDG_TEMPLATES_DIR="$HOME/documents/templates"
 XDG_PUBLICSHARE_DIR="$HOME/documents/public"
 XDG_MUSIC_DIR="$HOME/music"
