@@ -1,5 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=setxkbmap
-Exec=/usr/bin/setxkbmap us -variant intl
+Exec=setxkbmap us -variant intl
 Comment=set the keyboard using the X Keyboard Extension
