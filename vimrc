@@ -132,16 +132,13 @@ let g:load_doxygen_syntax=1
 set foldmethod=syntax
 set foldopen=all
 set nofoldenable
-set background=dark
-if &t_Co == 256
-    try
-        colorscheme base16
-    catch /^Vim\%((\a\+)\)\=:E185:/
-        colorscheme default
-    endtry
-else
+let g:solarized_termcolors=256
+try
+    colorscheme solarized
+catch /^Vim\%((\a\+)\)\=:E185:/
     colorscheme default
-endif
+endtry
+set background=dark
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "STATUS BAR
