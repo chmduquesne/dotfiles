@@ -1,6 +1,7 @@
 [user]
     name = Christophe-Marie Duquesne
-    email = christophe-marie.duquesne@flixbus.com
+    email = chmd@chmd.fr
+
 [alias]
     st = status
     ci = commit
@@ -8,17 +9,24 @@
     co = checkout
     search = !git rev-list --all | xargs git grep -F
     delete-old = !git branch --format '%(refname:short)' --merged | egrep --invert-match 'main|master' | xargs -I % git branch --delete %
+
 [push]
     default = matching
+
 #[url "http://"]
 #    insteadOf = git://
+
 #[http]
 #    sslVerify = false
+
 [branch]
     autosetuprebase = always
-[url "git@gitlab.mfb.io:"]
-    insteadOf = https://gitlab.mfb.io/
+
 [pull]
     rebase = true
+
 [init]
-	defaultBranch = main
+    defaultBranch = main
+
+[includeIf "gitdir:~/code/work/"]
+    path = ~/code/work/gitconfig.work
