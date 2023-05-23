@@ -5,5 +5,7 @@
 ! directives. The following snippet will only apply to a machine which
 ! hostname is `flixbox`
 #ifdef SRVR_flixbox
-    *dpi:                                   196
+! See https://wiki.archlinux.org/title/HiDPI#X_Resources
+! Using integer multiples of 96 usually works best
+!    Xft.dpi:                                   192
 #endif
