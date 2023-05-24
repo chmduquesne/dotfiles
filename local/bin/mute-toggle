@@ -1,0 +1,10 @@
+#!/bin/bash
+
+pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+emoji=✅
+if pactl get-source-mute @DEFAULT_SOURCE@ | grep "Mute: yes"; then
+    emoji=❌
+fi
+
+notify-send -u low -i audio-input-microphone "$emoji"

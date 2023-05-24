@@ -32,9 +32,13 @@ bindsym $mod+r exec dmenu_run_history -l 10
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
 bindsym $mod+d exec notify-send DUNST_COMMAND_RESUME
+
+# Native keys to handle volume
 bindsym XF86AudioLowerVolume exec volume down
 bindsym XF86AudioRaiseVolume exec volume up
-bindsym $mod+minus exec amixer set Capture toggle
+bindsym XF86AudioMute exec mute-toggle
+
+# Native keys to handle screen brightness
 bindsym XF86MonBrightnessDown exec xbacklight -dec 10
 bindsym XF86MonBrightnessUp exec xbacklight -inc 10
 
@@ -44,6 +48,12 @@ bindsym Mod1+Control+l exec i3lock-blur -n -f
 # capture screen
 bindsym Print --release exec "scrot -s /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
 bindsym Shift+Print exec "scrot /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
+# Logitech MX keys mini
+bindsym $mod+Shift+S --release exec "scrot -s /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
+
+# emoji button
+bindsym $mod+period exec rofimoji
+bindsym $mod+semicolon exec rofimoji
 
 # type
 bindsym $mod+p --release exec xdopaste
@@ -133,8 +143,6 @@ bindsym $mod+Shift+r reload
 bindsym $mod+Control+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
-# rofimoji
-bindsym $mod+semicolon exec rofimoji --use-clipboard
 
 # resize window (you can also use the mouse for that)
 mode "resize" {

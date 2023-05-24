@@ -4,26 +4,29 @@ arg=$1
 
 case $arg in
   up)
-    amixer --quiet set Master 5%+
+    pactl set-sink-volume @DEFAULT_SINK@ +2%
     ;;
   down)
-    amixer --quiet set Master 5%-
+    pactl set-sink-volume @DEFAULT_SINK@ -2%
     ;;
   *)
     echo "$1: wrong argument"
     ;;
 esac
-[[ $(amixer get Master|grep %) =~ \[([0-9]+)%\] ]]
-level=${BASH_REMATCH[1]}
 
-emoji=🔇
+level=$(pactl get-sink-volume @DEFAULT_SINK@ |\
+  grep -o "[0-9]\+%" |\
+  head -n1 |\
+  grep -o "[0-9]\+")
+
+icon=audio-volume-muted
 if [ $level -gt 0 ]; then
-  emoji=🔈
+  icon=audio-volume-low
 fi
 if [ $level -gt 33 ]; then
-  emoji=🔉
+  icon=audio-volume-medium
 fi
 if [ $level -gt 66 ]; then
-  emoji=🔊
+  icon=audio-volume-high
 fi
-notify-send -u low "$emoji $level%"
+notify-send -u low -i "$icon" audio-speakers "$level%"
