@@ -1,0 +1,7 @@
+#!/bin/bash
+
+command="xclip -o -selection clipboard | qrencode -o - | display"
+yad --notification \
+    --text "Convert clipboard content to qr code" \
+    --image=editpaste \
+    --command "bash -c '$command'"

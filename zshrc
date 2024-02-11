@@ -192,6 +192,13 @@ alias pass='nocorrect pass'
 {type keychain > /dev/null} && {type ssh-askpass > /dev/null} && \
     source <(SSH_ASKPASS=ssh-askpass keychain --quiet --eval id_rsa </dev/null)
 
+# Obtain key
+# gpg --export-ssh-key mon_compte >> ~/.ssh/authorized_keys
+
+# Use it
+# export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+# gpgconf --launch gpg-agent
+
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)
 irssi()
@@ -255,3 +262,5 @@ export PATH=${PATH}:${GOPATH}/bin
 {type minikube > /dev/null} && source <(minikube completion zsh)
 
 export ENV="local"
+
+compdef _gnu_generic papiers

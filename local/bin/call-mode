@@ -43,4 +43,4 @@ esac
 
 # apply the profile and exit
 pactl set-card-profile $card $profile
-echo "profile: $profile"
+echo "set card $card on profile: $profile"
