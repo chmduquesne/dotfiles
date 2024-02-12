@@ -83,7 +83,7 @@ bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 
 # Move the current workspace to the next output
-bindsym $mod+x exec move-workspace
+bindsym $mod+x move workspace to output next
 
 # split in horizontal orientation
 bindsym $mod+n split v
