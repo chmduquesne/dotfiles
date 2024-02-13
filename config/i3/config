@@ -208,6 +208,7 @@ bar {
                 urgent_workspace   $color2  $color9  $color15
         }
         status_command py3status
+        tray_output primary
 }
 
 assign [class="Navigator"]       → $ws1
