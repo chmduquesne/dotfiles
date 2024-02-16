@@ -34,10 +34,10 @@ def get_focused_workspace(i3):
     return None
 
 
-def move_chat_to_bottom(i3):
+def move_chats_down(i3):
     x, y = get_mouse_location()
     focused = get_focused_workspace(i3)
-    i3.command("[workspace=9] move workspace to output DisplayPort-2")
+    i3.command("[workspace=9] move workspace to output down")
     i3.command("workspace 9:💬")
     i3.command(f"workspace {focused}")
     set_mouse_location(x, y)
@@ -55,7 +55,7 @@ def chat_visible(i3):
 
 def ensure_chat_visible(i3, e):
     if not chat_visible(i3):
-        move_chat_to_bottom(i3)
+        move_chats_down(i3)
 
 
 #parser = ArgumentParser(prog='keep_chat_onscreen',
@@ -64,11 +64,9 @@ def ensure_chat_visible(i3, e):
 #        ''')
 #
 #args = parser.parse_args()
-#
-#def move_chat_to_bottom(i3, e):
-#    call(['notify-send', '-u', 'critical', f'yo: {e}'])
-#
-#
+
+
+
 i3.on('workspace::focus', ensure_chat_visible)
 
 i3.main()
