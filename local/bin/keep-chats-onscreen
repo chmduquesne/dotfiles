@@ -36,11 +36,10 @@ def get_focused_workspace(i3):
 
 def move_chats_down(i3):
     x, y = get_mouse_location()
-    focused = get_focused_workspace(i3)
-    i3.command("[workspace=9] move workspace to output down")
-    i3.command("workspace 9:💬")
-    i3.command(f"workspace {focused}")
-    set_mouse_location(x, y)
+    res = i3.command("[workspace=9] move workspace to output down")
+    if res[0].success:
+        i3.command("workspace 9:💬")
+        set_mouse_location(x, y)
 
 
 def chat_visible(i3):
@@ -54,6 +53,8 @@ def chat_visible(i3):
 
 
 def ensure_chat_visible(i3, e):
+    if len(i3.get_outputs()) <= 2:
+        return
     if not chat_visible(i3):
         move_chats_down(i3)
 
