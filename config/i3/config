@@ -45,6 +45,9 @@ bindsym XF86MonBrightnessUp exec xbacklight -inc 10
 # lock screen
 bindsym Mod1+Control+l exec i3lock-blur -n -f
 
+# suspend
+bindsym Mod1+Control+s exec systemctl suspend
+
 # capture screen
 bindsym Print --release exec "scrot -s /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
 bindsym Shift+Print exec "scrot /tmp/screenshot-$(date +%F_%T).png -e 'xclip -selection c -t image/png < $f'"
