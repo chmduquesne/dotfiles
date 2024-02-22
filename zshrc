@@ -196,8 +196,12 @@ alias pass='nocorrect pass'
 # gpg --export-ssh-key mon_compte >> ~/.ssh/authorized_keys
 
 # Use it
-# export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-# gpgconf --launch gpg-agent
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
+
+# import yubikey
+# gpg --card-edit
+# gpg/card> fetch
 
 # IRSSI IN TMUX
 # switch to irssi session (and if necessary starts this session before)

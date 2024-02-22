@@ -227,5 +227,5 @@ assign [class="Signal"]          → $ws8
 
 exec bash -c "dex -ave i3 > ~/.dex.log"
 exec_always "disable-standby-fs"
-exec_always "keep-chats-onscreen"
+#exec_always "keep-chats-onscreen"
 exec xsetroot -solid "#333333"

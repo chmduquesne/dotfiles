@@ -1,11 +1,3 @@
 .include /etc/pulse/default.pa
 
-# Never switch to HSP
-.nofail
-unload-module module-bluetooth-policy
-.fail
-load-module module-bluetooth-policy auto_switch=0
-
-.nofail
-set-card-profile bluez_card.74_74_46_26_DD_A7 a2dp_sink
-.fail
+load-module module-switch-on-connect
