@@ -1,0 +1,226 @@
+# Read `man 5 sway` for a complete reference.
+
+# Variables
+set $mod Mod4
+
+set $left h
+set $down j
+set $up k
+set $right l
+
+set $ws1 1:🌍
+set $ws2 2:⚙
+set $ws3 3:📔
+set $ws4 4:💾
+set $ws5 5:📈
+set $ws6 6:🎮
+set $ws7 7:🎵
+set $ws8 8:☎️
+set $ws9 9:💬
+set $ws0 10:📟
+
+# Drag floating windows by holding down $mod and left mouse button.
+# Resize them with right mouse button + $mod.
+floating_modifier $mod normal
+
+# Your preferred terminal emulator
+set $term gnome-terminal
+
+# Your preferred application launcher
+# Note: pass the final command to swaymsg so that the resulting window can be opened
+# on the original workspace that the command was run on.
+#set $menu dmenu_path | bemenu | xargs swaymsg exec --
+set $menu j4-dmenu-desktop --dmenu='bemenu -i --nb "#3f3f3f" --nf "#dcdccc" --fn "pango:Monospace 11"' --term='gnome-terminal'
+
+# Paste text
+set $paste wtype -m logo "$(wl-paste)"
+
+# Screen locker
+set $locker swaylock -f -c 000000
+
+# See https://github.com/swaywm/sway/wiki#clamshell-mode
+set $lid eDP-1
+bindswitch --reload --locked lid:on output $lid disable
+bindswitch --reload --locked lid:off output $lid enable
+exec_always /usr/local/bin/sway-handle-lid
+
+# See https://github.com/swaywm/sway/wiki#systemd-and-dbus-activation-environments
+exec systemctl --user import-environment WAYLAND_DISPLAY DISPLAY \
+                XDG_CURRENT_DESKTOP SWAYSOCK I3SOCK XCURSOR_SIZE XCURSOR_THEME
+exec dbus-update-activation-environment WAYLAND_DISPLAY DISPLAY \
+                XDG_CURRENT_DESKTOP SWAYSOCK I3SOCK XCURSOR_SIZE XCURSOR_THEME
+
+# You can get the names of your inputs by running: swaymsg -t get_inputs
+input "type:touchpad" {
+     dwt enabled
+     tap enabled
+     middle_emulation enabled
+}
+
+input "type:keyboard" {
+    xkb_layout us
+    xkb_variant intl
+}
+
+# Move focus around
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+# Or use $mod+[up|down|left|right]
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move the focused window with the same, but add Shift
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+# Ditto, with arrow keys
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# Switch to workspace
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws0
+# Move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+bindsym $mod+Shift+0 move container to workspace $ws0
+
+# Move the current workspace to the next output
+bindsym $mod+x move workspace to output next
+
+# Split controls are inverted compared to vim, fixing it
+bindsym $mod+v splith
+bindsym $mod+n splitv
+
+# Switch the current container between different layout styles
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+
+# Make the current focus fullscreen
+bindsym $mod+f fullscreen
+
+# Toggle the current focus between tiling and floating mode
+bindsym $mod+Shift+space floating toggle
+
+# Swap focus between the tiling area and the floating area
+bindsym $mod+space focus mode_toggle
+
+# Move focus to the parent container
+bindsym $mod+q focus parent
+
+# Move the currently focused window to the scratchpad
+bindsym $mod+Shift+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod+minus scratchpad show
+
+# Reload the configuration file
+bindsym $mod+Control+r reload
+
+# Exit sway (logs you out of your Wayland session)
+bindsym $mod+Control+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+# Adjust screen brightness
+bindsym --locked XF86MonBrightnessDown exec brightnessctl s 5%-
+bindsym --locked XF86MonBrightnessUp exec brightnessctl s 5%+
+
+# Adjust audio
+bindsym --locked XF86AudioMute exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+#bindsym --locked XF86AudioMicMute exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+bindsym --locked XF86AudioRaiseVolume exec wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
+bindsym --locked XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+
+# Start a terminal
+bindsym $mod+Return exec $term
+
+# Kill focused window
+bindsym $mod+Shift+c kill
+
+# Start your launcher
+bindsym $mod+r exec $menu
+
+# Take a screenshot
+bindsym Print exec flameshot gui
+# Logitech MX keys mini
+bindsym $mod+Shift+S exec flameshot gui
+
+# Paste
+bindsym $mod+p exec $paste
+
+# emoji button
+bindsym $mod+semicolon exec bemoji -t
+bindsym XF86Messenger exec bemoji -t
+# Logitech MX keys mini
+bindsym $mod+period exec bemoji -t
+
+# Lock screen
+bindsym Mod1+Control+l exec $locker
+
+bindsym $mod+c exec gnome-calculator
+
+# Output configuration
+output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
+
+font pango:Emoji One Color 9
+
+bar {
+    swaybar_command waybar
+}
+
+default_border pixel 1
+#xwayland disable
+
+assign [class="Navigator"]       → $ws1
+assign [class="teams-for-linux"] → $ws9
+assign [class="Microsoft"]       → $ws9
+assign [class="spotify"]         → $ws7
+assign [class="Steam"]           → $ws6
+assign [class="Signal"]          → $ws8
+for_window [app_id=".*"] inhibit_idle fullscreen
+
+include /etc/sway/config.d/*
+
+# TODO https://github.com/swaywm/sway/wiki/Setting-environmental-variables
+
+# This will lock your screen after 300 seconds of inactivity, then turn off
+# your displays after another 300 seconds, and turn your screens back on when
+# resumed. It will also lock your screen before your computer goes to sleep.
+exec swayidle -w \
+         timeout 300 "$locker" \
+         timeout 600 'systemctl suspend' resume 'swaymsg "output * dpms on"' \
+         before-sleep "$locker"
+# bluetooth management
+exec blueman-applet
+# wifi management
+exec nm-applet --indicator
+# notifications
+exec swaync
+# screenshot
+exec flameshot
+# autorandr equivalent
+#exec kanshi

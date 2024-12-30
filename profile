@@ -25,3 +25,13 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
+
+# launch sway if we are in tty1
+if [ "$(tty)" = "/dev/tty1" ] ; then
+    export SDL_VIDEODRIVER=wayland
+    export _JAVA_AWT_WM_NONREPARENTING=1
+    export QT_QPA_PLATFORM=wayland
+    export XDG_CURRENT_DESKTOP=sway:wlroots
+    export XDG_SESSION_DESKTOP=sway
+    exec sway
+fi
