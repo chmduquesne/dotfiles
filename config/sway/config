@@ -186,6 +186,8 @@ bindsym $mod+c exec gnome-calculator
 # Output configuration
 output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 
+output 'Goldstar Company Ltd LG HDR 4K 0x0000F546' scale 1.4
+
 font pango:Emoji One Color 9
 
 bar {
@@ -212,8 +214,8 @@ include /etc/sway/config.d/*
 # resumed. It will also lock your screen before your computer goes to sleep.
 exec swayidle -w \
          timeout 300 "$locker" \
-         timeout 600 'systemctl suspend' resume 'swaymsg "output * dpms on"' \
-         before-sleep "$locker"
+         timeout 600 'swaymsg "output * dpms off" && systemctl suspend' \
+         resume 'swaymsg "output * dpms on"' before-sleep "$locker"
 # bluetooth management
 exec blueman-applet
 # wifi management
