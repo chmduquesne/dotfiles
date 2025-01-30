@@ -26,6 +26,8 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+export QT_QPA_PLATFORMTHEME=gtk3
+
 # launch sway if we are in tty1
 if [ "$(tty)" = "/dev/tty1" ] ; then
     export SDL_VIDEODRIVER=wayland
