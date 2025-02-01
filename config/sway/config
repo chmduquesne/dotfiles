@@ -190,7 +190,7 @@ bindsym $mod+c exec gnome-calculator
 # Output configuration
 output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
 
-output 'Goldstar Company Ltd LG HDR 4K 0x0000F546' mode 2560x1440
+output 'LG Electronics LG HDR 4K 0x0004F546' mode 2560x1440
 #output 'Goldstar Company Ltd LG HDR 4K 0x0000F546' scale 0.8
 
 font pango:Emoji One Color 9
@@ -233,3 +233,5 @@ exec flameshot
 #exec kanshi
 # sound
 exec pasystray
+# switch to bluetooth when available
+exec pactl load-module module-switch-on-connect
