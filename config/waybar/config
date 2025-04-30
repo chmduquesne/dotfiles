@@ -48,7 +48,9 @@
         "format-icons": {
             "activated": "",
             "deactivated": ""
-        }
+        },
+        "tooltip-format-activated": "inhibitor activated",
+        "tooltip-format-deactivated": "inhibitor deactivated"
     },
     "tray": {
         // "icon-size": 21,

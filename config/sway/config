@@ -37,7 +37,7 @@ set $paste wtype -m logo "$(wl-paste)"
 
 # Screenshot
 #set $screenshot flameshot gui
-set $screenshot grim -g "$(slurp -d)" - | wl-copy
+set $screenshot grim -g "$(slurp -d)" - | wl-copy && wl-paste -t image/png > "/tmp/screenshot-$(date +%F_%T).png"
 
 # Screen locker
 set $locker swaylock -f -c 000000
@@ -202,12 +202,13 @@ bar {
 default_border pixel 1
 #xwayland disable
 
-assign [class="Navigator"]       → $ws1
-assign [class="teams-for-linux"] → $ws9
-assign [class="Microsoft"]       → $ws9
-assign [class="spotify"]         → $ws7
-assign [class="Steam"]           → $ws6
-assign [class="Signal"]          → $ws8
+assign [class="Navigator"]                               → $ws1
+assign [class="teams-for-linux"]                         → $ws9
+assign [class="Microsoft"]                               → $ws9
+assign [class="spotify"]                                 → $ws7
+assign [class="Steam"]                                   → $ws6
+assign [class="Signal"]                                  → $ws8
+assign [instance="crx_cifhbcnohmdccbgoicgdjpfamggdegmo"] → $ws9
 for_window [app_id=".*"] inhibit_idle fullscreen
 
 # include /etc/sway/config.d/*
@@ -235,3 +236,9 @@ exec flameshot
 exec pasystray
 # switch to bluetooth when available
 exec pactl load-module module-switch-on-connect
+# rclone
+exec rclone mount gdrive: /home/chmd/documents/gdrive
+# start firefox at beginning of session
+exec firefox-esr
+# start ms teams
+exec teams-pwa

@@ -268,3 +268,6 @@ export PATH=${PATH}:${GOPATH}/bin
 export ENV="local"
 
 compdef _gnu_generic papiers
+
+#aliases I keep forgeting
+alias arandr=wdisplays
