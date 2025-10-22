@@ -1,0 +1,21 @@
+#!/bin/bash
+
+err_usage(){
+    echo "usage: $0 [ndigits]"
+    exit 1
+}
+
+if [[ $# -gt 1 ]]; then
+    echo "expected maximum 1 argument, received $#"
+    err_usage
+fi
+
+ndigits=${1:-6}
+case "$ndigits" in
+    ''|*[!0-9])
+        echo "expected a number, received '$ndigits'"
+        err_usage
+        ;;
+esac
+
+shuf --random-source=/dev/urandom -i 0-9 -r -n $ndigits | paste -sd ''
