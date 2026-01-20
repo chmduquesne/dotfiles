@@ -2,8 +2,6 @@
 
 VIDEO_DIR="$(xdg-user-dir DOCUMENTS)/recordings"
 MIX_NAME="wf_recorder_mix"
-
-# Sound file paths (Standard on most distros)
 START_SOUND="/usr/share/sounds/freedesktop/stereo/bell.oga"
 STOP_SOUND="/usr/share/sounds/freedesktop/stereo/complete.oga"
 
@@ -13,26 +11,32 @@ cleanup_audio() {
     pactl unload-module module-null-sink 2>/dev/null
 }
 
-
-
 case "$1" in
     start)
-        if ! pgrep -x "wf-recorder" > /dev/null; then
-            mkdir -p "$VIDEO_DIR"
-            cleanup_audio
-            paplay $START_SOUND &
+        # Prevent double instances
+        pgrep -x "wf-recorder" > /dev/null && exit 0
 
-            # Identify Default Devices
-            MIC=$(pactl get-default-source)
-            SINK_MONITOR=$(pactl get-default-sink).monitor
+        mkdir -p "$VIDEO_DIR"
+        cleanup_audio
 
-            # Create virtual mix
-            pactl load-module module-null-sink sink_name=$MIX_NAME sink_properties=device.description="Recording_Mix"
-            pactl load-module module-loopback source=$MIC sink=$MIX_NAME
-            pactl load-module module-loopback source=$SINK_MONITOR sink=$MIX_NAME
+        # 1. Create the virtual sink
+        pactl load-module module-null-sink \
+            sink_name=$MIX_NAME \
+            sink_properties=device.description="Recording_Mix"
 
-            wf-recorder --audio=$MIX_NAME.monitor -f "$VIDEO_DIR/recording_$(date +'%Y-%m-%d_%H-%M-%S').mp4" &
-        fi
+        # 2. Get current defaults
+        MIC=$(pactl get-default-source)
+        SINK_MONITOR=$(pactl get-default-sink).monitor
+
+        # 3. Connect sources to the mix
+        pactl load-module module-loopback source=$MIC sink=$MIX_NAME
+        pactl load-module module-loopback source=$SINK_MONITOR sink=$MIX_NAME
+
+        # 4. Start recording
+        paplay $START_SOUND &
+        wf-recorder \
+            --audio=$MIX_NAME.monitor \
+            -f "$VIDEO_DIR/recording_$(date +%F_%T).mp4" &
         ;;
     stop)
         pkill -INT wf-recorder
@@ -50,9 +54,9 @@ case "$1" in
             ELAPSED=$(($(date +%s) - START))
             DURATION=$(date -u -d "@$ELAPSED" +%T)
 
-            echo "{\"text\": \" $DURATION\", \"alt\": \"recording\", \"class\": \"recording\"}"
+            printf '{"text": " %s", "alt": "recording", "class": "recording"}\n' "$DURATION"
         else
-            echo "{\"text\": \"\", \"alt\": \"idle\", \"class\": \"idle\"}"
+            printf '{"text": "", "alt": "idle", "class": "idle"}\n'
         fi
         ;;
     *)
