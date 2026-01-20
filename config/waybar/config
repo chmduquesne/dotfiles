@@ -133,8 +133,8 @@
         "format": "{}",
         "return-type": "json",
         "interval": 1,
-        "exec": "~/.local/bin/record.sh status",
-        "on-click": "~/.local/bin/record.sh toggle"
+        "exec": "~/.local/bin/recorder status",
+        "on-click": "~/.local/bin/recorder toggle"
     }
 }
 
