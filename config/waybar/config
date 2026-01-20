@@ -6,7 +6,7 @@
     ],
     "modules-center": ["sway/window"],
     "modules-right": [
-        "custom/recorder",
+        "custom/recordify",
         "idle_inhibitor",
         "backlight",
         "network",
@@ -129,12 +129,12 @@
     //    "format-icons": ["", "", ""],
     //    "on-click": "pavucontrol"
     //},
-    "custom/recorder": {
+    "custom/recordify": {
         "format": "{}",
         "return-type": "json",
         "interval": 1,
-        "exec": "~/.local/bin/recorder status",
-        "on-click": "~/.local/bin/recorder toggle"
+        "exec": "~/.local/bin/recordify status",
+        "on-click": "~/.local/bin/recordify toggle"
     }
 }
 

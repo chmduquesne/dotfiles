@@ -1,0 +1,10 @@
+@import url("/etc/xdg/waybar/style.css");
+
+#custom-recordify {
+    padding: 0 10px;
+}
+
+#custom-recordify.recording {
+    color: #ff5555; /* Red indicator */
+    background-color: #ecf0f1;
+}
