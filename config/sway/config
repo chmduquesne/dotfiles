@@ -241,4 +241,4 @@ exec rclone mount gdrive: /home/chmd/documents/gdrive
 # start firefox at beginning of session
 exec firefox-esr
 # start ms teams
-exec teams-pwa
+#exec teams-pwa

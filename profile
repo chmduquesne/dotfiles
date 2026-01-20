@@ -30,6 +30,7 @@ export QT_QPA_PLATFORMTHEME=gtk3
 
 # launch sway if we are in tty1
 if [ "$(tty)" = "/dev/tty1" ] ; then
+    export WLR_DRM_DEVICES=/dev/dri/card0
     export WLR_NO_HARDWARE_CURSORS=1
     export SDL_VIDEODRIVER=wayland
     export _JAVA_AWT_WM_NONREPARENTING=1

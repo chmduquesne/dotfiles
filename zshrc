@@ -250,7 +250,7 @@ export PYTHONSTARTUP=~/.pythonrc
 export DEBEMAIL="chmd@chmd.fr"
 export DEBFULLNAME="Christophe-Marie Duquesne"
 export GOPATH=${HOME}/code/golang
-export PATH=${PATH}:${GOPATH}/bin
+export PATH=${PATH}:${GOPATH}/bin:/usr/local/go/bin
 
 [ -f /etc/profile.d/fzf.zsh ] && source /etc/profile.d/fzf.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -271,3 +271,10 @@ compdef _gnu_generic papiers
 
 #aliases I keep forgeting
 alias arandr=wdisplays
+alias qrread=zbarcam-gtk
+
+# opencode
+export PATH=/home/chmd/.opencode/bin:$PATH
+
+# npm
+export PATH=/home/chmd/.npm-global/bin:$PATH
