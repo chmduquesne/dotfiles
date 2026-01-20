@@ -54,9 +54,9 @@ case "$1" in
             ELAPSED=$(($(date +%s) - START))
             DURATION=$(date -u -d "@$ELAPSED" +%T)
 
-            printf '{"text": "", "class": "recording", "tooltip": "Recording duration: %s"}\n' "$DURATION"
+            printf '{"text": "", "class": "recording", "tooltip": "Recording for %s"}\n' "$DURATION"
         else
-            printf '{"text": "", "class": "idle"}\n'
+            printf '{"text": "", "class": "idle", "tooltip": "Not currently recording"}\n'
         fi
         ;;
     *)
