@@ -13,6 +13,8 @@ cleanup_audio() {
     pactl unload-module module-null-sink 2>/dev/null
 }
 
+
+
 case "$1" in
     start)
         if ! pgrep -x "wf-recorder" > /dev/null; then
@@ -53,4 +55,6 @@ case "$1" in
             echo "{\"text\": \"\", \"alt\": \"idle\", \"class\": \"idle\"}"
         fi
         ;;
+    *)
+        echo "Usage: $0 [start|stop|toggle|status]"
 esac
