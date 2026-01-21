@@ -4,44 +4,33 @@
 WHITELIST='["parec", "wf-recorder3"]'
 
 apps_recording(){
-    pactl -f json list source-outputs | \
-        jq --exit-status \
-            --raw-output \
-            --argjson wl "$WHITELIST" \
-            '
-                [
-                    .[].properties["application.name"]
-                    | select(
-                        . != null and
-                        ([. == $wl[]] | any | not)
-                      )
-                ]
-                | select(length > 0)
-                | .[]
-            '
-
+    # -e sets exit status to 1 if the output is empty/null
+    pactl -f json list source-outputs | jq -er \
+        --argjson wl "$WHITELIST" '
+            [.[].properties["application.name"] | select(. and IN($wl[]) | not)]
+            | if length > 0 then .[] else empty end'
 }
 
 show_status(){
-    if [ "$1" != "" ]; then
-        printf '{"text": "", "tooltip": "In a call (%s)", "class": "busy"}\n' "$1"
+    local apps="$1"
+    if [[ -n "$apps" ]]; then
+        printf '{"text": "", "tooltip": "Busy (%s)", "class": "busy"}\n' "$apps"
     else
         printf '{"text": "", "tooltip": "Free", "class": "free"}\n'
     fi
 }
 
-APPS=$(apps_recording)
-show_status "$APPS"
-PREV_APPS="$APPS"
+# Initial execution
+PREV_APPS="$(apps_recording)"
+show_status "$PREV_APPS"
 
+# Monitor PulseAudio events
+pactl subscribe | stdbuf -oL grep 'source-output' | while read -r _; do
+    CURRENT_APPS=$(apps_recording)
 
-# subscribe to pactl events and runs the check for every change
-stdbuf -oL pactl subscribe |
-    grep --line-buffered 'source-output' |
-    while read line; do
-        APPS=$(apps_recording)
-        if [ "$APPS" != "$PREV_APPS" ]; then
-            show_status "$APPS"
-        fi
-        PREV_APPS="$APPS"
-    done
+    # Only update if the list of apps has actually changed
+    if [[ "$CURRENT_APPS" != "$PREV_APPS" ]]; then
+        show_status "$CURRENT_APPS"
+        PREV_APPS="$CURRENT_APPS"
+    fi
+done
