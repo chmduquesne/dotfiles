@@ -33,8 +33,7 @@ case "$1" in
         pactl load-module module-loopback source=$DESKTOP sink=$MIX_SINK
 
         # 4. Optionally select a geometry
-        GEOMETRY_OPTS=""
-        [ "$2" == "--select" ] && GEOMETRY_OPTS="-g $(slurp)"
+        [ "$2" == "--select" ] && GEOMETRY_OPTS="-g $(slurp)" || GEOMETRY_OPTS=""
 
         # 5. Start recording
         paplay $START_SOUND &

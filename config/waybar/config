@@ -6,7 +6,8 @@
     ],
     "modules-center": ["sway/window"],
     "modules-right": [
-        "custom/recordify",
+        "custom/callstatus",
+        "custom/screenrec",
         "idle_inhibitor",
         "backlight",
         "network",
@@ -122,20 +123,18 @@
         },
         "on-click": "pavucontrol"
     },
-    //"wireplumber": {
-    //    "format": "{volume}% {icon}",
-    //    "format-muted": "",
-    //    "on-click": "helvum",
-    //    "format-icons": ["", "", ""],
-    //    "on-click": "pavucontrol"
-    //},
-    "custom/recordify": {
+    "custom/screenrec": {
         "format": "{}",
         "return-type": "json",
         "interval": 1,
-        "exec": "~/.local/bin/recordify status",
-        "on-click": "~/.local/bin/recordify toggle",
-        "on-click-right": "~/.local/bin/recordify toggle --select"
+        "exec": "~/.local/bin/screenrec status",
+        "on-click": "~/.local/bin/screenrec toggle",
+        "on-click-right": "~/.local/bin/screenrec toggle --select"
+    },
+    "custom/callstatus": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "~/.local/bin/callstatus"
     }
 }
 

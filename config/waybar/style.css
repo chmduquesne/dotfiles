@@ -1,10 +1,18 @@
 @import url("/etc/xdg/waybar/style.css");
 
-#custom-recordify {
+#custom-screenrec {
     padding: 0 10px;
 }
 
-#custom-recordify.recording {
+#custom-screenrec.recording {
     color: #ff5555; /* Red indicator */
     background-color: #ecf0f1;
+}
+
+#custom-callstatus.busy {
+    color: #ff5555; /* Red indicator */
+}
+
+#custom-callstatus.free {
+    color: #55ff55; /* Green indicator */
 }
