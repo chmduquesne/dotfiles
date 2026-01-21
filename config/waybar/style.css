@@ -9,6 +9,10 @@
     background-color: #ecf0f1;
 }
 
+#custom-callstatus {
+    padding: 0 10px;
+}
+
 #custom-callstatus.busy {
     color: #ff5555; /* Red indicator */
 }

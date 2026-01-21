@@ -6,7 +6,6 @@
     ],
     "modules-center": ["sway/window"],
     "modules-right": [
-        "custom/callstatus",
         "custom/screenrec",
         "idle_inhibitor",
         "backlight",
@@ -18,6 +17,7 @@
         "keyboard-state",
         "battery",
         "pulseaudio",
+        "custom/callstatus",
         "tray",
         "clock"
     ],
@@ -53,8 +53,8 @@
         "spacing": 10
     },
     "clock": {
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format-alt": "{:%Y-%m-%d}"
+        "format": "{:%F %R}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
     },
     "cpu": {
         "format": "{usage}% ",
@@ -78,7 +78,7 @@
         "format-icons": ["", "", ""]
     },
     "backlight": {
-        // "device": "acpi_video1",
+        "device": "intel_backlight",
         "format": "{percent}% {icon}",
         "format-icons": ["🌑", "🌘", "🌗", "🌖", "🌕"]
     },
