@@ -134,7 +134,8 @@
         "return-type": "json",
         "interval": 1,
         "exec": "~/.local/bin/recordify status",
-        "on-click": "~/.local/bin/recordify toggle"
+        "on-click": "~/.local/bin/recordify toggle",
+        "on-click-right": "~/.local/bin/recordify toggle --select"
     }
 }
 

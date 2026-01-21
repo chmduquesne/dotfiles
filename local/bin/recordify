@@ -32,9 +32,14 @@ case "$1" in
         pactl load-module module-loopback source=$MIC sink=$MIX_SINK
         pactl load-module module-loopback source=$DESKTOP sink=$MIX_SINK
 
-        # 4. Start recording
+        # 4. Optionally select a geometry
+        GEOMETRY_OPTS=""
+        [ "$2" == "--select" ] && GEOMETRY_OPTS="-g $(slurp)"
+
+        # 5. Start recording
         paplay $START_SOUND &
         wf-recorder \
+            "$GEOMETRY_OPTS" \
             --audio=$MIX_SINK.monitor \
             -f "$RECORD_DIR/recording_$(date +%F_%T).mp4" &
         ;;
@@ -44,7 +49,7 @@ case "$1" in
         paplay $STOP_SOUND &
         ;;
     toggle)
-        pgrep -x wf-recorder > /dev/null && $0 stop || $0 start
+        pgrep -x wf-recorder > /dev/null && $0 stop || $0 start $2
         ;;
     status)
         PID=$(pgrep -x wf-recorder)
