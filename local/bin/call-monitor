@@ -1,27 +1,25 @@
 #!/bin/bash
 
-# whitelist
-not_a_call_app="(parec)"
+# Apps that we don't care if they record
+WHITELIST='["parec", "wf-recorder3"]'
 
-# returns true if an application is recording the microphone
-on_a_call(){
-    pacmd list-source-outputs |
-        sed 's/^    index:/|index:/g' |
-        tr -d '\n' |
-        tr '|' '\n' |
-        egrep -v "application.name = \"$not_a_call_app\"" |
-        grep -q 'state: RUNNING'
+apps_recording(){
+    #cat ./source_outputs.json |\
+    pactl -f json list source-outputs | \
+        jq --exit-status \
+            --raw-output \
+            --argjson wl "$WHITELIST" \
+            '.[].properties["application.name"] | select(. != null and ([. == $wl[]] | any | not))'
+
 }
 
 # subscribe to pactl events and runs the check for every change
 stdbuf -oL pactl subscribe |
     grep --line-buffered 'source-output' |
     while read line; do
-        if on_a_call; then
+        if apps_recording; then
             notify-send "call mode on"
-            call-mode on
         else
             notify-send "call mode off"
-            call-mode off
         fi
     done
