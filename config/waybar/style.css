@@ -20,3 +20,15 @@
 #custom-callstatus.free {
     color: #55ff55; /* Green indicator */
 }
+
+#custom-audiostatus {
+    padding: 0 10px;
+}
+
+#custom-audiostatus.busy {
+    color: #ff5555; /* Red indicator */
+}
+
+#custom-audiostatus.free {
+    color: #55ff55; /* Green indicator */
+}

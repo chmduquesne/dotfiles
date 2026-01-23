@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Ignore those apps
+IGNORE_RECORDING='["parec", "wf-recorder"]'
+IGNORE_PLAYING='[]'
+
+apps_recording(){
+    # TODO: possibly filter on "media.role"
+    pactl -f json list source-outputs | jq -er \
+        --argjson exclude "$IGNORE_RECORDING" '
+        [.[]
+        | select(.properties."application.process.id" != null)
+        | select((IN(.properties."application.name", $exclude[]) | not))
+        | .properties."application.name" // "unknown app"]
+        | join (" ")
+        '
+}
+
+apps_playing(){
+    pactl -f json list sink-inputs | jq -er \
+        --argjson exclude "$IGNORE_PLAYING" '
+        [.[]
+        | select(.corked == false)
+        | select((IN(.properties."application.name", $exclude[]) | not))
+        | .properties."media.name" // .properties."application.name" // "unkown app"]
+        | join(" ")
+        '
+}
+
+show_status(){
+    local apps_recording apps_playing tooltip alt class
+
+    apps_recording="$(apps_recording)"
+    apps_playing="$(apps_playing)"
+
+    if [[ -n "$apps_playing" && -n "$apps_recording" ]]; then
+        tooltip="Playing: ${apps_playing}\\nRecording: ${apps_recording}"
+        alt="both"
+        class="busy"
+    elif [[ -n "$apps_recording" ]]; then
+        tooltip="Recording: ${apps_recording}"
+        alt="recording"
+        class="busy"
+    elif [[ -n "$apps_playing" ]]; then
+        tooltip="Playing: ${apps_playing}"
+        alt="playing"
+        class="free"
+    else
+        tooltip="Idle"
+        alt="idle"
+        class="free"
+    fi
+
+    printf '{"tooltip": "%s", "alt": "%s", "class": "%s"}\n' "$tooltip" "$alt" "$class"
+}
+
+while true; do
+    show_status
+    sleep 1
+done
