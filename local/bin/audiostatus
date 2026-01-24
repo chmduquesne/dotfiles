@@ -1,38 +1,67 @@
 #!/bin/bash
 
-# Ignore those apps
-IGNORE_RECORDING='["parec", "wf-recorder"]'
-IGNORE_PLAYING='[]'
+# Configuration
+readonly EXCLUDE_RECORDING_APPS='["parec", "wf-recorder"]'
+readonly EXCLUDE_PLAYING_APPS='["speech-dispatcher-dummy"]'
+readonly SLEEP_INTERVAL=1
+
+INHIBIT_PID=""
 
 apps_recording(){
-    # TODO: possibly filter on "media.role"
-    pactl -f json list source-outputs | jq -er \
-        --argjson exclude "$IGNORE_RECORDING" '
+    pactl -f json list source-outputs 2>/dev/null | jq -er \
+        --argjson exclude "$EXCLUDE_RECORDING_APPS" '
         [.[]
         | select(.properties."application.process.id" != null)
-        | select((IN(.properties."application.name", $exclude[]) | not))
-        | .properties."application.name" // "unknown app"]
-        | join (" ")
-        '
-}
-
-apps_playing(){
-    pactl -f json list sink-inputs | jq -er \
-        --argjson exclude "$IGNORE_PLAYING" '
-        [.[]
-        | select(.corked == false)
-        | select((IN(.properties."application.name", $exclude[]) | not))
-        | .properties."media.name" // .properties."application.name" // "unkown app"]
+        | select(.properties."application.name" | IN($exclude[]) | not)
+        | .properties."application.name" // .properties."media.name" // "unknown app"]
+        | unique
         | join(" ")
         '
 }
 
+apps_playing(){
+    pactl -f json list sink-inputs 2>/dev/null | jq -er \
+        --argjson exclude "$EXCLUDE_PLAYING_APPS" '
+        [.[]
+        | select(.corked == false)
+        | select(.properties."application.name" | IN($exclude[]) | not)
+        | .properties."application.name" // .properties."media.name" // "unknown app"]
+        | unique
+        | join(" ")
+        '
+}
+
+start_inhibit(){
+    [[ -n "$INHIBIT_PID" ]] && return
+
+    systemd-inhibit --what=idle --who="Audio Monitor" --why="Busy Audio" sleep infinity &
+    INHIBIT_PID=$!
+}
+
+stop_inhibit(){
+    [[ -z "$INHIBIT_PID" ]] && return
+
+    kill "$INHIBIT_PID" 2>/dev/null
+    INHIBIT_PID=""
+}
+
+manage_inhibit(){
+    local apps_recording="$1"
+    local apps_playing="$2"
+
+    if [[ -n "$apps_recording" || -n "$apps_playing" ]]; then
+        start_inhibit
+    else
+        stop_inhibit
+    fi
+}
+
 show_status(){
-    local apps_recording apps_playing tooltip alt class
+    local apps_recording="$1"
+    local apps_playing="$2"
+    local tooltip alt class
 
-    apps_recording="$(apps_recording)"
-    apps_playing="$(apps_playing)"
-
+    # Determine state
     if [[ -n "$apps_playing" && -n "$apps_recording" ]]; then
         tooltip="Playing: ${apps_playing}\\nRecording: ${apps_recording}"
         alt="both"
@@ -54,7 +83,25 @@ show_status(){
     printf '{"tooltip": "%s", "alt": "%s", "class": "%s"}\n' "$tooltip" "$alt" "$class"
 }
 
-while true; do
-    show_status
-    sleep 1
-done
+cleanup(){
+    stop_inhibit
+    exit 0
+}
+
+main(){
+    trap cleanup SIGINT SIGTERM EXIT
+
+    while true; do
+        local apps_recording apps_playing
+
+        apps_recording="$(apps_recording)"
+        apps_playing="$(apps_playing)"
+
+        manage_inhibit "$apps_recording" "$apps_playing"
+        show_status "$apps_recording" "$apps_playing"
+
+        sleep "$SLEEP_INTERVAL"
+    done
+}
+
+main
