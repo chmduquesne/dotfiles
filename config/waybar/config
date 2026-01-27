@@ -17,7 +17,6 @@
         "keyboard-state",
         "battery",
         "pulseaudio",
-        "custom/callstatus",
         "custom/audiostatus",
         "tray",
         "clock"
@@ -131,11 +130,6 @@
         "exec": "~/.local/bin/screenrec status",
         "on-click": "~/.local/bin/screenrec toggle",
         "on-click-right": "~/.local/bin/screenrec toggle --select"
-    },
-    "custom/callstatus": {
-        "format": "{}",
-        "return-type": "json",
-        "exec": "~/.local/bin/callstatus"
     },
     "custom/audiostatus": {
         "format": "{icon}",

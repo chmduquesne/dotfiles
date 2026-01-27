@@ -11,6 +11,7 @@ apps_recording(){
     pactl -f json list source-outputs 2>/dev/null | jq -er \
         --argjson exclude "$EXCLUDE_RECORDING_APPS" '
         [.[]
+        | select(.corked == false)
         | select(.properties."application.process.id" != null)
         | select(.properties."application.name" | IN($exclude[]) | not)
         | .properties."application.name" // .properties."media.name" // "unknown app"]
@@ -24,6 +25,7 @@ apps_playing(){
         --argjson exclude "$EXCLUDE_PLAYING_APPS" '
         [.[]
         | select(.corked == false)
+        | select(.properties."application.process.id" != null)
         | select(.properties."application.name" | IN($exclude[]) | not)
         | .properties."application.name" // .properties."media.name" // "unknown app"]
         | unique
