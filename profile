@@ -17,25 +17,20 @@ if [ -n "$BASH_VERSION" ]; then
 fi
 
 # set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
-fi
-
-# set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-export QT_QPA_PLATFORMTHEME=gtk3
 
 # launch sway if we are in tty1
 if [ "$(tty)" = "/dev/tty1" ] ; then
     export WLR_DRM_DEVICES=/dev/dri/card0
     export WLR_NO_HARDWARE_CURSORS=1
-    export SDL_VIDEODRIVER=wayland
     export _JAVA_AWT_WM_NONREPARENTING=1
+    export SDL_VIDEODRIVER=wayland
     export QT_QPA_PLATFORM=wayland
+    export QT_QPA_PLATFORMTHEME=gtk3
     export XDG_CURRENT_DESKTOP=sway:wlroots
     export XDG_SESSION_DESKTOP=sway
-    exec sway
+    exec sway > "${XDG_STATE_HOME:-$HOME/.local/state}/sway.log" 2>&1
 fi

@@ -33,61 +33,30 @@ apps_playing(){
         '
 }
 
-start_inhibit(){
-    [[ -n "$INHIBIT_PID" ]] && return
-
-    systemd-inhibit --what=idle --who="Audio Monitor" --why="Busy Audio" sleep infinity &
-    INHIBIT_PID=$!
-}
-
-stop_inhibit(){
-    [[ -z "$INHIBIT_PID" ]] && return
-
-    kill "$INHIBIT_PID" 2>/dev/null
-    INHIBIT_PID=""
-}
-
-manage_inhibit(){
-    local apps_recording="$1"
-    local apps_playing="$2"
-
-    if [[ -n "$apps_recording" || -n "$apps_playing" ]]; then
-        start_inhibit
-    else
-        stop_inhibit
-    fi
-}
-
 show_status(){
     local apps_recording="$1"
     local apps_playing="$2"
     local tooltip alt class
 
     # Determine state
-    if [[ -n "$apps_playing" && -n "$apps_recording" ]]; then
-        tooltip="Playing: ${apps_playing}\\nRecording: ${apps_recording}"
-        alt="both"
-        class="busy"
-    elif [[ -n "$apps_recording" ]]; then
+    # Highest priority: In a call
+    if [[ -n "$apps_recording" ]]; then
         tooltip="Recording: ${apps_recording}"
         alt="recording"
-        class="busy"
+        class="active"
+    # Playing something
     elif [[ -n "$apps_playing" ]]; then
         tooltip="Playing: ${apps_playing}"
         alt="playing"
-        class="free"
+        class="active"
+    # No sound
     else
         tooltip="Idle"
         alt="idle"
-        class="free"
+        class="idle"
     fi
 
     printf '{"tooltip": "%s", "alt": "%s", "class": "%s"}\n' "$tooltip" "$alt" "$class"
-}
-
-cleanup(){
-    stop_inhibit
-    exit 0
 }
 
 main(){
@@ -99,7 +68,6 @@ main(){
         apps_recording="$(apps_recording)"
         apps_playing="$(apps_playing)"
 
-        manage_inhibit "$apps_recording" "$apps_playing"
         show_status "$apps_recording" "$apps_playing"
 
         sleep "$SLEEP_INTERVAL"

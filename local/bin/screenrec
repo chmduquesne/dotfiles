@@ -60,7 +60,7 @@ case "$1" in
 
             printf '{"text": "", "class": "recording", "tooltip": "Recording for %s"}\n' "$DURATION"
         else
-            printf '{"text": "", "class": "idle", "tooltip": "Not currently recording"}\n'
+            printf '{"text": "", "class": "idle", "tooltip": "Not recording"}\n'
         fi
         ;;
     *)

@@ -14,22 +14,12 @@
         "cpu",
         "temperature",
         "disk",
-        "keyboard-state",
         "battery",
         "pulseaudio",
         "custom/audiostatus",
         "tray",
         "clock"
     ],
-    "keyboard-state": {
-        "numlock": true,
-        "capslock": true,
-        "format": "{name} {icon}",
-        "format-icons": {
-            "locked": "",
-            "unlocked": ""
-        }
-    },
     "sway/mode": {
         "format": "<span style=\"italic\">{}</span>"
     },
@@ -79,7 +69,8 @@
     },
     "backlight": {
         "device": "intel_backlight",
-        "format": "{percent}% {icon}",
+        "format": "{icon}",
+        "tooltip-format": "{percent}%",
         "format-icons": ["🌑", "🌘", "🌗", "🌖", "🌕"]
     },
     "battery": {
@@ -97,12 +88,11 @@
         "format-icons": ["", "", "", "", ""]
     },
     "network": {
+        "format": "{ifname}",
         "format-wifi": "{essid} ({signalStrength}%) ",
         "format-ethernet": "{ipaddr}/{cidr} ",
-        "tooltip-format": "{ifname} via {gwaddr} ",
-        "format-linked": "{ifname} (No IP) ",
         "format-disconnected": "Disconnected ⚠",
-        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        "tooltip-format": "{ifname} via {gwaddr}",
     },
     "pulseaudio": {
         // "scroll-step": 1, // %, can be a float
@@ -137,9 +127,8 @@
         "exec": "~/.local/bin/audiostatus",
         "format-icons": {
             "idle": "",
-            "playing": "",
-            "recording": "",
-            "both": ""
+            "playing": "",
+            "recording": ""
         }
     }
 }
