@@ -228,10 +228,6 @@ exec blueman-applet
 exec nm-applet --indicator
 # notifications
 exec swaync
-# screenshot
-exec flameshot
-# autorandr equivalent
-#exec kanshi
 # sound
 exec pasystray
 # switch to bluetooth when available
@@ -242,3 +238,5 @@ exec rclone mount gdrive: /home/chmd/documents/gdrive
 exec firefox-esr
 # start ms teams
 #exec teams-pwa
+# Prevent suspending when sound is playing
+exec wayland-pipewire-idle-inhibit
