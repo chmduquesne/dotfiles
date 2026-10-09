@@ -1,0 +1,41 @@
+# The eGPU display host (egpu-display) as a system service on tty2: no getty, no login
+# prompt, no shell. Source of truth lives in the dotfiles; install with
+#   sudo install -m 644 ~/.config/egpu/egpu-display.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl mask getty@tty2.service
+#   sudo systemctl enable --now egpu-display.service
+# Undo:
+#   sudo systemctl disable --now egpu-display.service
+#   sudo systemctl unmask getty@tty2.service
+#   sudo rm /etc/systemd/system/egpu-display.service && sudo systemctl daemon-reload
+#
+# PAMName=login + TTYPath=/dev/tty2 make logind create a real seat0 session on VT2 (Type=tty,
+# VTNr=2), which is what lets the sway kiosk take the eGPU's display. The screen locker on
+# the desktop does not stop Ctrl+Alt+F2, so VT2 must never offer a shell: that is why this is a
+# service and not a getty autologin.
+
+[Unit]
+Description=eGPU display host on tty2 (no shell, no login prompt)
+After=systemd-user-sessions.service plymouth-quit-wait.service getty@tty2.service
+Conflicts=getty@tty2.service
+
+[Service]
+Type=simple
+User=chmd
+PAMName=login
+TTYPath=/dev/tty2
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty2
+UtmpMode=user
+ExecStart=/home/chmd/.local/bin/egpu-display
+Restart=always
+RestartSec=2
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target
