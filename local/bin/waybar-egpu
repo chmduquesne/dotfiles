@@ -10,6 +10,26 @@ SERVICES="ollama nvidia-persistenced"
 # Journal logging, for post-mortems: journalctl -t waybar-egpu. Never fails the script.
 jlog() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
+# Who really uses the eGPU: processes holding its device nodes (/dev/nvidia0.., nvidia-uvm,
+# nvidia-caps, and the DRM nodes of the NVIDIA card, e.g. a game session on its display).
+# Holding only /dev/nvidiactl is NOT counted: that is what any program does that merely lists the
+# GPUs (e.g. Firefox's media process via EGL) without using one.
+gpu_users() {
+    local n d nodes=()
+    for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
+    for d in /sys/class/drm/card[0-9]/device /sys/class/drm/renderD*/device; do
+        [ "$(cat "$d/vendor" 2>/dev/null)" = 0x10de ] || continue
+        n=/dev/dri/$(basename "$(dirname "$d")"); [ -e "$n" ] && nodes+=("$n")
+    done
+    [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
+}
+# Holders of /dev/nvidiactl only (not blocking); pids on stdout.
+ctl_only_users() {
+    local all
+    all=$(gpu_users)
+    lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all") 
+}
+
 # ---- privileged part (runs as root, no UI) ---------------------------------
 if [ "$1" = "--root" ]; then
     force=$2
@@ -30,17 +50,21 @@ if [ "$1" = "--root" ]; then
         fi
     done
 
-    holders=$(lsof -t /dev/nvidia* 2>/dev/null | sort -u)
+    ctl=$(ctl_only_users)
+    if [ -n "$ctl" ]; then
+        jlog "not blocking, they only have /dev/nvidiactl open (pid name): $(ps -o pid=,comm= -p "$(echo "$ctl" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+    fi
+    holders=$(gpu_users)
     if [ -n "$holders" ]; then
         echo "Processes still using the GPU:"
         ps -o pid,user,comm -p "$(echo "$holders" | paste -sd,)"
-        jlog "processes still using /dev/nvidia* (pid name): $(ps -o pid=,comm= -p "$(echo "$holders" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+        jlog "processes still using the GPU (pid name): $(ps -o pid=,comm= -p "$(echo "$holders" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
         if [ "$force" -eq 1 ]; then
             echo "Killing them (-f)"
             jlog "killing the holders (-f)"
             kill $holders
             sleep 2
-            holders=$(lsof -t /dev/nvidia* 2>/dev/null | sort -u)
+            holders=$(gpu_users)
             [ -n "$holders" ] && kill -9 $holders && sleep 1
         else
             echo "Close them or rerun with -f. NOT disconnecting."
@@ -87,6 +111,29 @@ status() {
     fi
 }
 
+# ---- audio: PipeWire can block the removal of the eGPU's HDMI audio function ----------------
+# PipeWire keeps /dev/snd/controlC<n> of the card open and does not close it when the card goes
+# away (setting the card profile to "off" does not release it either: tried 2026-10-09). The
+# kernel's removal (snd_card_free) then waits forever, in uninterruptible sleep. Restarting
+# PipeWire closes the handle and the removal finishes. So: while the privileged step runs, watch
+# for it being stuck in D state, and restart PipeWire (once the removal has begun, PipeWire
+# cannot reopen the card).
+pw_watchdog() {
+    local stuck=0 restarted=0
+    while sleep 2; do
+        if ps -eo stat=,comm= | awk '$1 ~ /^D/ && $2 == "waybar-egpu" {f=1} END {exit !f}'; then
+            stuck=$((stuck + 1))
+        else
+            stuck=0
+        fi
+        if [ "$stuck" -ge 3 ] && [ "$restarted" -eq 0 ]; then       # stuck for ~6 s
+            jlog "removal is stuck (probably PipeWire holding the audio card); restarting PipeWire"
+            systemctl --user restart pipewire pipewire-pulse wireplumber
+            restarted=1
+        fi
+    done
+}
+
 # ---- disconnect: confirmation UI, then privileged part --------------------------
 disconnect() {
     local force=0 yes=0 a
@@ -107,7 +154,7 @@ disconnect() {
     for svc in $SERVICES; do
         systemctl is-active --quiet "$svc" && summary+=$'\n  • '"$svc"
     done
-    holders=$(lsof /dev/nvidia* 2>/dev/null | awk 'NR>1 {print $1" (pid "$2")"}' | sort -u)
+    holders=$(gpu_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
     if [ -n "$holders" ]; then
         if [ "$force" -eq 1 ]; then
             summary+=$'\n\nThese processes will be KILLED:\n'"$(echo "$holders" | sed 's/^/  • /')"
@@ -115,6 +162,9 @@ disconnect() {
             summary+=$'\n\nStill using the GPU (disconnect will refuse):\n'"$(echo "$holders" | sed 's/^/  • /')"
         fi
     fi
+    local ctl
+    ctl=$(ctl_only_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
+    [ -n "$ctl" ] && summary+=$'\n\nOnly list the GPU, not blocking:\n'"$(echo "$ctl" | sed 's/^/  • /')"
     summary+=$'\n\nThen the eGPU is removed from the PCI bus.'
 
     if [ "$yes" -ne 1 ]; then
@@ -129,17 +179,20 @@ disconnect() {
         fi
     fi
 
-    local out rc pw
+    local out rc pw wd
     if [ -t 0 ]; then
+        pw_watchdog & wd=$!
         out=$(sudo "$(readlink -f "$0")" --root "$force" 2>&1)
         rc=$?
     else
         # Started from waybar: no terminal, so ask for the sudo password graphically.
         pw=$(zenity --password --title="Disconnect eGPU") || return 1
+        pw_watchdog & wd=$!
         out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" 2>&1)
         rc=$?
         unset pw
     fi
+    kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
     echo "$out"
     jlog "disconnect finished with exit code $rc"
 
