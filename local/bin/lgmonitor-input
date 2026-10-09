@@ -2,6 +2,9 @@
 # lgmonitor-input: read or select the input of an LG monitor over DDC/CI (ddcutil).
 #   lgmonitor-input get             print the active input (a name from the table below,
 #                                   or "unknown")
+#   lgmonitor-input cycle           switch to the next input that has a DDC link (table order,
+#                                   wrapping); fails if the current input cannot be read
+#   lgmonitor-input list            print the known input names, one per line (no DDC access)
 #   lgmonitor-input set <input>     switch to <input> and wait until the monitor confirms
 #   -v (before the command)         also echo the log lines to stderr
 #
@@ -28,9 +31,14 @@
 
 # name  xF4-value  F8-sensor  regex of the DRM connector whose DDC link belongs to this input
 # (for a DisplayPort cable on the eGPU, widen the hdmi1 pattern, e.g. ^card1-(HDMI|DP))
+# An input nothing of ours is connected to has no DDC link: write "-" for the sensor and the
+# pattern. We can still switch to it (over another input's link), but we cannot read it back,
+# so the switch is sent once and not verified; leaving it is up to the user (OSD).
 INPUTS=(
     "usbc   x00D1  xff  ^card0-DP"
     "hdmi1  x0090  x00  ^card1-HDMI"
+    "dp     x00D0  -    -"
+    "hdmi2  x0091  -    -"
 )
 
 DDC=${LGMONITOR_DDCUTIL:-ddcutil}
@@ -44,6 +52,7 @@ declare -A VAL SENSOR PATTERN BUS
 NAMES=()
 for row in "${INPUTS[@]}"; do
     read -r n v s p <<< "$row"
+    [ "$s" = - ] && s=; [ "$p" = - ] && p=
     NAMES+=("$n"); VAL[$n]=$v; SENSOR[$n]=$s; PATTERN[$n]=$p
 done
 
@@ -54,7 +63,12 @@ log() {
 }
 die() { echo "lgmonitor-input: $1" >&2; exit "${2:-1}"; }
 
-show_buses() { local n; for n in "${NAMES[@]}"; do printf '%s=%s ' "$n" "${BUS[$n]:-?}"; done; }
+show_buses() {
+    local n
+    for n in "${NAMES[@]}"; do
+        [ -n "${PATTERN[$n]}" ] && printf '%s=%s ' "$n" "${BUS[$n]:-?}"
+    done
+}
 
 # --- bus discovery and cache --------------------------------------------------------------
 scan() {
@@ -68,6 +82,7 @@ scan() {
         /DRM connector:/   { if (valid) print $3, bus }')
     BUS=()
     for n in "${NAMES[@]}"; do
+        [ -n "${PATTERN[$n]}" ] || continue
         BUS[$n]=$(printf '%s\n' "$pairs" | awk -v p="${PATTERN[$n]}" '$1 ~ p { print $2; exit }')
     done
     mkdir -p "$RT" 2>/dev/null
@@ -76,13 +91,15 @@ scan() {
     log "scan: $(show_buses)"
 }
 
-# 0 only if every input has a cached bus
+# 0 only if every input that has a link has a cached bus
 load_cache() {
     local n b
     [ -r "$CACHE" ] || return 1
     BUS=()
     while read -r n b; do [ -n "$n" ] && BUS[$n]=$b; done < "$CACHE"
-    for n in "${NAMES[@]}"; do [ -n "${BUS[$n]}" ] || return 1; done
+    for n in "${NAMES[@]}"; do
+        [ -z "${PATTERN[$n]}" ] || [ -n "${BUS[$n]}" ] || return 1
+    done
     return 0
 }
 
@@ -141,6 +158,12 @@ attempt() {   # attempt <target>: 0 when the monitor confirms the target input
         bus=${BUS[$n]}; [ -n "$bus" ] || continue
         log "$cur -> $target: setvcp xF4 ${VAL[$target]} over the $n link (bus $bus)"
         $DDC --bus "$bus" setvcp xF4 "${VAL[$target]}" --i2c-source-addr=x50 >/dev/null 2>&1
+        if [ -z "${SENSOR[$target]}" ]; then
+            # No sensor value for this input: nothing to confirm against (the links may keep
+            # answering, with the sensor of another input), so send once and trust it.
+            sleep 1
+            log "sent $target (cannot be verified)"; return 0
+        fi
         if wait_for "$target" "$wait"; then log "confirmed $target"; return 0; fi
         wait=$(( CONFIRM_TIMEOUT / 2 )); [ "$wait" -ge 2 ] || wait=2
     done
@@ -172,15 +195,30 @@ cmd_get() {
     [ "$cur" != unknown ]
 }
 
+cmd_cycle() {
+    local cur n i next=() idx=-1
+    load_cache || scan
+    cur=$(current_input)
+    [ -n "$cur" ] || die "cannot read the monitor (is it on, is DDC/CI enabled?)" 3
+    # only inputs whose link we found: we can always get back from them
+    for n in "${NAMES[@]}"; do [ -n "${BUS[$n]}" ] && next+=("$n"); done
+    for i in "${!next[@]}"; do [ "${next[$i]}" = "$cur" ] && idx=$i; done
+    [ "$idx" -ge 0 ] || die "current input '$cur' has no link to cycle from" 3
+    [ "${#next[@]}" -ge 2 ] || die "need at least two inputs with a link to cycle" 1
+    cmd_set "${next[$(( (idx + 1) % ${#next[@]} ))]}"
+}
+
 usage() {
-    echo "usage: lgmonitor-input [-v] get | set <input>   (inputs: ${NAMES[*]})" >&2
+    echo "usage: lgmonitor-input [-v] get | list | cycle | set <input>   (inputs: ${NAMES[*]})" >&2
     exit 2
 }
 
 [ "$1" = -v ] && { VERBOSE=1; shift; }
+[ "$1" = list ] && { printf '%s\n' "${NAMES[@]}"; exit 0; }
 command -v "${DDC%% *}" >/dev/null || die "ddcutil not found" 3
 case "$1" in
     get)  cmd_get ;;
+    cycle) cmd_cycle ;;
     set)  cmd_set "$2" ;;
     *)    usage ;;
 esac
