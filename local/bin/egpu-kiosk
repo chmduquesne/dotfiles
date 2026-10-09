@@ -1,0 +1,147 @@
+#!/bin/bash
+# egpu-kiosk: run ONE program fullscreen on the eGPU's HDMI output, inside a sway kiosk.
+#   egpu-kiosk command [args...]        e.g.  egpu-kiosk steam
+#
+# This is the runner. It must run in a plain tty session (a login on a free VT, or the
+# egpu-display service on tty2), NOT inside tmux and not in your desktop session: logind
+# only gives the display to the active session. From the desktop, use `egpu-launch`.
+#
+# What it does, in order:
+#   1. unloads ollama models (frees the 24 GB of VRAM for the program)
+#   2. switches the LG monitor to HDMI 1 over DDC/CI (lgmonitor-input)
+#   3. points the default audio output at the eGPU's HDMI audio, unless a Bluetooth
+#      output is already the default
+#   4. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
+#   5. on any exit: shuts Steam down, switches the monitor back to USB-C, restores audio
+#
+# The monitor input switching, with all its LG quirks, lives in `lgmonitor-input`.
+#
+# Alt+Esc quits the kiosk.
+# Logs: journalctl -t egpu-kiosk   (events, ordered with the kernel log: add -k)
+#       ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log   (sway/Xwayland output, noisy)
+#
+# Environment knobs:  NOSWITCH=1  keep the monitor input      NOAUDIO=1  keep the audio output
+#                     EGPU_DRYRUN=1  only print what would run (testing)
+#                     EGPU_LOGGER=cmd  use cmd instead of logger (testing)
+#                     EGPU_BINDIR=dir  directory searched first for commands (testing)
+
+# A service started with PAMName= can carry a real (ambient) capability, CAP_WAKE_ALARM. Steam's
+# sandbox (bubblewrap) then refuses to run ("Unexpected capabilities but not setuid"), which
+# Steam reports as "Steam now requires user namespaces". Clear them and re-exec once.
+# (EGPU_STATUS is a testing hook: the status file to inspect instead of /proc/self/status.)
+if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
+   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
+    export EGPU_CAPS_DROPPED=1
+    exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+fi
+
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}
+mkdir -p "$STATE"
+SWAYLOG=$STATE/sway-egpu-kiosk.log
+CONF=${XDG_CONFIG_HOME:-$HOME/.config}/egpu/kiosk-sway.conf
+
+# Minimal environments (systemd service) lack these.
+export PATH="${EGPU_BINDIR:+$EGPU_BINDIR:}$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
+: "${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
+export XDG_RUNTIME_DIR
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+
+log() { ${EGPU_LOGGER:-logger} -t egpu-kiosk -- "$*" 2>/dev/null || true; }
+
+# The command is always explicit: no default, and an empty command is refused.
+if [ $# -eq 0 ] || [ -z "$1" ]; then
+    echo "usage: egpu-kiosk command [args...]   (e.g. egpu-kiosk steam)" >&2
+    exit 2
+fi
+cmd=("$@")
+[ "${cmd[0]}" = steam ] && cmd[0]=/usr/games/steam
+
+if [ -n "$EGPU_DRYRUN" ]; then
+    printf 'would run in the sway kiosk: %s\n' "$(printf '%q ' "${cmd[@]}")"
+    exit 0
+fi
+
+# Inside tmux the shell belongs to the desktop login session, which is inactive on
+# another VT, so logind would refuse sway the display (black screen).
+if [ -n "$TMUX" ]; then
+    echo "egpu-kiosk: refusing to run inside tmux (it inherits the desktop session)." >&2
+    exit 1
+fi
+lspci -d 10de: | grep -q . || { echo "egpu-kiosk: the eGPU is not connected." >&2; exit 1; }
+[ -r "$CONF" ] || { echo "egpu-kiosk: missing config $CONF" >&2; exit 1; }
+
+log "start: user=$(id -un) session=${XDG_SESSION_ID:-?} vt=${XDG_VTNR:-?} cmd=${cmd[*]}"
+
+# --- 1. free the VRAM (best effort; the ollama service itself keeps running) -------------
+if command -v ollama >/dev/null; then
+    for m in $(timeout 10 ollama ps 2>/dev/null | awk 'NR>1 {print $1}'); do
+        timeout 20 ollama stop "$m" >/dev/null 2>&1 && log "ollama: unloaded $m"
+    done
+fi
+
+# --- 2. audio, part 1: pick the sink NOW, while the monitor is still on USB-C -----------
+# The monitor plays the audio of its active input only, so while it shows HDMI 1 the default
+# sink must be the eGPU's HDMI audio (the one port marked available), not the AMD/dock one.
+# That port's availability flaps while the monitor changes input, so the sink is looked up
+# before the switch and set after it (waiting for it only if it was not available yet).
+egpu_sink() {
+    pactl list sinks 2>/dev/null | awk 'BEGIN{RS=""} /Description: GA102/ && /, available\)/ {
+        match($0, /Name: [^\n]+/); print substr($0, RSTART+6, RLENGTH-6); exit }'
+}
+old_sink=; new_sink=; route_audio=; sink=
+if [ -z "$NOAUDIO" ] && command -v pactl >/dev/null; then
+    old_sink=$(pactl get-default-sink 2>/dev/null)
+    case "$old_sink" in
+        bluez_output.*) log "audio: Bluetooth default ($old_sink) kept" ;;
+        *)              route_audio=1; sink=$(egpu_sink) ;;
+    esac
+fi
+
+# --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) ----------------------------
+# ddc_on is set before the attempt, so a failed switch still tries to switch back on exit.
+ddc_on=
+if [ -z "$NOSWITCH" ] && command -v lgmonitor-input >/dev/null; then
+    ddc_on=1
+    lgmonitor-input set hdmi1 \
+        || echo "egpu-kiosk: could not switch the monitor to HDMI 1; do it by hand." >&2
+fi
+
+# --- 4. audio, part 2: apply the sink ----------------------------------------------------
+if [ -n "$route_audio" ]; then
+    if [ -z "$sink" ]; then          # not available before the switch: give it a few seconds
+        for _ in $(seq 1 12); do sink=$(egpu_sink); [ -n "$sink" ] && break; sleep 0.5; done
+    fi
+    if [ -n "$sink" ]; then
+        pactl set-default-sink "$sink" && { new_sink=$sink; log "audio: default sink $old_sink -> $sink"; }
+    else
+        echo "egpu-kiosk: no available eGPU HDMI audio sink; sound stays on $old_sink" >&2
+    fi
+fi
+
+# --- 6. cleanup, however we end (kiosk quit, Ctrl+C, program exit) ----------------------
+# Steam keeps running in its tray when its window is closed, which would hold the eGPU and
+# block `waybar-egpu disconnect`.
+cleanup() {
+    if [ "${cmd[0]}" = /usr/games/steam ]; then /usr/games/steam -shutdown >/dev/null 2>&1; fi
+    if [ -n "$ddc_on" ]; then
+        lgmonitor-input set usbc \
+            || echo "egpu-kiosk: could not switch the monitor back; use its input button." >&2
+    fi
+    if [ -n "$new_sink" ] && [ -n "$old_sink" ]; then pactl set-default-sink "$old_sink"; fi
+    log "cleanup done"
+}
+trap cleanup EXIT
+
+# --- 5. the kiosk -----------------------------------------------------------------------
+: > "$SWAYLOG"
+KIOSK_CMD=$(printf '%q ' "${cmd[@]}") \
+WLR_DRM_DEVICES=/dev/dri/card1 \
+WLR_NO_HARDWARE_CURSORS=1 \
+VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json \
+__GLX_VENDOR_LIBRARY_NAME=nvidia \
+sway --unsupported-gpu -c "$CONF" >> "$SWAYLOG" 2>&1
+rc=$?
+log "sway exited rc=$rc"
+exit $rc

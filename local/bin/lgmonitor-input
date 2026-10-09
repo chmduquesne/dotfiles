@@ -1,0 +1,186 @@
+#!/bin/bash
+# lgmonitor-input: read or select the input of an LG monitor over DDC/CI (ddcutil).
+#   lgmonitor-input get             print the active input (a name from the table below,
+#                                   or "unknown")
+#   lgmonitor-input set <input>     switch to <input> and wait until the monitor confirms
+#   -v (before the command)         also echo the log lines to stderr
+#
+# Exit codes: 0 ok / confirmed, 1 could not switch, 2 usage or unknown input, 3 monitor
+# unreadable. Logs through logger: journalctl -t lgmonitor-input
+#
+# Verified only on the LG UltraFine 27UN83A-W ("LG HDR 4K"). Other LG models may use other
+# values: edit the table. How it works on this monitor:
+#  - the standard input feature 0x60 is accepted but ignored; the monitor takes the vendor
+#    feature 0xF4 with I2C source address 0x50 (and ddcutil's --noverify must not be used);
+#  - feature 0xF8, last byte, reports the active input (the sensor in the table);
+#  - to leave an input, the command is sent over that input's own link, which is why each
+#    input is tied to the DRM connector whose DDC bus reaches the monitor through it.
+#
+# Speed: one `ddcutil detect` scan (~1.9 s) finds the buses, which are cached in
+# $XDG_RUNTIME_DIR/lgmonitor-input.buses (delete it to force a fresh scan) and validated by
+# reading the sensor; the sensor is then polled every
+# 0.4 s instead of sleeping. If the cached buses fail, it rescans once and retries (only if
+# the rescan finds different buses). The first link tried gets the whole confirmation timeout,
+# fallback links half of it, so a monitor that ignores us fails after ~15 s, not minutes.
+#
+# Testing hooks: LGMONITOR_DDCUTIL (command instead of ddcutil), LGMONITOR_LOGGER,
+# LGMONITOR_RUNTIME (cache directory), LGMONITOR_TIMEOUT (seconds to wait for confirmation).
+
+# name  xF4-value  F8-sensor  regex of the DRM connector whose DDC link belongs to this input
+# (for a DisplayPort cable on the eGPU, widen the hdmi1 pattern, e.g. ^card1-(HDMI|DP))
+INPUTS=(
+    "usbc   x00D1  xff  ^card0-DP"
+    "hdmi1  x0090  x00  ^card1-HDMI"
+)
+
+DDC=${LGMONITOR_DDCUTIL:-ddcutil}
+LOGGER=${LGMONITOR_LOGGER:-logger}
+RT=${LGMONITOR_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+CACHE=$RT/lgmonitor-input.buses
+CONFIRM_TIMEOUT=${LGMONITOR_TIMEOUT:-10}
+VERBOSE=
+
+declare -A VAL SENSOR PATTERN BUS
+NAMES=()
+for row in "${INPUTS[@]}"; do
+    read -r n v s p <<< "$row"
+    NAMES+=("$n"); VAL[$n]=$v; SENSOR[$n]=$s; PATTERN[$n]=$p
+done
+
+log() {
+    $LOGGER -t lgmonitor-input -- "$*" 2>/dev/null || true
+    [ -n "$VERBOSE" ] && echo "lgmonitor-input: $*" >&2
+    return 0
+}
+die() { echo "lgmonitor-input: $1" >&2; exit "${2:-1}"; }
+
+show_buses() { local n; for n in "${NAMES[@]}"; do printf '%s=%s ' "$n" "${BUS[$n]:-?}"; done; }
+
+# --- bus discovery and cache --------------------------------------------------------------
+scan() {
+    local out pairs n
+    out=$($DDC detect --brief 2>/dev/null) || true
+    # "<connector> <bus>" for every valid display
+    pairs=$(printf '%s\n' "$out" | awk '
+        /^Display [0-9]+/  { valid = 1; next }
+        /^Invalid display/ { valid = 0; next }
+        /I2C bus:/         { bus = $3; sub("/dev/i2c-", "", bus) }
+        /DRM connector:/   { if (valid) print $3, bus }')
+    BUS=()
+    for n in "${NAMES[@]}"; do
+        BUS[$n]=$(printf '%s\n' "$pairs" | awk -v p="${PATTERN[$n]}" '$1 ~ p { print $2; exit }')
+    done
+    mkdir -p "$RT" 2>/dev/null
+    { for n in "${NAMES[@]}"; do echo "$n ${BUS[$n]}"; done; } > "$CACHE.$$" 2>/dev/null \
+        && mv -f "$CACHE.$$" "$CACHE"
+    log "scan: $(show_buses)"
+}
+
+# 0 only if every input has a cached bus
+load_cache() {
+    local n b
+    [ -r "$CACHE" ] || return 1
+    BUS=()
+    while read -r n b; do [ -n "$n" ] && BUS[$n]=$b; done < "$CACHE"
+    for n in "${NAMES[@]}"; do [ -n "${BUS[$n]}" ] || return 1; done
+    return 0
+}
+
+# --- reading the monitor ------------------------------------------------------------------
+# The F8 sensor byte seen over bus $1; nothing if that link does not answer.
+read_f8() {
+    [ -n "$1" ] || return 1
+    local line
+    line=$(timeout 4 $DDC --bus "$1" -t getvcp f8 2>/dev/null | head -1)
+    case "$line" in "VCP F8 CNC "*) echo "${line##* }" ;; esac
+}
+
+name_of() {
+    local n
+    for n in "${NAMES[@]}"; do [ "${SENSOR[$n]}" = "$1" ] && { echo "$n"; return; }; done
+}
+
+# Active input name, "unknown" if the sensor value is not in the table, nothing if no link
+# answers. Reading over a bus also proves that bus is still the monitor's.
+current_input() {
+    local n s r
+    for n in "${NAMES[@]}"; do
+        s=$(read_f8 "${BUS[$n]}")
+        if [ -n "$s" ]; then r=$(name_of "$s"); echo "${r:-unknown}"; return 0; fi
+    done
+}
+
+# Poll the sensor (the target's own link first) until it shows the target input, for at most
+# $2 seconds (default: the confirmation timeout).
+wait_for() {
+    local want=${SENSOR[$1]} end=$((SECONDS + ${2:-$CONFIRM_TIMEOUT})) n s order
+    order=("$1"); for n in "${NAMES[@]}"; do [ "$n" != "$1" ] && order+=("$n"); done
+    while [ "$SECONDS" -lt "$end" ]; do
+        for n in "${order[@]}"; do
+            s=$(read_f8 "${BUS[$n]}")
+            [ "$s" = "$want" ] && return 0
+        done
+        sleep 0.4
+    done
+    return 1
+}
+
+# --- switching ----------------------------------------------------------------------------
+attempt() {   # attempt <target>: 0 when the monitor confirms the target input
+    local target=$1 cur n bus order=()
+    cur=$(current_input)
+    [ -n "$cur" ] || { log "cannot read the current input"; return 1; }
+    if [ "$cur" = "$target" ]; then log "already on $target"; return 0; fi
+    # Send over the link of the input we are leaving first, then over the others.
+    [ "$cur" != unknown ] && order+=("$cur")
+    for n in "${NAMES[@]}"; do [ "$n" != "$cur" ] && order+=("$n"); done
+    # The first link is the one that should work: give it the whole timeout. The others are
+    # a fallback: half of it each.
+    local wait=$CONFIRM_TIMEOUT
+    for n in "${order[@]}"; do
+        bus=${BUS[$n]}; [ -n "$bus" ] || continue
+        log "$cur -> $target: setvcp xF4 ${VAL[$target]} over the $n link (bus $bus)"
+        $DDC --bus "$bus" setvcp xF4 "${VAL[$target]}" --i2c-source-addr=x50 >/dev/null 2>&1
+        if wait_for "$target" "$wait"; then log "confirmed $target"; return 0; fi
+        wait=$(( CONFIRM_TIMEOUT / 2 )); [ "$wait" -ge 2 ] || wait=2
+    done
+    return 1
+}
+
+cmd_set() {
+    local target=$1
+    [ -n "$target" ] && [ -n "${VAL[$target]}" ] || die "unknown input '$target' (known: ${NAMES[*]})" 2
+    local before=
+    if load_cache; then
+        attempt "$target" && return 0
+        before=$(show_buses)
+        log "the cached buses did not work; rescanning"
+    fi
+    scan
+    # A rescan that finds the same buses cannot change the outcome: do not wait again.
+    [ -n "$before" ] && [ "$(show_buses)" = "$before" ] && die "could not switch to $target" 1
+    attempt "$target" && return 0
+    die "could not switch to $target" 1
+}
+
+cmd_get() {
+    local cur
+    if load_cache; then cur=$(current_input); fi
+    if [ -z "$cur" ]; then scan; cur=$(current_input); fi
+    [ -n "$cur" ] || die "cannot read the monitor (is it on, is DDC/CI enabled?)" 3
+    echo "$cur"
+    [ "$cur" != unknown ]
+}
+
+usage() {
+    echo "usage: lgmonitor-input [-v] get | set <input>   (inputs: ${NAMES[*]})" >&2
+    exit 2
+}
+
+[ "$1" = -v ] && { VERBOSE=1; shift; }
+command -v "${DDC%% *}" >/dev/null || die "ddcutil not found" 3
+case "$1" in
+    get)  cmd_get ;;
+    set)  cmd_set "$2" ;;
+    *)    usage ;;
+esac

@@ -1,0 +1,95 @@
+#!/bin/bash
+# egpu-display: the long-running host that owns the eGPU's display, on tty2.
+#   egpu-display            runs forever; started by egpu-display.service (or by hand in a
+#                           plain tty2 login for testing)
+#
+# It waits for requests from `egpu-launch` (desktop side), then runs `egpu-kiosk` inside its
+# own tty session, which logind lets take the eGPU's display, and finally switches back to the
+# desktop session. It never starts anything by itself and reads no keyboard input.
+#
+# Protocol (all in $XDG_RUNTIME_DIR, user-only):
+#   egpu-display.fifo      request lines:  <desktop session>TAB<reply fifo>TAB<quoted command>
+#   egpu-display.session   "<pid> <session id>" of this host (egpu-launch needs both)
+#   egpu-display.lock      single-instance lock
+# The reply fifo gets the exit code of egpu-kiosk when it is done.
+#
+# Testing hooks (leave unset in normal use):
+#   EGPU_RUNTIME  directory instead of $XDG_RUNTIME_DIR     EGPU_KIOSK  runner to execute
+#   EGPU_LOGINCTL command instead of loginctl (e.g. a stub)
+#   EGPU_LOGGER   command instead of logger
+# Log: journalctl -t egpu-display -t egpu-kiosk   (add -k for the kernel log)
+
+# A service started with PAMName= can carry a real (ambient) capability, CAP_WAKE_ALARM. Steam's
+# sandbox (bubblewrap) then refuses to run ("Unexpected capabilities but not setuid"), which
+# Steam reports as "Steam now requires user namespaces". Clear them and re-exec once.
+# (EGPU_STATUS is a testing hook: the status file to inspect instead of /proc/self/status.)
+if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
+   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
+    export EGPU_CAPS_DROPPED=1
+    exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+fi
+
+RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+KIOSK=${EGPU_KIOSK:-$HOME/.local/bin/egpu-kiosk}
+LOGINCTL=${EGPU_LOGINCTL:-loginctl}
+FIFO=$RT/egpu-display.fifo
+SESSFILE=$RT/egpu-display.session
+LOCKFILE=$RT/egpu-display.lock
+
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
+
+log() { ${EGPU_LOGGER:-logger} -t egpu-display -- "$*" 2>/dev/null || true; }
+
+# Nothing may read the keyboard of this tty. As a service (systemd sets INVOCATION_ID) the
+# tty is also made inert: no echo, and Ctrl+C / Ctrl+\ / Ctrl+Z are plain characters, so
+# nobody at the keyboard can kill the host. Run by hand in a tty login, signals stay on.
+if [ -n "$INVOCATION_ID" ] && [ -t 0 ]; then stty -isig -echo 2>/dev/null; fi
+exec </dev/null
+
+# Only one host at a time.
+exec 9>"$LOCKFILE" || { echo "egpu-display: cannot create $LOCKFILE" >&2; exit 1; }
+flock -n 9 || { echo "egpu-display: already running." >&2; exit 1; }
+
+# This host's own logind session: the one on tty2 (XDG_SESSION_ID when we run in it).
+my_session() {
+    if [ -n "$XDG_SESSION_ID" ]; then echo "$XDG_SESSION_ID"; return 0; fi
+    $LOGINCTL list-sessions --no-legend 2>/dev/null | awk '$7 == "tty2" {print $1; exit}'   # columns: SESSION UID USER SEAT LEADER CLASS TTY ...
+}
+ME=$(my_session)
+[ -n "$ME" ] || { echo "egpu-display: cannot find my own logind session." >&2; exit 1; }
+
+# Poll until our session is the active one (the screen has really switched to this VT).
+wait_active() {
+    local i
+    for i in $(seq 1 20); do
+        [ "$($LOGINCTL show-session "$ME" -p Active --value 2>/dev/null)" = yes ] && return 0
+        sleep 0.5
+    done
+    return 1
+}
+
+cleanup() { rm -f "$FIFO" "$SESSFILE"; log "host stopped"; }
+trap cleanup EXIT
+trap 'exit 0' TERM INT
+
+[ -p "$FIFO" ] || { rm -f "$FIFO"; mkfifo -m 600 "$FIFO"; }
+exec 3<>"$FIFO"           # read-write: never sees EOF between requests
+echo "$$ $ME" > "$SESSFILE"
+log "host started: pid=$$ session=$ME"
+
+while IFS=$'\t' read -r desk done cmdstr <&3; do
+    [ -n "$desk" ] && [ -n "$done" ] || continue
+    log "request: desktop=$desk reply=$done cmd=$cmdstr"
+    wait_active || log "warning: session $ME not active after 10 s; continuing anyway"
+
+    eval "set -- $cmdstr"        # the line was quoted with printf %q by egpu-launch
+    "$KIOSK" "$@"
+    rc=$?
+    log "kiosk exited rc=$rc"
+
+    "$LOGINCTL" activate "$desk" \
+        || log "warning: could not switch back to session $desk"
+
+    # Reply without ever blocking: opening a fifo read-write does not wait for a reader.
+    { exec 5<>"$done" && echo "$rc" >&5; exec 5>&-; } 2>/dev/null
+done

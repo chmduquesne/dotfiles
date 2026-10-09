@@ -1,0 +1,66 @@
+#!/bin/bash
+# egpu-launch: from the desktop, show a program on the eGPU's display.
+#   egpu-launch command [args...]        e.g.  egpu-launch steam
+#
+# This is the desktop-side command. It asks the egpu-display host (on tty2) to run the
+# program with egpu-kiosk, switches your screen to that session, and waits until the program
+# is done; the host switches back to the desktop afterwards. No sudo. The exit code is the
+# kiosk's. If you leave the game with Ctrl+Alt+F1, it keeps running; start nothing else until
+# it ends (a second egpu-launch is refused).
+#
+# Testing hooks (leave unset in normal use): EGPU_RUNTIME, EGPU_LOGINCTL (see egpu-display).
+
+RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+LOGINCTL=${EGPU_LOGINCTL:-loginctl}
+FIFO=$RT/egpu-display.fifo
+SESSFILE=$RT/egpu-display.session
+LOCKFILE=$RT/egpu-launch.lock
+
+die() { echo "egpu-launch: $*" >&2; exit 1; }
+
+# The command is always explicit: nothing is queued (and the screen is not switched) without one.
+[ $# -gt 0 ] && [ -n "$1" ] \
+    || { echo "usage: egpu-launch command [args...]   (e.g. egpu-launch steam)" >&2; exit 2; }
+
+# The graphical session (wayland or x11) of this seat.
+desktop_session() {
+    local s
+    for s in $($LOGINCTL list-sessions --no-legend 2>/dev/null | awk '{print $1}'); do
+        case "$($LOGINCTL show-session "$s" -p Type --value 2>/dev/null)" in
+            wayland|x11) echo "$s"; return 0 ;;
+        esac
+    done
+    return 1
+}
+
+desk=$(desktop_session) || die "no graphical session found."
+lspci -d 10de: | grep -q . || die "the eGPU is not connected."
+
+[ -p "$FIFO" ] && [ -r "$SESSFILE" ] \
+    || die "the display host is not running (egpu-display.service, or egpu-display in a tty2 login)."
+read -r hostpid hostsess < "$SESSFILE"
+kill -0 "$hostpid" 2>/dev/null || die "the display host is not running (stale session file)."
+
+exec 8>"$LOCKFILE"
+flock -n 8 || die "a program is already running on the eGPU display."
+
+done=$(mktemp -u "$RT/egpu-launch.done.XXXXXX")
+mkfifo -m 600 "$done" || die "cannot create the reply fifo."
+exec 4<>"$done"
+trap 'rm -f "$done"' EXIT
+
+# Switch the screen first, so a failure here queues nothing.
+$LOGINCTL activate "$hostsess" || die "cannot switch to session $hostsess."
+
+exec 6<>"$FIFO"
+printf '%s\t%s\t%s\n' "$desk" "$done" "$(printf '%q ' "$@")" >&6
+exec 6>&-
+
+# Wait for the program to finish; give up if the host dies meanwhile.
+while ! read -r -t 5 -u 4 rc; do
+    kill -0 "$hostpid" 2>/dev/null || die "the display host died."
+done
+if [ "${rc:-1}" != 0 ]; then
+    echo "egpu-launch: the program ended with code ${rc:-1}; see: journalctl -t egpu-kiosk -t egpu-display -b" >&2
+fi
+exit "${rc:-1}"
