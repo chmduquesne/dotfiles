@@ -57,10 +57,10 @@
     background-color: #ff8888;
 }
 
-#custom-egpu.attached {
+#custom-egpu.connected {
     background-color: #76b900; /* NVIDIA green: the eGPU is connected */
 }
 
-#custom-egpu.attached:hover {
-    background-color: #8ed400; /* Brighter on hover: click to detach */
+#custom-egpu.connected:hover {
+    background-color: #8ed400; /* Brighter on hover: click to disconnect */
 }

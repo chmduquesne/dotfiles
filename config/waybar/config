@@ -128,7 +128,7 @@
         "return-type": "json",
         "interval": 5,
         "exec": "waybar-egpu status",
-        "on-click": "waybar-egpu detach"
+        "on-click": "waybar-egpu disconnect"
     },
     "custom/audiostatus": {
         "format": "{icon}",

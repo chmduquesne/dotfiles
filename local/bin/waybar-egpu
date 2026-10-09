@@ -1,7 +1,7 @@
 #!/bin/bash
-# Manage the Thunderbolt eGPU (NVIDIA): report its state to waybar and detach it cleanly.
+# Manage the Thunderbolt eGPU (NVIDIA): report its state to waybar and disconnect it cleanly.
 #   waybar-egpu status          JSON for a waybar custom module
-#   waybar-egpu detach [-f] [-y]  confirm, then cleanly detach so the cable can be pulled
+#   waybar-egpu disconnect [-f] [-y]  confirm, then cleanly disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
 #       -y  skip the confirmation dialog
 
@@ -13,11 +13,11 @@ jlog() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
 # ---- privileged part (runs as root, no UI) ---------------------------------
 if [ "$1" = "--root" ]; then
     force=$2
-    jlog "detach start (force=$force, requested by ${SUDO_USER:-unknown})"
+    jlog "disconnect start (force=$force, requested by ${SUDO_USER:-unknown})"
     mapfile -t devs < <(lspci -D -d 10de: | awk '{print $1}')
     if [ "${#devs[@]}" -eq 0 ]; then
-        echo "No NVIDIA PCI device present; nothing to detach."
-        jlog "no NVIDIA PCI device present; nothing to detach"
+        echo "No NVIDIA PCI device present; nothing to disconnect."
+        jlog "no NVIDIA PCI device present; nothing to disconnect"
         exit 0
     fi
     jlog "NVIDIA PCI functions: ${devs[*]}"
@@ -43,8 +43,8 @@ if [ "$1" = "--root" ]; then
             holders=$(lsof -t /dev/nvidia* 2>/dev/null | sort -u)
             [ -n "$holders" ] && kill -9 $holders && sleep 1
         else
-            echo "Close them or rerun with -f. NOT detaching."
-            jlog "refusing to detach: the GPU is still in use (rerun with -f)"
+            echo "Close them or rerun with -f. NOT disconnecting."
+            jlog "refusing to disconnect: the GPU is still in use (rerun with -f)"
             exit 1
         fi
     fi
@@ -61,8 +61,8 @@ if [ "$1" = "--root" ]; then
         jlog "WARNING: an NVIDIA device is still listed after removal; do not unplug"
         exit 2
     fi
-    echo "eGPU detached. Safe to unplug."
-    jlog "detached; safe to unplug"
+    echo "eGPU disconnected. Safe to unplug."
+    jlog "disconnected; safe to unplug"
     exit 0
 fi
 
@@ -76,19 +76,19 @@ notify() {  # notify <urgency> <title> <body>
 status() {
     # Cheap checks only (no nvidia-smi), so polling never wakes the GPU.
     if ! lspci -d 10de: | grep -q .; then
-        printf '{"text": "", "class": "detached", "tooltip": ""}\n'
+        printf '{"text": "", "class": "disconnected", "tooltip": ""}\n'
     elif [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
          && lsmod | grep -q '^nvidia '; then
         # PCI device is listed but the driver has no GPU: the stuck state after a surprise pull.
         printf '{"text": "🎮⚠️", "class": "error", "tooltip": "eGPU in a stuck state. Do not suspend; reboot."}\n'
     else
         name=$(lspci -d 10de: | awk -F': ' '/VGA|3D/ {print $2; exit}' | sed 's/ (rev.*//')
-        printf '{"text": "🎮", "class": "attached", "tooltip": "eGPU attached\\n%s\\nClick to detach"}\n' "$name"
+        printf '{"text": "🎮", "class": "connected", "tooltip": "eGPU connected\\n%s\\nClick to disconnect"}\n' "$name"
     fi
 }
 
-# ---- detach: confirmation UI, then privileged part --------------------------
-detach() {
+# ---- disconnect: confirmation UI, then privileged part --------------------------
+disconnect() {
     local force=0 yes=0 a
     for a in "$@"; do
         case "$a" in
@@ -98,8 +98,8 @@ detach() {
     done
 
     if ! lspci -d 10de: | grep -q .; then
-        echo "No NVIDIA PCI device present; nothing to detach."
-        notify low "eGPU" "No eGPU attached."
+        echo "No NVIDIA PCI device present; nothing to disconnect."
+        notify low "eGPU" "No eGPU connected."
         return 0
     fi
 
@@ -112,20 +112,20 @@ detach() {
         if [ "$force" -eq 1 ]; then
             summary+=$'\n\nThese processes will be KILLED:\n'"$(echo "$holders" | sed 's/^/  • /')"
         else
-            summary+=$'\n\nStill using the GPU (detach will refuse):\n'"$(echo "$holders" | sed 's/^/  • /')"
+            summary+=$'\n\nStill using the GPU (disconnect will refuse):\n'"$(echo "$holders" | sed 's/^/  • /')"
         fi
     fi
     summary+=$'\n\nThen the eGPU is removed from the PCI bus.'
 
     if [ "$yes" -ne 1 ]; then
         if have_gui && command -v zenity >/dev/null; then
-            zenity --question --title="Detach eGPU" --width=420 \
-                --ok-label="Detach" --cancel-label="Cancel" --text="$summary" || {
-                echo "Cancelled."; jlog "detach cancelled by the user"; return 1; }
+            zenity --question --title="Disconnect eGPU" --width=420 \
+                --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" || {
+                echo "Cancelled."; jlog "disconnect cancelled by the user"; return 1; }
         else
             printf '%s\n\nProceed? [y/N] ' "$summary"
             read -r ans
-            [ "$ans" = "y" ] || { echo "Cancelled."; jlog "detach cancelled by the user"; return 1; }
+            [ "$ans" = "y" ] || { echo "Cancelled."; jlog "disconnect cancelled by the user"; return 1; }
         fi
     fi
 
@@ -135,24 +135,24 @@ detach() {
         rc=$?
     else
         # Started from waybar: no terminal, so ask for the sudo password graphically.
-        pw=$(zenity --password --title="Detach eGPU") || return 1
+        pw=$(zenity --password --title="Disconnect eGPU") || return 1
         out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" 2>&1)
         rc=$?
         unset pw
     fi
     echo "$out"
-    jlog "detach finished with exit code $rc"
+    jlog "disconnect finished with exit code $rc"
 
     case $rc in
-        0) notify normal   "eGPU detached" "Safe to unplug the cable." ;;
-        1) notify critical "eGPU NOT detached" "GPU is still in use. Close the apps or run: waybar-egpu detach -f" ;;
-        *) notify critical "eGPU detach problem" "Do NOT unplug. Check dmesg." ;;
+        0) notify normal   "eGPU disconnected" "Safe to unplug the cable." ;;
+        1) notify critical "eGPU NOT disconnected" "GPU is still in use. Close the apps or run: waybar-egpu disconnect -f" ;;
+        *) notify critical "eGPU disconnect problem" "Do NOT unplug. Check dmesg." ;;
     esac
     return $rc
 }
 
 case "$1" in
     status) status ;;
-    detach) shift; detach "$@" ;;
-    *) echo "Usage: $0 [status|detach [-f] [-y]]"; exit 1 ;;
+    disconnect) shift; disconnect "$@" ;;
+    *) echo "Usage: $0 [status|disconnect [-f] [-y]]"; exit 1 ;;
 esac
