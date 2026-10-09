@@ -1,0 +1,104 @@
+#!/bin/bash
+# egpu-audio: keep the sound on the physical monitor while it changes input.
+# ("physical monitor" is the screen with speakers, as opposed to PulseAudio's "monitor"
+# sources, which capture what a sink plays and have nothing to do with this.)
+#   egpu-audio follow   -- command [args...]   run command (it switches the physical monitor
+#                                              to the eGPU's input), then move the sound along
+#   egpu-audio unfollow -- command [args...]   run command (it switches the physical monitor
+#                                              back), then put the sound back where it was
+#
+# The default sink is left alone, with one exception: when it is a physical monitor's sink
+# (HDMI or DisplayPort), it is moved to the eGPU's HDMI sink for as long as the monitor shows
+# the eGPU, so the sound stays on the physical monitor through the new input. Speakers,
+# Bluetooth, USB... are never touched. On unfollow the old sink is restored, unless the default
+# was changed meanwhile. The exit code is the command's. If the command fails, nothing is moved.
+#
+# The physical monitor only plays the sound of its active input, and the sinks flap while it
+# changes input (set-default-sink then fails with "No such entity", seen 2026-10-09): the eGPU
+# sink is looked up BEFORE the command, and the sink is set after it, retried for up to 6 s.
+#
+# State (the sinks we moved): $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
+# Needs pactl, jq and lspci.
+# Testing hooks: EGPU_PACTL (command instead of pactl), EGPU_LOGGER, EGPU_RUNTIME.
+# Log: journalctl -t egpu-audio
+
+PACTL=${EGPU_PACTL:-pactl}
+RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+STATE=$RT/egpu-audio.state
+
+log() { ${EGPU_LOGGER:-logger} -t egpu-audio -- "$*" 2>/dev/null || true; }
+
+# The eGPU's sink for the port a physical monitor is plugged into: the sink of the eGPU's
+# audio function (found by its PCI address, which holds for any HDMI or DisplayPort port of
+# the card) whose port is marked available.
+egpu_sink() {
+    local addr
+    addr=$(lspci -D -d 10de::0403 2>/dev/null | awk 'NR==1 {print $1}')
+    [ -n "$addr" ] || return 1
+    $PACTL --format=json list sinks 2>/dev/null | jq -r --arg bus "pci-$addr" '
+        first(.[] | select(.properties["device.bus_path"] == $bus
+                           and any(.ports[]; .availability == "available")) | .name) // empty'
+}
+
+# Whether sink $1 is on a physical monitor: PulseAudio types the HDMI and DisplayPort ports of
+# a GPU "HDMI", whatever the connector, so look at the type of the sink's active port.
+is_physical_monitor_sink() {
+    $PACTL --format=json list sinks 2>/dev/null | jq -e --arg name "$1" '
+        .[] | select(.name == $name) | .active_port as $p
+            | any(.ports[]; .name == $p and .type == "HDMI")' >/dev/null
+}
+
+# set_default <sink-or-"">: retry for up to 6 s; with an empty name, look the eGPU sink up each time
+set_default() {
+    local sink=$1 i
+    for i in $(seq 1 12); do
+        [ -n "$sink" ] || sink=$(egpu_sink)
+        if [ -n "$sink" ] && $PACTL set-default-sink "$sink" 2>/dev/null; then return 0; fi
+        sink=$1; sleep 0.5
+    done
+    return 1
+}
+
+follow() {
+    local old new rc
+    old=$($PACTL get-default-sink 2>/dev/null)
+    if is_physical_monitor_sink "$old"; then
+        new=$(egpu_sink)
+        [ -n "$new" ] || log "no eGPU HDMI sink available; audio stays on $old"
+    else
+        log "default sink ${old:-?} is not a physical monitor; left alone"
+    fi
+    "$@"; rc=$?
+    [ "$rc" = 0 ] && [ -n "$new" ] || return "$rc"
+    if set_default "$new"; then
+        echo "$old $new" > "$STATE"
+        log "default sink $old -> $new"
+    else
+        echo "egpu-audio: could not set the eGPU HDMI audio sink; sound stays on $old" >&2
+    fi
+    return 0
+}
+
+unfollow() {
+    local old new rc cur
+    "$@"; rc=$?
+    [ -r "$STATE" ] || return "$rc"
+    read -r old new < "$STATE"; rm -f "$STATE"
+    cur=$($PACTL get-default-sink 2>/dev/null)
+    if [ "$cur" != "$new" ]; then
+        log "default sink is now ${cur:-?}, not $new; not restoring $old"
+    elif set_default "$old"; then
+        log "default sink $new -> $old"
+    else
+        echo "egpu-audio: could not restore the audio sink $old" >&2
+    fi
+    return "$rc"
+}
+
+cmd=$1
+if { [ "$cmd" != follow ] && [ "$cmd" != unfollow ]; } || [ "$2" != -- ] || [ $# -lt 3 ]; then
+    echo "usage: egpu-audio follow|unfollow -- command [args...]" >&2
+    exit 2
+fi
+shift 2
+"$cmd" "$@"

@@ -53,7 +53,8 @@ flock -n 9 || { echo "egpu-display: already running." >&2; exit 1; }
 # This host's own logind session: the one on tty2 (XDG_SESSION_ID when we run in it).
 my_session() {
     if [ -n "$XDG_SESSION_ID" ]; then echo "$XDG_SESSION_ID"; return 0; fi
-    $LOGINCTL list-sessions --no-legend 2>/dev/null | awk '$7 == "tty2" {print $1; exit}'   # columns: SESSION UID USER SEAT LEADER CLASS TTY ...
+    $LOGINCTL list-sessions --json=short 2>/dev/null \
+        | jq -r 'first(.[] | select(.tty == "tty2") | .session) // empty'
 }
 ME=$(my_session)
 [ -n "$ME" ] || { echo "egpu-display: cannot find my own logind session." >&2; exit 1; }

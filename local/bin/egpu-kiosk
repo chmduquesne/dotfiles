@@ -10,10 +10,9 @@
 #   1. unloads ollama models (frees the 24 GB of VRAM for the program)
 #   2. switches the LG monitor to the input the eGPU (card1) is plugged into, over DDC/CI
 #      (lgmonitor-input)
-#   3. points the default audio output at the eGPU's HDMI audio, unless a Bluetooth
-#      output is already the default
-#   4. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
-#   5. on any exit: shuts Steam down, switches the monitor back to USB-C, restores audio
+#      and, if the audio was on the monitor, moves it to the eGPU's HDMI audio (egpu-audio)
+#   3. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
+#   4. on any exit: shuts Steam down, switches the monitor back to USB-C, restores audio
 #
 # The monitor input switching, with all its LG quirks, lives in `lgmonitor-input`.
 #
@@ -21,8 +20,7 @@
 # Logs: journalctl -t egpu-kiosk   (events, ordered with the kernel log: add -k)
 #       ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log   (sway/Xwayland output, noisy)
 #
-# Environment knobs:  NOSWITCH=1  keep the monitor input      NOAUDIO=1  keep the audio output
-#                     EGPU_DRYRUN=1  only print what would run (testing)
+# Environment knobs:  EGPU_DRYRUN=1  only print what would run (testing)
 #                     EGPU_LOGGER=cmd  use cmd instead of logger (testing)
 #                     EGPU_BINDIR=dir  directory searched first for commands (testing)
 
@@ -77,75 +75,44 @@ log "start: user=$(id -un) session=${XDG_SESSION_ID:-?} vt=${XDG_VTNR:-?} cmd=${
 
 # --- 1. free the VRAM (best effort; the ollama service itself keeps running) -------------
 if command -v ollama >/dev/null; then
-    for m in $(timeout 10 ollama ps 2>/dev/null | awk 'NR>1 {print $1}'); do
+    host=${OLLAMA_HOST:-127.0.0.1:11434}; host=${host#http://}
+    loaded=$(curl -s -m 10 "http://$host/api/ps" 2>/dev/null | jq -r '.models[].name' 2>/dev/null)
+    for m in $loaded; do
         timeout 20 ollama stop "$m" >/dev/null 2>&1 && log "ollama: unloaded $m"
     done
 fi
 
-# --- 2. audio, part 1: pick the sink NOW, while the monitor is still on USB-C -----------
-# The monitor plays the audio of its active input only, so while it shows HDMI 1 the default
-# sink must be the eGPU's HDMI audio (the one port marked available), not the AMD/dock one.
-# That port's availability flaps while the monitor changes input, so the sink is looked up
-# before the switch and set after it (waiting for it only if it was not available yet).
-egpu_sink() {
-    pactl list sinks 2>/dev/null | awk 'BEGIN{RS=""} /Description: GA102/ && /, available\)/ {
-        match($0, /Name: [^\n]+/); print substr($0, RSTART+6, RLENGTH-6); exit }'
-}
-old_sink=; new_sink=; route_audio=; sink=
-if [ -z "$NOAUDIO" ] && command -v pactl >/dev/null; then
-    old_sink=$(pactl get-default-sink 2>/dev/null)
-    case "$old_sink" in
-        bluez_output.*) log "audio: Bluetooth default ($old_sink) kept" ;;
-        *)              route_audio=1; sink=$(egpu_sink) ;;
-    esac
-fi
-
-# --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) ----------------------------
+# --- 2. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------
 # ddc_on is set before the attempt, so a failed switch still tries to switch back on exit.
 # The input is whichever one the monitor reaches the eGPU (card1) through; the cable can be
 # moved between inputs.
 ddc_on=
-if [ -z "$NOSWITCH" ] && command -v lgmonitor-input >/dev/null; then
+if command -v lgmonitor-input >/dev/null; then
     input=$(lgmonitor-input find card1 2>/dev/null)
     if [ -z "$input" ]; then
         echo "egpu-kiosk: no monitor input is wired to the eGPU (card1); switch it by hand." >&2
     else
         ddc_on=1
         log "monitor input for the eGPU: $input"
-        lgmonitor-input set "$input" \
+        egpu-audio follow -- lgmonitor-input set "$input" \
             || echo "egpu-kiosk: could not switch the monitor to $input; do it by hand." >&2
     fi
 fi
 
-# --- 4. audio, part 2: apply the sink ----------------------------------------------------
-# The sink can vanish while the monitor changes input (set-default-sink then fails with "No such
-# entity", seen 2026-10-09), so retry for up to 6 s, looking the sink up again each time.
-if [ -n "$route_audio" ]; then
-    for _ in $(seq 1 12); do
-        [ -n "$sink" ] || sink=$(egpu_sink)
-        if [ -n "$sink" ] && pactl set-default-sink "$sink" 2>/dev/null; then
-            new_sink=$sink; log "audio: default sink $old_sink -> $sink"; break
-        fi
-        sink=; sleep 0.5
-    done
-    [ -n "$new_sink" ] || echo "egpu-kiosk: could not set the eGPU HDMI audio sink; sound stays on $old_sink" >&2
-fi
-
-# --- 6. cleanup, however we end (kiosk quit, Ctrl+C, program exit) ----------------------
+# --- 3. cleanup, however we end (kiosk quit, Ctrl+C, program exit) ----------------------
 # Steam keeps running in its tray when its window is closed, which would hold the eGPU and
 # block `waybar-egpu disconnect`.
 cleanup() {
     if [ "${cmd[0]}" = /usr/games/steam ]; then /usr/games/steam -shutdown >/dev/null 2>&1; fi
     if [ -n "$ddc_on" ]; then
-        lgmonitor-input set usbc \
+        egpu-audio unfollow -- lgmonitor-input set usbc \
             || echo "egpu-kiosk: could not switch the monitor back; use its input button." >&2
     fi
-    if [ -n "$new_sink" ] && [ -n "$old_sink" ]; then pactl set-default-sink "$old_sink"; fi
     log "cleanup done"
 }
 trap cleanup EXIT
 
-# --- 5. the kiosk -----------------------------------------------------------------------
+# --- 4. the kiosk -----------------------------------------------------------------------
 : > "$SWAYLOG"
 KIOSK_CMD=$(printf '%q ' "${cmd[@]}") \
 WLR_DRM_DEVICES=/dev/dri/card1 \
