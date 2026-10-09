@@ -34,6 +34,8 @@ if HasVundle()
     Plugin 'derekwyatt/vim-scala'
     Plugin 'chriskempson/base16-vim'
     Plugin 'godlygeek/tabular'
+    Plugin 'chmduquesne/ansible_vault.vim'
+    Plugin 'junegunn/vader.vim'
     call vundle#end()
 endif
 
