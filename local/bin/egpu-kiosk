@@ -9,8 +9,9 @@
 # What it does, in order:
 #   1. unloads ollama models (frees the 24 GB of VRAM for the program)
 #   2. switches the LG monitor to the input the eGPU (card1) is plugged into, over DDC/CI
-#      (lgmonitor-input)
-#      and, if the audio was on the monitor, moves it to the eGPU's HDMI audio (egpu-audio)
+#      (lgmonitor-input) and, if the audio was on the monitor, moves it to the eGPU's HDMI
+#      audio (egpu-audio). If that fails, it stops with exit code 1 instead of running on a
+#      screen nobody can see.
 #   3. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
 #   4. on any exit: shuts Steam down, switches the monitor back to USB-C, restores audio
 #
@@ -82,26 +83,11 @@ if command -v ollama >/dev/null; then
     done
 fi
 
-# --- 2. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------
-# ddc_on is set before the attempt, so a failed switch still tries to switch back on exit.
-# The input is whichever one the monitor reaches the eGPU (card1) through; the cable can be
-# moved between inputs.
-ddc_on=
-if command -v lgmonitor-input >/dev/null; then
-    input=$(lgmonitor-input find card1 2>/dev/null)
-    if [ -z "$input" ]; then
-        echo "egpu-kiosk: no monitor input is wired to the eGPU (card1); switch it by hand." >&2
-    else
-        ddc_on=1
-        log "monitor input for the eGPU: $input"
-        egpu-audio follow -- lgmonitor-input set "$input" \
-            || echo "egpu-kiosk: could not switch the monitor to $input; do it by hand." >&2
-    fi
-fi
-
-# --- 3. cleanup, however we end (kiosk quit, Ctrl+C, program exit) ----------------------
+# --- 2. cleanup, however we end (kiosk quit, Ctrl+C, program exit, failed start) --------
 # Steam keeps running in its tray when its window is closed, which would hold the eGPU and
-# block `waybar-egpu disconnect`.
+# block `waybar-egpu disconnect`. ddc_on is set before the monitor switch is attempted, so a
+# failed switch still tries to switch back.
+ddc_on=
 cleanup() {
     if [ "${cmd[0]}" = /usr/games/steam ]; then /usr/games/steam -shutdown >/dev/null 2>&1; fi
     if [ -n "$ddc_on" ]; then
@@ -111,6 +97,25 @@ cleanup() {
     log "cleanup done"
 }
 trap cleanup EXIT
+
+# --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
+# The input is whichever one the monitor reaches the eGPU (card1) through; the cable can be
+# moved between inputs. Running the kiosk without it would leave a black screen that nobody
+# can see or leave (the desktop session is already deactivated), so any failure here ends the
+# run: egpu-display then switches back to the desktop and egpu-launch reports the exit code.
+fail() { echo "egpu-kiosk: $*" >&2; log "abort: $*"; exit 1; }
+
+command -v lgmonitor-input >/dev/null || fail "lgmonitor-input not found; cannot show the eGPU."
+input=
+for _ in 1 2 3; do   # the DDC scan sometimes misses the eGPU's link once
+    input=$(lgmonitor-input find card1 2>/dev/null) && [ -n "$input" ] && break
+    input=; sleep 2
+done
+[ -n "$input" ] || fail "no monitor input is wired to the eGPU (card1)."
+ddc_on=1
+log "monitor input for the eGPU: $input"
+egpu-audio follow -- lgmonitor-input set "$input" \
+    || fail "could not switch the monitor to $input."
 
 # --- 4. the kiosk -----------------------------------------------------------------------
 : > "$SWAYLOG"
