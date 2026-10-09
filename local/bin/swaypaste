@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -e
+
+# Smart paste script for Sway/Wayland.
+# If the clipboard contains an image and a terminal emulator is focused,
+# the image is saved to /tmp and its path is typed directly (clipboard untouched).
+# Otherwise, performs a normal paste (Ctrl+Shift+V in terminals, Ctrl+V elsewhere).
+
+# Supported terminals
+TERMINAL_APPS=("org.gnome.Terminal" "kitty" "Alacritty" "foot" "org.wezfurlong.wezterm")
+
+# Are we in a terminal
+focused_app=$(swaymsg -t get_tree | jq -r '.. | objects | select(.focused == true) | .app_id // ""')
+
+is_terminal=false
+for app in "${TERMINAL_APPS[@]}"; do
+    if [ "$focused_app" = "$app" ]; then
+        is_terminal=true
+        break
+    fi
+done
+
+types=$(wl-paste --list-types 2>/dev/null || echo "")
+
+if grep -q '^image/' <<< "$types" && $is_terminal; then
+    # Image in clipboard and we're in a terminal
+    ext=$(grep -m1 '^image/' <<< "$types" | cut -d/ -f2 | cut -d';' -f1)
+    file="/tmp/clip_$(date +%s).${ext}"
+    wl-paste > "$file"
+    wtype -- "$file"
+else
+    # Either not an image, or not a terminal: normal paste using appropriate shortcut
+    if $is_terminal; then
+        wtype -- "$(wl-paste --no-newline 2>/dev/null || true)"
+    else
+        wtype -M ctrl -k v
+    fi
+fi
