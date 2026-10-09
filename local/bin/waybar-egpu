@@ -97,17 +97,22 @@ notify() {  # notify <urgency> <title> <body>
 }
 
 # ---- status: waybar JSON ----------------------------------------------------
+waybar_json() {  # waybar_json <text> <class> <tooltip>
+    jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
+        '{text: $text, class: $class, tooltip: $tooltip}'
+}
+
 status() {
     # Cheap checks only (no nvidia-smi), so polling never wakes the GPU.
     if ! lspci -d 10de: | grep -q .; then
-        printf '{"text": "", "class": "disconnected", "tooltip": ""}\n'
+        waybar_json "" disconnected ""
     elif [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
          && lsmod | grep -q '^nvidia '; then
         # PCI device is listed but the driver has no GPU: the stuck state after a surprise pull.
-        printf '{"text": "🎮⚠️", "class": "error", "tooltip": "eGPU in a stuck state. Do not suspend; reboot."}\n'
+        waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
         name=$(lspci -d 10de: | awk -F': ' '/VGA|3D/ {print $2; exit}' | sed 's/ (rev.*//')
-        printf '{"text": "🎮", "class": "connected", "tooltip": "eGPU connected\\n%s\\nClick to disconnect"}\n' "$name"
+        waybar_json "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
     fi
 }
 
