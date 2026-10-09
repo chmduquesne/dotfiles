@@ -109,15 +109,17 @@ if [ -z "$NOSWITCH" ] && command -v lgmonitor-input >/dev/null; then
 fi
 
 # --- 4. audio, part 2: apply the sink ----------------------------------------------------
+# The sink can vanish while the monitor changes input (set-default-sink then fails with "No such
+# entity", seen 2026-10-09), so retry for up to 6 s, looking the sink up again each time.
 if [ -n "$route_audio" ]; then
-    if [ -z "$sink" ]; then          # not available before the switch: give it a few seconds
-        for _ in $(seq 1 12); do sink=$(egpu_sink); [ -n "$sink" ] && break; sleep 0.5; done
-    fi
-    if [ -n "$sink" ]; then
-        pactl set-default-sink "$sink" && { new_sink=$sink; log "audio: default sink $old_sink -> $sink"; }
-    else
-        echo "egpu-kiosk: no available eGPU HDMI audio sink; sound stays on $old_sink" >&2
-    fi
+    for _ in $(seq 1 12); do
+        [ -n "$sink" ] || sink=$(egpu_sink)
+        if [ -n "$sink" ] && pactl set-default-sink "$sink" 2>/dev/null; then
+            new_sink=$sink; log "audio: default sink $old_sink -> $sink"; break
+        fi
+        sink=; sleep 0.5
+    done
+    [ -n "$new_sink" ] || echo "egpu-kiosk: could not set the eGPU HDMI audio sink; sound stays on $old_sink" >&2
 fi
 
 # --- 6. cleanup, however we end (kiosk quit, Ctrl+C, program exit) ----------------------
