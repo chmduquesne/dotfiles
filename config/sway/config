@@ -33,7 +33,11 @@ set $term gnome-terminal
 set $menu j4-dmenu-desktop --dmenu='bemenu -i --nb "#3f3f3f" --nf "#dcdccc" --fn "pango:Monospace 11"' --term='gnome-terminal'
 
 # Paste text
-set $paste wtype -m logo "$(wl-paste)"
+set $paste ~/.local/bin/swaypaste
+
+# No next output https://github.com/swaywm/sway/issues/4346
+set $next_output swaymsg -t get_outputs -r | jq -r \
+    '[.[] | select(.active)] | .[(map(.focused) | index(true) + 1) % length].name'
 
 # Screenshot
 #set $screenshot flameshot gui
@@ -44,9 +48,9 @@ set $locker swaylock -f -c 000000
 
 # See https://github.com/swaywm/sway/wiki#clamshell-mode
 set $lid eDP-1
+exec_always /usr/local/bin/sway-handle-lid
 bindswitch --reload --locked lid:on output $lid disable
 bindswitch --reload --locked lid:off output $lid enable
-exec_always /usr/local/bin/sway-handle-lid
 
 # See https://github.com/swaywm/sway/wiki#systemd-and-dbus-activation-environments
 exec systemctl --user import-environment WAYLAND_DISPLAY DISPLAY \
@@ -112,7 +116,8 @@ bindsym $mod+Shift+9 move container to workspace $ws9
 bindsym $mod+Shift+0 move container to workspace $ws0
 
 # Move the current workspace to the next output
-bindsym $mod+x move workspace to output next
+#bindsym $mod+x move workspace to output next
+bindsym $mod+x exec swaymsg move workspace to "$($next_output)"
 
 # Split controls are inverted compared to vim, fixing it
 bindsym $mod+v splith
@@ -240,3 +245,5 @@ exec firefox-esr
 #exec teams-pwa
 # Prevent suspending when sound is playing
 exec wayland-pipewire-idle-inhibit
+# screen management
+exec kanshi
