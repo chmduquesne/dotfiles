@@ -8,7 +8,8 @@
 #
 # What it does, in order:
 #   1. unloads ollama models (frees the 24 GB of VRAM for the program)
-#   2. switches the LG monitor to HDMI 1 over DDC/CI (lgmonitor-input)
+#   2. switches the LG monitor to the input the eGPU (card1) is plugged into, over DDC/CI
+#      (lgmonitor-input)
 #   3. points the default audio output at the eGPU's HDMI audio, unless a Bluetooth
 #      output is already the default
 #   4. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
@@ -101,11 +102,19 @@ fi
 
 # --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) ----------------------------
 # ddc_on is set before the attempt, so a failed switch still tries to switch back on exit.
+# The input is whichever one the monitor reaches the eGPU (card1) through; the cable can be
+# moved between inputs.
 ddc_on=
 if [ -z "$NOSWITCH" ] && command -v lgmonitor-input >/dev/null; then
-    ddc_on=1
-    lgmonitor-input set hdmi1 \
-        || echo "egpu-kiosk: could not switch the monitor to HDMI 1; do it by hand." >&2
+    input=$(lgmonitor-input find card1 2>/dev/null)
+    if [ -z "$input" ]; then
+        echo "egpu-kiosk: no monitor input is wired to the eGPU (card1); switch it by hand." >&2
+    else
+        ddc_on=1
+        log "monitor input for the eGPU: $input"
+        lgmonitor-input set "$input" \
+            || echo "egpu-kiosk: could not switch the monitor to $input; do it by hand." >&2
+    fi
 fi
 
 # --- 4. audio, part 2: apply the sink ----------------------------------------------------

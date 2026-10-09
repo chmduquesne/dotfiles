@@ -5,6 +5,9 @@
 #   lgmonitor-input cycle           switch to the next input that has a DDC link (table order,
 #                                   wrapping); fails if the current input cannot be read
 #   lgmonitor-input list            print the known input names, one per line (no DDC access)
+#   lgmonitor-input find <card>     print the input the monitor reaches <card> (e.g. card1)
+#                                   through; exit 1 if none. Uses the cache if it is under
+#                                   30 s old, else rescans. Only inputs with a link are found.
 #   lgmonitor-input set <input>     switch to <input> and wait until the monitor confirms
 #   -v (before the command)         also echo the log lines to stderr
 #
@@ -48,7 +51,7 @@ CACHE=$RT/lgmonitor-input.buses
 CONFIRM_TIMEOUT=${LGMONITOR_TIMEOUT:-10}
 VERBOSE=
 
-declare -A VAL SENSOR PATTERN BUS
+declare -A VAL SENSOR PATTERN BUS CONN
 NAMES=()
 for row in "${INPUTS[@]}"; do
     read -r n v s p <<< "$row"
@@ -72,7 +75,7 @@ show_buses() {
 
 # --- bus discovery and cache --------------------------------------------------------------
 scan() {
-    local out pairs n
+    local out pairs n pair
     out=$($DDC detect --brief 2>/dev/null) || true
     # "<connector> <bus>" for every valid display
     pairs=$(printf '%s\n' "$out" | awk '
@@ -80,23 +83,25 @@ scan() {
         /^Invalid display/ { valid = 0; next }
         /I2C bus:/         { bus = $3; sub("/dev/i2c-", "", bus) }
         /DRM connector:/   { if (valid) print $3, bus }')
-    BUS=()
+    BUS=(); CONN=()
     for n in "${NAMES[@]}"; do
         [ -n "${PATTERN[$n]}" ] || continue
-        BUS[$n]=$(printf '%s\n' "$pairs" | awk -v p="${PATTERN[$n]}" '$1 ~ p { print $2; exit }')
+        pair=$(printf '%s\n' "$pairs" | awk -v p="${PATTERN[$n]}" '$1 ~ p { print $1, $2; exit }')
+        CONN[$n]=${pair% *}; BUS[$n]=${pair#* }
+        [ -n "$pair" ] || BUS[$n]=
     done
     mkdir -p "$RT" 2>/dev/null
-    { for n in "${NAMES[@]}"; do echo "$n ${BUS[$n]}"; done; } > "$CACHE.$$" 2>/dev/null \
+    { for n in "${NAMES[@]}"; do echo "$n ${BUS[$n]} ${CONN[$n]}"; done; } > "$CACHE.$$" 2>/dev/null \
         && mv -f "$CACHE.$$" "$CACHE"
     log "scan: $(show_buses)"
 }
 
 # 0 only if every input that has a link has a cached bus
 load_cache() {
-    local n b
+    local n b c
     [ -r "$CACHE" ] || return 1
-    BUS=()
-    while read -r n b; do [ -n "$n" ] && BUS[$n]=$b; done < "$CACHE"
+    BUS=(); CONN=()
+    while read -r n b c; do [ -n "$n" ] && { BUS[$n]=$b; CONN[$n]=$c; }; done < "$CACHE"
     for n in "${NAMES[@]}"; do
         [ -z "${PATTERN[$n]}" ] || [ -n "${BUS[$n]}" ] || return 1
     done
@@ -208,8 +213,20 @@ cmd_cycle() {
     cmd_set "${next[$(( (idx + 1) % ${#next[@]} ))]}"
 }
 
+cmd_find() {
+    local card=$1 n age
+    [ -n "$card" ] || usage
+    age=$(( $(date +%s) - $(stat -c %Y "$CACHE" 2>/dev/null || echo 0) ))
+    # a cable swap takes longer than 30 s, so a younger cache is still right
+    if [ "$age" -ge 30 ] || ! load_cache; then scan; fi
+    for n in "${NAMES[@]}"; do
+        case "${CONN[$n]}" in "$card"-*) echo "$n"; return 0 ;; esac
+    done
+    return 1
+}
+
 usage() {
-    echo "usage: lgmonitor-input [-v] get | list | cycle | set <input>   (inputs: ${NAMES[*]})" >&2
+    echo "usage: lgmonitor-input [-v] get | list | find <card> | cycle | set <input>   (inputs: ${NAMES[*]})" >&2
     exit 2
 }
 
@@ -218,6 +235,7 @@ usage() {
 command -v "${DDC%% *}" >/dev/null || die "ddcutil not found" 3
 case "$1" in
     get)  cmd_get ;;
+    find)  cmd_find "$2" ;;
     cycle) cmd_cycle ;;
     set)  cmd_set "$2" ;;
     *)    usage ;;
