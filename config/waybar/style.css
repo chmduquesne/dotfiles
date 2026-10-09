@@ -32,3 +32,35 @@
 #custom-audiostatus.free {
     color: #55ff55; /* Green indicator */
 }
+
+#custom-updates {
+    padding: 0 10px;
+}
+
+#custom-egpu {
+    padding: 0 10px;
+}
+
+#custom-egpu.error {
+    background-color: #ff5555; /* Red indicator */
+}
+
+#custom-egpu {
+    transition: background-color 150ms;
+}
+
+#custom-egpu:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+#custom-egpu.error:hover {
+    background-color: #ff8888;
+}
+
+#custom-egpu.attached {
+    background-color: #76b900; /* NVIDIA green: the eGPU is connected */
+}
+
+#custom-egpu.attached:hover {
+    background-color: #8ed400; /* Brighter on hover: click to detach */
+}
