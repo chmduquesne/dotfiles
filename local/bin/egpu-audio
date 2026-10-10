@@ -1,54 +1,52 @@
 #!/bin/bash
-# egpu-audio: keep the sound on the physical monitor while it changes input.
-# ("physical monitor" is the screen with speakers, as opposed to PulseAudio's "monitor"
-# sources, which capture what a sink plays and have nothing to do with this.)
-#   egpu-audio follow   -- command [args...]   run command (it switches the physical monitor
-#                                              to the eGPU's input), then move the sound along
-#   egpu-audio unfollow -- command [args...]   run command (it switches the physical monitor
-#                                              back), then put the sound back where it was
+# egpu-audio: keep the sound on the physical monitor (the screen with speakers) while it
+# changes input.
+#   egpu-audio follow   -- command [args...]   run command (switches the monitor to the eGPU),
+#                                              then move the sound to the eGPU's audio sink
+#   egpu-audio unfollow -- command [args...]   run command (switches it back), then restore
+#                                              the old sink unless the default changed meanwhile
 #
-# The default sink is left alone, with one exception: when it is a physical monitor's sink
-# (HDMI or DisplayPort), it is moved to the eGPU's HDMI sink for as long as the monitor shows
-# the eGPU, so the sound stays on the physical monitor through the new input. Speakers,
-# Bluetooth, USB... are never touched. On unfollow the old sink is restored, unless the default
-# was changed meanwhile. The exit code is the command's. If the command fails, nothing is moved.
+# Only a default sink that is an HDMI/DisplayPort monitor is moved; speakers, Bluetooth, USB
+# are left alone. The exit code is the command's; if it fails, nothing is moved.
 #
-# The physical monitor only plays the sound of its active input, and the sinks flap while it
-# changes input (set-default-sink then fails with "No such entity", seen 2026-10-09): the eGPU
-# sink is looked up BEFORE the command, and the sink is set after it, retried for up to 6 s.
+# The monitor's sinks flap while it changes input (set-default-sink fails with "No such
+# entity"), so the eGPU sink is looked up BEFORE the command and set after it, with retries.
 #
-# State (the sinks we moved): $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
-# Needs pactl, jq and lspci.
-# Testing hooks: EGPU_PACTL (command instead of pactl), EGPU_LOGGER, EGPU_RUNTIME.
-# Log: journalctl -t egpu-audio
+# State: $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
+# The eGPU is card1 unless EGPU_CARD says otherwise.
+# Testing hooks: EGPU_PACTL, EGPU_LOGGER, EGPU_RUNTIME. Log: journalctl -t egpu-audio
 
 PACTL=${EGPU_PACTL:-pactl}
+CARD=${EGPU_CARD:-card1}
 RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
 STATE=$RT/egpu-audio.state
 
 log() { ${EGPU_LOGGER:-logger} -t egpu-audio -- "$*" 2>/dev/null || true; }
 
-# The eGPU's sink for the port a physical monitor is plugged into: the sink of the eGPU's
-# audio function (found by its PCI address, which holds for any HDMI or DisplayPort port of
-# the card) whose port is marked available.
+# The eGPU's sink with an available port, whichever HDMI or DisplayPort connector it is. The
+# eGPU is $EGPU_CARD (as in egpu-kiosk); its audio function is the class 0403 device in the
+# same PCI slot.
 egpu_sink() {
-    local addr
-    addr=$(lspci -D -d 10de::0403 2>/dev/null | awk 'NR==1 {print $1}')
+    local gpu dev addr
+    gpu=$(readlink -f "/sys/class/drm/$CARD/device") || return 1
+    for dev in "${gpu%.*}".*; do
+        [[ $(< "$dev/class") == 0x0403* ]] || continue
+        addr=${dev##*/}; break
+    done 2>/dev/null
     [ -n "$addr" ] || return 1
     $PACTL --format=json list sinks 2>/dev/null | jq -r --arg bus "pci-$addr" '
         first(.[] | select(.properties["device.bus_path"] == $bus
                            and any(.ports[]; .availability == "available")) | .name) // empty'
 }
 
-# Whether sink $1 is on a physical monitor: PulseAudio types the HDMI and DisplayPort ports of
-# a GPU "HDMI", whatever the connector, so look at the type of the sink's active port.
+# Whether sink $1 is on a monitor: PulseAudio types HDMI and DisplayPort ports alike "HDMI".
 is_physical_monitor_sink() {
     $PACTL --format=json list sinks 2>/dev/null | jq -e --arg name "$1" '
         .[] | select(.name == $name) | .active_port as $p
             | any(.ports[]; .name == $p and .type == "HDMI")' >/dev/null
 }
 
-# set_default <sink-or-"">: retry for up to 6 s; with an empty name, look the eGPU sink up each time
+# set_default <sink-or-"">: retry for 6 s; an empty name means look up the eGPU sink each time
 set_default() {
     local sink=$1 i
     for i in $(seq 1 12); do
@@ -64,7 +62,7 @@ follow() {
     old=$($PACTL get-default-sink 2>/dev/null)
     if is_physical_monitor_sink "$old"; then
         new=$(egpu_sink)
-        [ -n "$new" ] || log "no eGPU HDMI sink available; audio stays on $old"
+        [ -n "$new" ] || log "no eGPU audio sink available; audio stays on $old"
     else
         log "default sink ${old:-?} is not a physical monitor; left alone"
     fi
@@ -74,7 +72,7 @@ follow() {
         echo "$old $new" > "$STATE"
         log "default sink $old -> $new"
     else
-        echo "egpu-audio: could not set the eGPU HDMI audio sink; sound stays on $old" >&2
+        echo "egpu-audio: could not set the eGPU audio sink; sound stays on $old" >&2
     fi
     return 0
 }
@@ -101,4 +99,7 @@ if { [ "$cmd" != follow ] && [ "$cmd" != unfollow ]; } || [ "$2" != -- ] || [ $#
     exit 2
 fi
 shift 2
+for dep in ${PACTL%% *} jq; do
+    command -v "$dep" >/dev/null || { echo "egpu-audio: $dep not found" >&2; exit 1; }
+done
 "$cmd" "$@"
