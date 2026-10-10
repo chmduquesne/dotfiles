@@ -13,27 +13,19 @@
 # entity"), so the eGPU sink is looked up BEFORE the command and set after it, with retries.
 #
 # State: $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
-# The eGPU is card1 unless EGPU_CARD says otherwise.
+# The eGPU is found by egpu-card (see EGPU_CARD there).
 # Testing hooks: EGPU_PACTL, EGPU_LOGGER, EGPU_RUNTIME. Log: journalctl -t egpu-audio
 
 PACTL=${EGPU_PACTL:-pactl}
-CARD=${EGPU_CARD:-card1}
 RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
 STATE=$RT/egpu-audio.state
 
 log() { ${EGPU_LOGGER:-logger} -t egpu-audio -- "$*" 2>/dev/null || true; }
 
-# The eGPU's sink with an available port, whichever HDMI or DisplayPort connector it is. The
-# eGPU is $EGPU_CARD (as in egpu-kiosk); its audio function is the class 0403 device in the
-# same PCI slot.
+# The eGPU's sink with an available port, whichever HDMI or DisplayPort connector it is.
 egpu_sink() {
-    local gpu dev addr
-    gpu=$(readlink -f "/sys/class/drm/$CARD/device") || return 1
-    for dev in "${gpu%.*}".*; do
-        [[ $(< "$dev/class") == 0x0403* ]] || continue
-        addr=${dev##*/}; break
-    done 2>/dev/null
-    [ -n "$addr" ] || return 1
+    local addr
+    addr=$(egpu-card --audio) || return 1
     $PACTL --format=json list sinks 2>/dev/null | jq -r --arg bus "pci-$addr" '
         first(.[] | select(.properties["device.bus_path"] == $bus
                            and any(.ports[]; .availability == "available")) | .name) // empty'
@@ -99,7 +91,7 @@ if { [ "$cmd" != follow ] && [ "$cmd" != unfollow ]; } || [ "$2" != -- ] || [ $#
     exit 2
 fi
 shift 2
-for dep in ${PACTL%% *} jq; do
+for dep in ${PACTL%% *} jq egpu-card; do
     command -v "$dep" >/dev/null || { echo "egpu-audio: $dep not found" >&2; exit 1; }
 done
 "$cmd" "$@"

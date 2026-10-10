@@ -1,0 +1,37 @@
+#!/bin/bash
+# egpu-card: find the eGPU.
+#   egpu-card           print its DRM card name (card1)
+#   egpu-card --pci     print its PCI address (0000:a6:00.0)
+#   egpu-card --audio   print the PCI address of its audio function (0000:a6:00.1)
+# Prints nothing and exits 1 if there is no eGPU.
+#
+# The eGPU is the GPU the kernel flags "removable" (behind an external port such as
+# Thunderbolt), whatever its vendor or card number. EGPU_CARD (e.g. card1) overrides the
+# detection. Testing hook: EGPU_SYSFS (instead of /sys).
+
+SYS=${EGPU_SYSFS:-/sys}
+
+case $1 in
+    "") mode=card ;;
+    --pci) mode=pci ;;
+    --audio) mode=audio ;;
+    *) echo "usage: egpu-card [--pci|--audio]" >&2; exit 2 ;;
+esac
+
+for card in "$SYS"/class/drm/${EGPU_CARD:-card*}; do
+    [[ $card =~ /card[0-9]+$ ]] || continue
+    [ -n "$EGPU_CARD" ] || [ "$(< "$card/device/removable")" = removable ] || continue
+    gpu=$(readlink -f "$card/device"); break
+done 2>/dev/null
+[ -n "$gpu" ] || exit 1
+
+case $mode in
+    card) echo "${card##*/}" ;;
+    pci) echo "${gpu##*/}" ;;
+    audio)
+        # the class 0403 function in the same PCI slot
+        for dev in "${gpu%.*}".*; do
+            [[ $(< "$dev/class") == 0x0403* ]] && { echo "${dev##*/}"; exit 0; }
+        done 2>/dev/null
+        exit 1 ;;
+esac
