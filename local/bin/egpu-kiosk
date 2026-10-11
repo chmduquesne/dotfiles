@@ -8,7 +8,7 @@
 #
 # What it does, in order:
 #   1. unloads ollama models (frees the 24 GB of VRAM for the program)
-#   2. switches the LG monitor to the input the eGPU (card1) is plugged into, over DDC/CI
+#   2. switches the LG monitor to the input the eGPU is plugged into, over DDC/CI
 #      (lgmonitor-input) and, if the audio was on the monitor, moves it to the eGPU's HDMI
 #      audio (egpu-audio). If that fails, it stops with exit code 1 instead of running on a
 #      screen nobody can see.
@@ -63,13 +63,17 @@ if [ -n "$EGPU_DRYRUN" ]; then
     exit 0
 fi
 
+for dep in sway egpu-card egpu-audio lgmonitor-input; do
+    command -v "$dep" >/dev/null || { echo "egpu-kiosk: $dep not found" >&2; exit 1; }
+done
+
 # Inside tmux the shell belongs to the desktop login session, which is inactive on
 # another VT, so logind would refuse sway the display (black screen).
 if [ -n "$TMUX" ]; then
     echo "egpu-kiosk: refusing to run inside tmux (it inherits the desktop session)." >&2
     exit 1
 fi
-lspci -d 10de: | grep -q . || { echo "egpu-kiosk: the eGPU is not connected." >&2; exit 1; }
+card=$(egpu-card) || { echo "egpu-kiosk: the eGPU is not connected." >&2; exit 1; }
 [ -r "$CONF" ] || { echo "egpu-kiosk: missing config $CONF" >&2; exit 1; }
 
 log "start: user=$(id -un) session=${XDG_SESSION_ID:-?} vt=${XDG_VTNR:-?} cmd=${cmd[*]}"
@@ -99,19 +103,18 @@ cleanup() {
 trap cleanup EXIT
 
 # --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
-# The input is whichever one the monitor reaches the eGPU (card1) through; the cable can be
+# The input is whichever one the monitor reaches the eGPU through; the cable can be
 # moved between inputs. Running the kiosk without it would leave a black screen that nobody
 # can see or leave (the desktop session is already deactivated), so any failure here ends the
 # run: egpu-display then switches back to the desktop and egpu-launch reports the exit code.
 fail() { echo "egpu-kiosk: $*" >&2; log "abort: $*"; exit 1; }
 
-command -v lgmonitor-input >/dev/null || fail "lgmonitor-input not found; cannot show the eGPU."
 input=
 for _ in 1 2 3; do   # the DDC scan sometimes misses the eGPU's link once
-    input=$(lgmonitor-input find card1 2>/dev/null) && [ -n "$input" ] && break
+    input=$(lgmonitor-input find "$card" 2>/dev/null) && [ -n "$input" ] && break
     input=; sleep 2
 done
-[ -n "$input" ] || fail "no monitor input is wired to the eGPU (card1)."
+[ -n "$input" ] || fail "no monitor input is wired to the eGPU ($card)."
 ddc_on=1
 log "monitor input for the eGPU: $input"
 egpu-audio follow -- lgmonitor-input set "$input" \
@@ -120,7 +123,7 @@ egpu-audio follow -- lgmonitor-input set "$input" \
 # --- 4. the kiosk -----------------------------------------------------------------------
 : > "$SWAYLOG"
 KIOSK_CMD=$(printf '%q ' "${cmd[@]}") \
-WLR_DRM_DEVICES=/dev/dri/card1 \
+WLR_DRM_DEVICES=/dev/dri/$card \
 WLR_NO_HARDWARE_CURSORS=1 \
 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json \
 __GLX_VENDOR_LIBRARY_NAME=nvidia \
