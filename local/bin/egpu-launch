@@ -33,8 +33,12 @@ desktop_session() {
     return 1
 }
 
+for dep in ${LOGINCTL%% *} flock egpu-card; do
+    command -v "$dep" >/dev/null || { echo "egpu-launch: $dep not found" >&2; exit 1; }
+done
+
 desk=$(desktop_session) || die "no graphical session found."
-lspci -d 10de: | grep -q . || die "the eGPU is not connected."
+egpu-card >/dev/null || die "the eGPU is not connected."
 
 [ -p "$FIFO" ] && [ -r "$SESSFILE" ] \
     || die "the display host is not running (egpu-display.service, or egpu-display in a tty2 login)."
