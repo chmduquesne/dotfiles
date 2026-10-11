@@ -1,21 +1,20 @@
 #!/bin/bash
-# Manage the Thunderbolt eGPU (NVIDIA): report its state to waybar and disconnect it cleanly.
-# The eGPU itself is found by egpu-card.
+# Manage the Thunderbolt eGPU (NVIDIA, found by egpu-card): report its state to waybar and
+# disconnect it cleanly.
 #   waybar-egpu status          JSON for a waybar custom module
-#   waybar-egpu disconnect [-f] [-y]  confirm, then cleanly disconnect so the cable can be pulled
+#   waybar-egpu disconnect [-f] [-y]  confirm, then disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
 #       -y  skip the confirmation dialog
 
 SERVICES="ollama nvidia-persistenced"
 
-# Journal logging, for post-mortems: journalctl -t waybar-egpu. Never fails the script.
-# (EGPU_LOGGER is a testing hook: a command instead of logger.)
+# Journal log, for post-mortems: journalctl -t waybar-egpu. Never fails the script.
+# (EGPU_LOGGER: testing hook, a command instead of logger.)
 log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # Who really uses the eGPU: processes holding its device nodes (/dev/nvidia0.., nvidia-uvm,
-# nvidia-caps, and the DRM nodes of the eGPU, e.g. a game session on its display).
-# Holding only /dev/nvidiactl is NOT counted: that is what any program does that merely lists the
-# GPUs (e.g. Firefox's media process via EGL) without using one.
+# nvidia-caps, its DRM nodes). Holding only /dev/nvidiactl does not count: any program that
+# merely lists the GPUs (e.g. Firefox via EGL) does that.
 gpu_users() {
     local n d nodes=()
     for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
@@ -32,8 +31,8 @@ ctl_only_users() {
     lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all") 
 }
 
-# ---- privileged part (runs as root, no UI) ---------------------------------
-# Run through sudo, whose PATH may lack egpu-card: the eGPU's PCI address ($3) is passed in.
+# ---- privileged part (root, no UI) ------------------------------------------
+# sudo's PATH may lack egpu-card, so the eGPU's PCI address ($3) is passed in.
 if [ "$1" = "--root" ]; then
     force=$2 PCI=$3
     for dep in lsof systemctl; do
@@ -110,7 +109,7 @@ notify() {  # notify <urgency> <title> <body>
     have_gui && command -v notify-send >/dev/null && notify-send -u "$1" -i video-display "$2" "$3"
 }
 
-# ---- status: waybar JSON ----------------------------------------------------
+# ---- status: waybar JSON ------------------------------------------------------
 waybar_json() {  # waybar_json <text> <class> <tooltip>
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, tooltip: $tooltip}'
@@ -122,7 +121,7 @@ status() {
         waybar_json "" disconnected ""
     elif [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
          && lsmod | grep -q '^nvidia '; then
-        # PCI device is listed but the driver has no GPU: the stuck state after a surprise pull.
+        # listed but the driver has no GPU: the stuck state after a surprise pull
         waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
         name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
@@ -130,13 +129,11 @@ status() {
     fi
 }
 
-# ---- audio: PipeWire can block the removal of the eGPU's HDMI audio function ----------------
-# PipeWire keeps /dev/snd/controlC<n> of the card open and does not close it when the card goes
-# away (setting the card profile to "off" does not release it either: tried 2026-10-09). The
-# kernel's removal (snd_card_free) then waits forever, in uninterruptible sleep. Restarting
-# PipeWire closes the handle and the removal finishes. So: while the privileged step runs, watch
-# for it being stuck in D state, and restart PipeWire (once the removal has begun, PipeWire
-# cannot reopen the card).
+# ---- audio: PipeWire can block the removal of the eGPU's audio function ----------------------
+# PipeWire keeps /dev/snd/controlC<n> open when the card goes away (a card profile of "off"
+# does not release it), so the kernel's removal waits forever in uninterruptible sleep.
+# Restarting PipeWire closes the handle. So while the privileged step runs, watch for it being
+# stuck in D state and restart PipeWire (it cannot reopen the card once removal has begun).
 pw_watchdog() {
     local stuck=0 restarted=0
     while sleep 2; do
