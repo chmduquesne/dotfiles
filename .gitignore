@@ -3,3 +3,4 @@ themes/*
 vim/*
 virtualenvs/*
 local/share/*
+local/state/*
