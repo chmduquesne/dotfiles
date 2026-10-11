@@ -103,6 +103,10 @@ waybar_json() {  # waybar_json <text> <class> <tooltip>
         '{text: $text, class: $class, tooltip: $tooltip}'
 }
 
+# Still listed but gone from the bus (unplugged without disconnecting): its live config space
+# reads ffff, unlike the cached sysfs files.
+gone() { [ "$(timeout 2 od -An -tx2 -N2 "/sys/bus/pci/devices/$PCI/config" 2>/dev/null | tr -d ' ')" = ffff ]; }
+
 # Driver loaded but no GPU: the stuck state after a surprise unplug.
 nvidia_stuck() {
     [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
@@ -113,6 +117,8 @@ status() {
     # cheap checks only, so polling never wakes the GPU
     if [ -z "$PCI" ]; then
         waybar_json "" disconnected ""
+    elif gone; then
+        waybar_json "🎮⚠️" error "eGPU unplugged without disconnecting. Do not suspend; reboot."
     elif is_nvidia && nvidia_stuck; then
         waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
@@ -150,6 +156,11 @@ disconnect() {
         log "no eGPU present; nothing to disconnect"
         notify low "eGPU" "No eGPU connected."
         return 0
+    fi
+    if gone; then
+        log "refusing to disconnect: the eGPU is already unplugged"
+        notify critical "eGPU already unplugged" "Nothing to disconnect. Reboot before reconnecting."
+        return 1
     fi
 
     local holders svc active=() list text
