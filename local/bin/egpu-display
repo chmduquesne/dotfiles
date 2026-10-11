@@ -1,28 +1,24 @@
 #!/bin/bash
 # egpu-display: the long-running host that owns the eGPU's display, on tty2.
-#   egpu-display            runs forever; started by egpu-display.service (or by hand in a
-#                           plain tty2 login for testing)
+#   egpu-display   runs forever; started by egpu-display.service (or by hand in a tty2 login)
 #
-# It waits for requests from `egpu-launch` (desktop side), then runs `egpu-kiosk` inside its
-# own tty session, which logind lets take the eGPU's display, and finally switches back to the
-# desktop session. It never starts anything by itself and reads no keyboard input.
+# It waits for requests from `egpu-launch`, runs `egpu-kiosk` in its own tty session (which
+# logind lets take the eGPU's display), then switches back to the desktop session. It reads no
+# keyboard input.
 #
-# Protocol (all in $XDG_RUNTIME_DIR, user-only):
-#   egpu-display.fifo      request lines:  <desktop session>TAB<reply fifo>TAB<quoted command>
+# Protocol (in $XDG_RUNTIME_DIR):
+#   egpu-display.fifo      requests: <desktop session>TAB<reply fifo>TAB<quoted command>
 #   egpu-display.session   "<pid> <session id>" of this host (egpu-launch needs both)
 #   egpu-display.lock      single-instance lock
-# The reply fifo gets the exit code of egpu-kiosk when it is done.
+# The reply fifo gets the exit code of egpu-kiosk.
 #
-# Testing hooks (leave unset in normal use):
-#   EGPU_RUNTIME  directory instead of $XDG_RUNTIME_DIR     EGPU_KIOSK  runner to execute
-#   EGPU_LOGINCTL command instead of loginctl (e.g. a stub)
-#   EGPU_LOGGER   command instead of logger
-# Log: journalctl -t egpu-display -t egpu-kiosk   (add -k for the kernel log)
+# Testing hooks: EGPU_RUNTIME (instead of $XDG_RUNTIME_DIR), EGPU_KIOSK (runner), EGPU_LOGINCTL
+# (instead of loginctl), EGPU_LOGGER.
+# Log: journalctl -t egpu-display -t egpu-kiosk (add -k for the kernel log)
 
-# A service started with PAMName= can carry a real (ambient) capability, CAP_WAKE_ALARM. Steam's
-# sandbox (bubblewrap) then refuses to run ("Unexpected capabilities but not setuid"), which
-# Steam reports as "Steam now requires user namespaces". Clear them and re-exec once.
-# (EGPU_STATUS is a testing hook: the status file to inspect instead of /proc/self/status.)
+# A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
+# (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
+# (EGPU_STATUS: testing hook, a status file instead of /proc/self/status.)
 if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
    && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
     export EGPU_CAPS_DROPPED=1
@@ -44,9 +40,9 @@ done
 
 log() { ${EGPU_LOGGER:-logger} -t egpu-display -- "$*" 2>/dev/null || true; }
 
-# Nothing may read the keyboard of this tty. As a service (systemd sets INVOCATION_ID) the
-# tty is also made inert: no echo, and Ctrl+C / Ctrl+\ / Ctrl+Z are plain characters, so
-# nobody at the keyboard can kill the host. Run by hand in a tty login, signals stay on.
+# Nothing may read this tty's keyboard. As a service (INVOCATION_ID is set) the tty is also
+# made inert (no echo, Ctrl+C etc. are plain characters) so nobody can kill the host by
+# keyboard; by hand, signals stay on.
 if [ -n "$INVOCATION_ID" ] && [ -t 0 ]; then stty -isig -echo 2>/dev/null; fi
 exec </dev/null
 
