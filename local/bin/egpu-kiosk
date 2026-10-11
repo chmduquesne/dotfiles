@@ -1,34 +1,28 @@
 #!/bin/bash
-# egpu-kiosk: run ONE program fullscreen on the eGPU's HDMI output, inside a sway kiosk.
+# egpu-kiosk: run ONE program fullscreen on the eGPU's display, inside a sway kiosk.
 #   egpu-kiosk command [args...]        e.g.  egpu-kiosk steam
 #
-# This is the runner. It must run in a plain tty session (a login on a free VT, or the
-# egpu-display service on tty2), NOT inside tmux and not in your desktop session: logind
-# only gives the display to the active session. From the desktop, use `egpu-launch`.
+# The runner. It needs a plain tty session (a free VT, or egpu-display on tty2), not tmux or
+# the desktop session: logind only gives the display to the active session. From the desktop,
+# use `egpu-launch`.
 #
-# What it does, in order:
-#   1. unloads ollama models (frees the 24 GB of VRAM for the program)
-#   2. switches the LG monitor to the input the eGPU is plugged into, over DDC/CI
-#      (lgmonitor-input) and, if the audio was on the monitor, moves it to the eGPU's HDMI
-#      audio (egpu-audio). If that fails, it stops with exit code 1 instead of running on a
-#      screen nobody can see.
+# In order:
+#   1. unloads ollama models (frees the VRAM)
+#   2. switches the LG monitor to the eGPU's input (lgmonitor-input) and, if the audio was on
+#      the monitor, moves it along (egpu-audio); on failure it exits 1 rather than run on a
+#      screen nobody can see
 #   3. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
-#   4. on any exit: shuts Steam down, switches the monitor back to USB-C, restores audio
-#
-# The monitor input switching, with all its LG quirks, lives in `lgmonitor-input`.
+#   4. on exit: shuts Steam down, switches the monitor back to USB-C, restores audio
 #
 # Alt+Esc quits the kiosk.
-# Logs: journalctl -t egpu-kiosk   (events, ordered with the kernel log: add -k)
-#       ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log   (sway/Xwayland output, noisy)
-#
-# Environment knobs:  EGPU_DRYRUN=1  only print what would run (testing)
-#                     EGPU_LOGGER=cmd  use cmd instead of logger (testing)
-#                     EGPU_BINDIR=dir  directory searched first for commands (testing)
+# Log: journalctl -t egpu-kiosk (add -k for the kernel log); sway output (noisy):
+#      ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log
+# Testing hooks: EGPU_DRYRUN=1 (only print what would run), EGPU_LOGGER, EGPU_BINDIR
+# (directory searched first for commands).
 
-# A service started with PAMName= can carry a real (ambient) capability, CAP_WAKE_ALARM. Steam's
-# sandbox (bubblewrap) then refuses to run ("Unexpected capabilities but not setuid"), which
-# Steam reports as "Steam now requires user namespaces". Clear them and re-exec once.
-# (EGPU_STATUS is a testing hook: the status file to inspect instead of /proc/self/status.)
+# A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
+# (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
+# (EGPU_STATUS: testing hook, a status file instead of /proc/self/status.)
 if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
    && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
     export EGPU_CAPS_DROPPED=1
@@ -50,7 +44,7 @@ fi
 
 log() { ${EGPU_LOGGER:-logger} -t egpu-kiosk -- "$*" 2>/dev/null || true; }
 
-# The command is always explicit: no default, and an empty command is refused.
+# The command is explicit: there is no default.
 if [ $# -eq 0 ] || [ -z "$1" ]; then
     echo "usage: egpu-kiosk command [args...]   (e.g. egpu-kiosk steam)" >&2
     exit 2
@@ -67,8 +61,8 @@ for dep in sway egpu-card egpu-audio lgmonitor-input; do
     command -v "$dep" >/dev/null || { echo "egpu-kiosk: $dep not found" >&2; exit 1; }
 done
 
-# Inside tmux the shell belongs to the desktop login session, which is inactive on
-# another VT, so logind would refuse sway the display (black screen).
+# Inside tmux the shell belongs to the (inactive) desktop session: logind would refuse sway
+# the display.
 if [ -n "$TMUX" ]; then
     echo "egpu-kiosk: refusing to run inside tmux (it inherits the desktop session)." >&2
     exit 1
@@ -88,9 +82,8 @@ if command -v ollama >/dev/null; then
 fi
 
 # --- 2. cleanup, however we end (kiosk quit, Ctrl+C, program exit, failed start) --------
-# Steam keeps running in its tray when its window is closed, which would hold the eGPU and
-# block `waybar-egpu disconnect`. ddc_on is set before the monitor switch is attempted, so a
-# failed switch still tries to switch back.
+# Steam stays in its tray when its window closes and would block `waybar-egpu disconnect`.
+# ddc_on is set before the monitor switch, so a failed switch still tries to switch back.
 ddc_on=
 cleanup() {
     if [ "${cmd[0]}" = /usr/games/steam ]; then /usr/games/steam -shutdown >/dev/null 2>&1; fi
@@ -103,10 +96,9 @@ cleanup() {
 trap cleanup EXIT
 
 # --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
-# The input is whichever one the monitor reaches the eGPU through; the cable can be
-# moved between inputs. Running the kiosk without it would leave a black screen that nobody
-# can see or leave (the desktop session is already deactivated), so any failure here ends the
-# run: egpu-display then switches back to the desktop and egpu-launch reports the exit code.
+# The input is whichever one the monitor reaches the eGPU through (the cable can move). Any
+# failure here ends the run: the kiosk would show a black screen nobody can leave. egpu-display
+# then switches back to the desktop and egpu-launch reports the exit code.
 fail() { echo "egpu-kiosk: $*" >&2; log "abort: $*"; exit 1; }
 
 input=
