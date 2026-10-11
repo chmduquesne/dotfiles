@@ -1,35 +1,41 @@
 #!/bin/bash
-# Manage the Thunderbolt eGPU (NVIDIA, found by egpu-card): report its state to waybar and
-# disconnect it cleanly. Meant to run from waybar: the dialogs and notifications are graphical
-# (zenity, notify-send).
+# Manage the Thunderbolt eGPU (found by egpu-card): report its state to waybar and disconnect
+# it cleanly.
 #   waybar-egpu status          JSON for a waybar custom module
-#   waybar-egpu disconnect [-f] [-y]  confirm, then disconnect so the cable can be pulled
+#   waybar-egpu disconnect [-f]  confirm, then disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
-#       -y  skip the confirmation dialog
 
-SERVICES="ollama nvidia-persistenced"
+# Services to stop before disconnecting.
+SERVICES=${WAYBAR_EGPU_SERVICES:-ollama}
+NVIDIA=0x10de
 
-# Journal log, for post-mortems: journalctl -t waybar-egpu. Never fails the script.
-# (EGPU_LOGGER: testing hook, a command instead of logger.)
+# Journal log (journalctl -t waybar-egpu); never fails. EGPU_LOGGER: testing hook.
 log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
-# Who really uses the eGPU: processes holding its device nodes (/dev/nvidia0.., nvidia-uvm,
-# nvidia-caps, its DRM nodes). Holding only /dev/nvidiactl does not count: any program that
-# merely lists the GPUs (e.g. Firefox via EGL) does that.
+# NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
+is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = "$NVIDIA" ]; }
+
+services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
+
+# Who really uses the eGPU: pids holding its DRM nodes (NVIDIA: and its /dev/nvidia* nodes).
 gpu_users() {
     local n d nodes=()
-    for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
+    if is_nvidia; then
+        for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
+    fi
     for d in /sys/class/drm/card[0-9]/device /sys/class/drm/renderD*/device; do
         [ "$(basename "$(readlink -f "$d")")" = "$PCI" ] || continue
         n=/dev/dri/$(basename "$(dirname "$d")"); [ -e "$n" ] && nodes+=("$n")
     done
     [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
 }
-# Holders of /dev/nvidiactl only (not blocking); pids on stdout.
+# NVIDIA only: pids holding /dev/nvidiactl and nothing else. They merely list the GPUs (e.g.
+# Firefox via EGL), so they do not block.
 ctl_only_users() {
     local all
+    is_nvidia || return 0
     all=$(gpu_users)
-    lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all") 
+    lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all")
 }
 
 # "pid name;pid name" for the pids in $1 (one per line), for the log.
@@ -53,7 +59,7 @@ if [ "$1" = "--root" ]; then
     fi
     log "eGPU PCI functions: ${devs[*]}"
 
-    for svc in $SERVICES; do
+    for svc in $(services); do
         if systemctl is-active --quiet "$svc"; then
             log "stopping $svc"
             systemctl stop "$svc"
@@ -108,13 +114,17 @@ waybar_json() {  # waybar_json <text> <class> <tooltip>
         '{text: $text, class: $class, tooltip: $tooltip}'
 }
 
+# Driver loaded but no GPU: the stuck state after a surprise unplug.
+nvidia_stuck() {
+    [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
+        && lsmod | grep -q '^nvidia '
+}
+
 status() {
-    # Cheap checks only (no nvidia-smi), so polling never wakes the GPU.
+    # Cheap checks only (no vendor tools), so polling never wakes the GPU.
     if [ -z "$PCI" ]; then
         waybar_json "" disconnected ""
-    elif [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
-         && lsmod | grep -q '^nvidia '; then
-        # listed but the driver has no GPU: the stuck state after a surprise pull
+    elif is_nvidia && nvidia_stuck; then
         waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
         name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
@@ -123,10 +133,9 @@ status() {
 }
 
 # ---- audio: PipeWire can block the removal of the eGPU's audio function ----------------------
-# PipeWire keeps /dev/snd/controlC<n> open when the card goes away (a card profile of "off"
-# does not release it), so the kernel's removal waits forever in uninterruptible sleep.
-# Restarting PipeWire closes the handle. So while the privileged step runs, watch for it being
-# stuck in D state and restart PipeWire (it cannot reopen the card once removal has begun).
+# It keeps /dev/snd/controlC<n> open after the card goes away, so the kernel's removal hangs
+# in D state. While the privileged step runs, watch for that and restart PipeWire (it cannot
+# reopen the card once removal has begun).
 pw_watchdog() {
     local stuck=0 restarted=0
     while sleep 2; do
@@ -145,16 +154,11 @@ pw_watchdog() {
 
 # ---- disconnect: confirmation UI, then privileged part --------------------------
 disconnect() {
-    local force=0 yes=0 a
+    local force=0
     for dep in zenity notify-send; do
         command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; return 1; }
     done
-    for a in "$@"; do
-        case "$a" in
-            -f) force=1 ;;
-            -y) yes=1 ;;
-        esac
-    done
+    [ "$1" = -f ] && force=1
 
     if [ -z "$PCI" ]; then
         log "no eGPU present; nothing to disconnect"
@@ -163,7 +167,7 @@ disconnect() {
     fi
 
     local summary="This will stop these services (if running):" svc holders
-    for svc in $SERVICES; do
+    for svc in $(services); do
         systemctl is-active --quiet "$svc" && summary+=$'\n  • '"$svc"
     done
     holders=$(gpu_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
@@ -179,11 +183,9 @@ disconnect() {
     [ -n "$ctl" ] && summary+=$'\n\nOnly list the GPU, not blocking:\n'"$(echo "$ctl" | sed 's/^/  • /')"
     summary+=$'\n\nThen the eGPU is removed from the PCI bus.'
 
-    if [ "$yes" -ne 1 ]; then
-        zenity --question --title="Disconnect eGPU" --width=420 \
-            --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" \
-            || { log "disconnect cancelled by the user"; return 1; }
-    fi
+    zenity --question --title="Disconnect eGPU" --width=420 \
+        --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" \
+        || { log "disconnect cancelled by the user"; return 1; }
 
     local out rc pw wd
     if [ -t 0 ]; then
@@ -214,5 +216,5 @@ disconnect() {
 case "$1" in
     status) status ;;
     disconnect) shift; disconnect "$@" ;;
-    *) echo "Usage: $0 [status|disconnect [-f] [-y]]"; exit 1 ;;
+    *) echo "Usage: $0 [status|disconnect [-f]]"; exit 1 ;;
 esac
