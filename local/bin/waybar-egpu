@@ -1,18 +1,16 @@
 #!/bin/bash
 # Manage the eGPU (found by egpu-card): report its state to waybar and disconnect it cleanly.
 #   waybar-egpu status          JSON for a waybar custom module
-#   waybar-egpu disconnect [-f]  confirm, then disconnect so the cable can be pulled
-#       -f  kill processes still using the GPU
+#   waybar-egpu disconnect      confirm, then disconnect so the cable can be pulled
 
 # Services to stop before disconnecting.
 SERVICES=${WAYBAR_EGPU_SERVICES:-ollama}
-NVIDIA=0x10de
 
 # Journal log: journalctl -t waybar-egpu
 log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
-is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = "$NVIDIA" ]; }
+is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]; }
 
 services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
 
@@ -41,15 +39,15 @@ ctl_only_users() {
 pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
 
 # ---- privileged part (root, no UI) ------------------------------------------
-# sudo's PATH may lack egpu-card, so the eGPU's PCI address ($3) is passed in.
+# sudo's PATH may lack egpu-card, so the eGPU's PCI address ($2) is passed in.
 if [ "$1" = "--root" ]; then
-    force=$2 PCI=$3
+    PCI=$2
     for dep in lsof systemctl; do
         command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
     done
     [[ $PCI =~ ^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$ ]] \
         || { echo "waybar-egpu: bad PCI address '$PCI'" >&2; exit 1; }
-    log "disconnect start (force=$force, pci=$PCI, requested by ${SUDO_USER:-unknown})"
+    log "disconnect start (pci=$PCI, requested by ${SUDO_USER:-unknown})"
     devs=()
     for d in /sys/bus/pci/devices/"${PCI%.*}".*; do [ -e "$d" ] && devs+=("${d##*/}"); done
     if [ "${#devs[@]}" -eq 0 ]; then
@@ -72,16 +70,8 @@ if [ "$1" = "--root" ]; then
     holders=$(gpu_users)
     if [ -n "$holders" ]; then
         log "processes still using the GPU (pid name): $(pid_names "$holders")"
-        if [ "$force" -eq 1 ]; then
-            log "killing the holders (-f)"
-            kill $holders
-            sleep 2
-            holders=$(gpu_users)
-            [ -n "$holders" ] && kill -9 $holders && sleep 1
-        else
-            log "refusing to disconnect: the GPU is still in use (rerun with -f)"
-            exit 1
-        fi
+        log "refusing to disconnect: the GPU is still in use"
+        exit 1
     fi
 
     for dev in $(printf '%s\n' "${devs[@]}" | sort -r); do
@@ -152,11 +142,9 @@ pw_watchdog() {
 
 # ---- disconnect: confirmation UI, then privileged part --------------------------
 disconnect() {
-    local force=0
     for dep in zenity notify-send; do
         command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; return 1; }
     done
-    [ "$1" = -f ] && force=1
 
     if [ -z "$PCI" ]; then
         log "no eGPU present; nothing to disconnect"
@@ -164,38 +152,39 @@ disconnect() {
         return 0
     fi
 
-    local summary="This will stop these services (if running):" svc holders
-    for svc in $(services); do
-        systemctl is-active --quiet "$svc" && summary+=$'\n  • '"$svc"
-    done
+    local holders svc active=() list text
     holders=$(gpu_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
     if [ -n "$holders" ]; then
-        if [ "$force" -eq 1 ]; then
-            summary+=$'\n\nThese processes will be KILLED:\n'"$(echo "$holders" | sed 's/^/  • /')"
-        else
-            summary+=$'\n\nStill using the GPU (disconnect will refuse):\n'"$(echo "$holders" | sed 's/^/  • /')"
-        fi
+        log "refusing to disconnect: the GPU is still in use"
+        zenity --error --no-markup --title="Disconnect eGPU" --width=420 \
+            --text="The eGPU is still in use by:"$'\n'"$(echo "$holders" | sed 's/^/  • /')"$'\n\n'"Close them and try again."
+        return 1
     fi
-    local ctl
-    ctl=$(ctl_only_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
-    [ -n "$ctl" ] && summary+=$'\n\nOnly list the GPU, not blocking:\n'"$(echo "$ctl" | sed 's/^/  • /')"
-    summary+=$'\n\nThen the eGPU is removed from the PCI bus.'
 
-    zenity --question --title="Disconnect eGPU" --width=420 \
-        --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" \
+    for svc in $(services); do
+        systemctl is-active --quiet "$svc" && active+=("$svc")
+    done
+    text="Disconnect the eGPU?"
+    if [ "${#active[@]}" -gt 0 ]; then
+        printf -v list '%s, ' "${active[@]}"
+        text+=$'\n\n'"This stops: ${list%, }."
+    fi
+    text+=$'\n\n'"The cable can then be unplugged."
+    zenity --question --no-markup --title="Disconnect eGPU" --width=420 \
+        --ok-label="Disconnect" --cancel-label="Cancel" --text="$text" \
         || { log "disconnect cancelled by the user"; return 1; }
 
     local out rc pw wd
     if [ -t 0 ]; then
         # our sudo wrapper may use a Yubikey and pass for the password (hence no -S)
         pw_watchdog & wd=$!
-        out=$(sudo "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
+        out=$(sudo "$(readlink -f "$0")" --root "$PCI" 2>&1)
         rc=$?
     else
         pw=$(zenity --password --title="Disconnect eGPU") \
             || { log "disconnect cancelled by the user"; return 1; }
         pw_watchdog & wd=$!
-        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
+        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$PCI" 2>&1)
         rc=$?
         unset pw
     fi
@@ -205,7 +194,7 @@ disconnect() {
 
     case $rc in
         0) notify normal   "eGPU disconnected" "Safe to unplug the cable." ;;
-        1) notify critical "eGPU NOT disconnected" "GPU is still in use. Close the apps or run: waybar-egpu disconnect -f" ;;
+        1) notify critical "eGPU NOT disconnected" "GPU is still in use. Close the apps and try again." ;;
         *) notify critical "eGPU disconnect problem" "Do NOT unplug. Check dmesg." ;;
     esac
     return $rc
@@ -213,6 +202,6 @@ disconnect() {
 
 case "$1" in
     status) status ;;
-    disconnect) shift; disconnect "$@" ;;
-    *) echo "Usage: $0 [status|disconnect [-f]]"; exit 1 ;;
+    disconnect) disconnect ;;
+    *) echo "Usage: $0 [status|disconnect]"; exit 1 ;;
 esac
