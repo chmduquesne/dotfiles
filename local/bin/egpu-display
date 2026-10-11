@@ -38,6 +38,10 @@ LOCKFILE=$RT/egpu-display.lock
 
 export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
 
+for dep in ${LOGINCTL%% *} jq flock "$KIOSK"; do
+    command -v "$dep" >/dev/null || { echo "egpu-display: $dep not found" >&2; exit 1; }
+done
+
 log() { ${EGPU_LOGGER:-logger} -t egpu-display -- "$*" 2>/dev/null || true; }
 
 # Nothing may read the keyboard of this tty. As a service (systemd sets INVOCATION_ID) the
