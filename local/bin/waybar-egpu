@@ -1,5 +1,6 @@
 #!/bin/bash
 # Manage the Thunderbolt eGPU (NVIDIA): report its state to waybar and disconnect it cleanly.
+# The eGPU itself is found by egpu-card.
 #   waybar-egpu status          JSON for a waybar custom module
 #   waybar-egpu disconnect [-f] [-y]  confirm, then cleanly disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
@@ -8,17 +9,18 @@
 SERVICES="ollama nvidia-persistenced"
 
 # Journal logging, for post-mortems: journalctl -t waybar-egpu. Never fails the script.
-jlog() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
+# (EGPU_LOGGER is a testing hook: a command instead of logger.)
+log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # Who really uses the eGPU: processes holding its device nodes (/dev/nvidia0.., nvidia-uvm,
-# nvidia-caps, and the DRM nodes of the NVIDIA card, e.g. a game session on its display).
+# nvidia-caps, and the DRM nodes of the eGPU, e.g. a game session on its display).
 # Holding only /dev/nvidiactl is NOT counted: that is what any program does that merely lists the
 # GPUs (e.g. Firefox's media process via EGL) without using one.
 gpu_users() {
     local n d nodes=()
     for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
     for d in /sys/class/drm/card[0-9]/device /sys/class/drm/renderD*/device; do
-        [ "$(cat "$d/vendor" 2>/dev/null)" = 0x10de ] || continue
+        [ "$(basename "$(readlink -f "$d")")" = "$PCI" ] || continue
         n=/dev/dri/$(basename "$(dirname "$d")"); [ -e "$n" ] && nodes+=("$n")
     done
     [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
@@ -31,64 +33,76 @@ ctl_only_users() {
 }
 
 # ---- privileged part (runs as root, no UI) ---------------------------------
+# Run through sudo, whose PATH may lack egpu-card: the eGPU's PCI address ($3) is passed in.
 if [ "$1" = "--root" ]; then
-    force=$2
-    jlog "disconnect start (force=$force, requested by ${SUDO_USER:-unknown})"
-    mapfile -t devs < <(lspci -D -d 10de: | awk '{print $1}')
+    force=$2 PCI=$3
+    for dep in lsof systemctl; do
+        command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
+    done
+    [[ $PCI =~ ^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$ ]] \
+        || { echo "waybar-egpu: bad PCI address '$PCI'" >&2; exit 1; }
+    log "disconnect start (force=$force, pci=$PCI, requested by ${SUDO_USER:-unknown})"
+    devs=()
+    for d in /sys/bus/pci/devices/"${PCI%.*}".*; do [ -e "$d" ] && devs+=("${d##*/}"); done
     if [ "${#devs[@]}" -eq 0 ]; then
-        echo "No NVIDIA PCI device present; nothing to disconnect."
-        jlog "no NVIDIA PCI device present; nothing to disconnect"
+        echo "No eGPU PCI device present; nothing to disconnect."
+        log "no eGPU PCI device present; nothing to disconnect"
         exit 0
     fi
-    jlog "NVIDIA PCI functions: ${devs[*]}"
+    log "eGPU PCI functions: ${devs[*]}"
 
     for svc in $SERVICES; do
         if systemctl is-active --quiet "$svc"; then
             echo "Stopping $svc"
-            jlog "stopping $svc"
+            log "stopping $svc"
             systemctl stop "$svc"
         fi
     done
 
     ctl=$(ctl_only_users)
     if [ -n "$ctl" ]; then
-        jlog "not blocking, they only have /dev/nvidiactl open (pid name): $(ps -o pid=,comm= -p "$(echo "$ctl" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+        log "not blocking, they only have /dev/nvidiactl open (pid name): $(ps -o pid=,comm= -p "$(echo "$ctl" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
     fi
     holders=$(gpu_users)
     if [ -n "$holders" ]; then
         echo "Processes still using the GPU:"
         ps -o pid,user,comm -p "$(echo "$holders" | paste -sd,)"
-        jlog "processes still using the GPU (pid name): $(ps -o pid=,comm= -p "$(echo "$holders" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+        log "processes still using the GPU (pid name): $(ps -o pid=,comm= -p "$(echo "$holders" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
         if [ "$force" -eq 1 ]; then
             echo "Killing them (-f)"
-            jlog "killing the holders (-f)"
+            log "killing the holders (-f)"
             kill $holders
             sleep 2
             holders=$(gpu_users)
             [ -n "$holders" ] && kill -9 $holders && sleep 1
         else
             echo "Close them or rerun with -f. NOT disconnecting."
-            jlog "refusing to disconnect: the GPU is still in use (rerun with -f)"
+            log "refusing to disconnect: the GPU is still in use (rerun with -f)"
             exit 1
         fi
     fi
 
     for dev in $(printf '%s\n' "${devs[@]}" | sort -r); do
         echo "Removing $dev"
-        jlog "removing $dev"
+        log "removing $dev"
         echo 1 > "/sys/bus/pci/devices/$dev/remove"
     done
 
     sleep 1
-    if lspci -d 10de: | grep -q .; then
-        echo "WARNING: NVIDIA device still listed. Do NOT unplug; check dmesg."
-        jlog "WARNING: an NVIDIA device is still listed after removal; do not unplug"
+    if [ -e "/sys/bus/pci/devices/$PCI" ]; then
+        echo "WARNING: the eGPU is still listed. Do NOT unplug; check dmesg."
+        log "WARNING: the eGPU is still listed after removal; do not unplug"
         exit 2
     fi
     echo "eGPU disconnected. Safe to unplug."
-    jlog "disconnected; safe to unplug"
+    log "disconnected; safe to unplug"
     exit 0
 fi
+
+for dep in jq lspci lsof egpu-card; do
+    command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
+done
+PCI=$(egpu-card --pci)   # empty if no eGPU
 
 have_gui() { [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
 
@@ -104,14 +118,14 @@ waybar_json() {  # waybar_json <text> <class> <tooltip>
 
 status() {
     # Cheap checks only (no nvidia-smi), so polling never wakes the GPU.
-    if ! lspci -d 10de: | grep -q .; then
+    if [ -z "$PCI" ]; then
         waybar_json "" disconnected ""
     elif [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
          && lsmod | grep -q '^nvidia '; then
         # PCI device is listed but the driver has no GPU: the stuck state after a surprise pull.
         waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
-        name=$(lspci -d 10de: | awk -F': ' '/VGA|3D/ {print $2; exit}' | sed 's/ (rev.*//')
+        name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
         waybar_json "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
     fi
 }
@@ -132,7 +146,7 @@ pw_watchdog() {
             stuck=0
         fi
         if [ "$stuck" -ge 3 ] && [ "$restarted" -eq 0 ]; then       # stuck for ~6 s
-            jlog "removal is stuck (probably PipeWire holding the audio card); restarting PipeWire"
+            log "removal is stuck (probably PipeWire holding the audio card); restarting PipeWire"
             systemctl --user restart pipewire pipewire-pulse wireplumber
             restarted=1
         fi
@@ -149,8 +163,8 @@ disconnect() {
         esac
     done
 
-    if ! lspci -d 10de: | grep -q .; then
-        echo "No NVIDIA PCI device present; nothing to disconnect."
+    if [ -z "$PCI" ]; then
+        echo "No eGPU present; nothing to disconnect."
         notify low "eGPU" "No eGPU connected."
         return 0
     fi
@@ -176,30 +190,30 @@ disconnect() {
         if have_gui && command -v zenity >/dev/null; then
             zenity --question --title="Disconnect eGPU" --width=420 \
                 --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" || {
-                echo "Cancelled."; jlog "disconnect cancelled by the user"; return 1; }
+                echo "Cancelled."; log "disconnect cancelled by the user"; return 1; }
         else
             printf '%s\n\nProceed? [y/N] ' "$summary"
             read -r ans
-            [ "$ans" = "y" ] || { echo "Cancelled."; jlog "disconnect cancelled by the user"; return 1; }
+            [ "$ans" = "y" ] || { echo "Cancelled."; log "disconnect cancelled by the user"; return 1; }
         fi
     fi
 
     local out rc pw wd
     if [ -t 0 ]; then
         pw_watchdog & wd=$!
-        out=$(sudo "$(readlink -f "$0")" --root "$force" 2>&1)
+        out=$(sudo "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
         rc=$?
     else
         # Started from waybar: no terminal, so ask for the sudo password graphically.
         pw=$(zenity --password --title="Disconnect eGPU") || return 1
         pw_watchdog & wd=$!
-        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" 2>&1)
+        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
         rc=$?
         unset pw
     fi
     kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
     echo "$out"
-    jlog "disconnect finished with exit code $rc"
+    log "disconnect finished with exit code $rc"
 
     case $rc in
         0) notify normal   "eGPU disconnected" "Safe to unplug the cable." ;;
