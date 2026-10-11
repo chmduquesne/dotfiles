@@ -1,6 +1,5 @@
 #!/bin/bash
-# Manage the Thunderbolt eGPU (found by egpu-card): report its state to waybar and disconnect
-# it cleanly.
+# Manage the eGPU (found by egpu-card): report its state to waybar and disconnect it cleanly.
 #   waybar-egpu status          JSON for a waybar custom module
 #   waybar-egpu disconnect [-f]  confirm, then disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
@@ -9,7 +8,7 @@
 SERVICES=${WAYBAR_EGPU_SERVICES:-ollama}
 NVIDIA=0x10de
 
-# Journal log (journalctl -t waybar-egpu); never fails. EGPU_LOGGER: testing hook.
+# Journal log: journalctl -t waybar-egpu
 log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
@@ -17,7 +16,7 @@ is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = "$NVID
 
 services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
 
-# Who really uses the eGPU: pids holding its DRM nodes (NVIDIA: and its /dev/nvidia* nodes).
+# pids using the eGPU: holders of its DRM nodes (NVIDIA: also /dev/nvidia*).
 gpu_users() {
     local n d nodes=()
     if is_nvidia; then
@@ -29,8 +28,8 @@ gpu_users() {
     done
     [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
 }
-# NVIDIA only: pids holding /dev/nvidiactl and nothing else. They merely list the GPUs (e.g.
-# Firefox via EGL), so they do not block.
+# NVIDIA only: pids holding just /dev/nvidiactl. They merely list the GPUs (e.g. Firefox), so
+# they do not block.
 ctl_only_users() {
     local all
     is_nvidia || return 0
@@ -38,7 +37,7 @@ ctl_only_users() {
     lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all")
 }
 
-# "pid name;pid name" for the pids in $1 (one per line), for the log.
+# "pid name;pid name" for the pids in $1, for the log.
 pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
 
 # ---- privileged part (root, no UI) ------------------------------------------
@@ -121,7 +120,7 @@ nvidia_stuck() {
 }
 
 status() {
-    # Cheap checks only (no vendor tools), so polling never wakes the GPU.
+    # cheap checks only, so polling never wakes the GPU
     if [ -z "$PCI" ]; then
         waybar_json "" disconnected ""
     elif is_nvidia && nvidia_stuck; then
@@ -133,9 +132,8 @@ status() {
 }
 
 # ---- audio: PipeWire can block the removal of the eGPU's audio function ----------------------
-# It keeps /dev/snd/controlC<n> open after the card goes away, so the kernel's removal hangs
-# in D state. While the privileged step runs, watch for that and restart PipeWire (it cannot
-# reopen the card once removal has begun).
+# PipeWire keeps /dev/snd/controlC<n> open, which hangs the removal in D state. During the
+# privileged step, watch for that and restart PipeWire (it cannot reopen the card by then).
 pw_watchdog() {
     local stuck=0 restarted=0
     while sleep 2; do
@@ -189,7 +187,7 @@ disconnect() {
 
     local out rc pw wd
     if [ -t 0 ]; then
-        # our sudo wrapper may get the password itself (Yubikey and pass): no -S then
+        # our sudo wrapper may use a Yubikey and pass for the password (hence no -S)
         pw_watchdog & wd=$!
         out=$(sudo "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
         rc=$?
