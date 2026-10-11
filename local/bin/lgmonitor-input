@@ -1,42 +1,36 @@
 #!/bin/bash
 # lgmonitor-input: read or select the input of an LG monitor over DDC/CI (ddcutil).
-#   lgmonitor-input get             print the active input (a name from the table below,
-#                                   or "unknown")
-#   lgmonitor-input cycle           switch to the next input that has a DDC link (table order,
-#                                   wrapping); fails if the current input cannot be read
-#   lgmonitor-input list            print the known input names, one per line (no DDC access)
-#   lgmonitor-input find <card>     print the input the monitor reaches <card> (e.g. card1)
-#                                   through; exit 1 if none. Uses the cache if it is under
-#                                   30 s old, else rescans. Only inputs with a link are found.
-#   lgmonitor-input set <input>     switch to <input> and wait until the monitor confirms
-#   -v (before the command)         also echo the log lines to stderr
+#   lgmonitor-input get          print the active input (a name from the table, or "unknown")
+#   lgmonitor-input list         print the known input names (no DDC access)
+#   lgmonitor-input find <card>  print the input the monitor reaches <card> (e.g. card1)
+#                                through; exit 1 if none. Rescans if the cache is over 30 s old.
+#   lgmonitor-input set <input>  switch to <input> and wait until the monitor confirms
+#   -v (before the command)      also echo the log lines to stderr
 #
-# Exit codes: 0 ok / confirmed, 1 could not switch, 2 usage or unknown input, 3 monitor
-# unreadable. Logs through logger: journalctl -t lgmonitor-input
+# Exit codes: 0 ok, 1 could not switch, 2 usage or unknown input, 3 monitor unreadable.
+# Log: journalctl -t lgmonitor-input
 #
-# Verified only on the LG UltraFine 27UN83A-W ("LG HDR 4K"). Other LG models may use other
-# values: edit the table. How it works on this monitor:
-#  - the standard input feature 0x60 is accepted but ignored; the monitor takes the vendor
-#    feature 0xF4 with I2C source address 0x50 (and ddcutil's --noverify must not be used);
-#  - feature 0xF8, last byte, reports the active input (the sensor in the table);
-#  - to leave an input, the command is sent over that input's own link, which is why each
-#    input is tied to the DRM connector whose DDC bus reaches the monitor through it.
+# Verified only on the LG UltraFine 27UN83A-W; other models may need other values (see the
+# table). On this monitor:
+#  - input feature 0x60 is ignored; the vendor feature 0xF4 (I2C source address 0x50, never
+#    --noverify) switches the input;
+#  - feature 0xF8, last byte, reports the active input (the "sensor" in the table);
+#  - the command only works over the link of the input being left, hence the table ties each
+#    input to the DRM connector whose DDC bus reaches the monitor through it.
 #
-# Speed: one `ddcutil detect` scan (~1.9 s) finds the buses, which are cached in
-# $XDG_RUNTIME_DIR/lgmonitor-input.buses (delete it to force a fresh scan) and validated by
-# reading the sensor; the sensor is then polled every
-# 0.4 s instead of sleeping. If the cached buses fail, it rescans once and retries (only if
-# the rescan finds different buses). The first link tried gets the whole confirmation timeout,
-# fallback links half of it, so a monitor that ignores us fails after ~15 s, not minutes.
+# Speed: one `ddcutil detect` scan (~1.9 s) finds the buses; they are cached in
+# $XDG_RUNTIME_DIR/lgmonitor-input.buses (delete it to rescan) and validated by reading the
+# sensor, which is polled every 0.4 s. If the cached buses fail, it rescans once. The first
+# link gets the whole confirmation timeout, fallbacks half, so a monitor that ignores us
+# fails after ~15 s.
 #
-# Testing hooks: LGMONITOR_DDCUTIL (command instead of ddcutil), LGMONITOR_LOGGER,
-# LGMONITOR_RUNTIME (cache directory), LGMONITOR_TIMEOUT (seconds to wait for confirmation).
+# Testing hooks: LGMONITOR_DDCUTIL, LGMONITOR_LOGGER, LGMONITOR_RUNTIME (cache directory),
+# LGMONITOR_TIMEOUT (seconds to wait for confirmation).
 
 # name  xF4-value  F8-sensor  regex of the DRM connector whose DDC link belongs to this input
 # (for a DisplayPort cable on the eGPU, widen the hdmi1 pattern, e.g. ^card1-(HDMI|DP))
-# An input nothing of ours is connected to has no DDC link: write "-" for the sensor and the
-# pattern. We can still switch to it (over another input's link), but we cannot read it back,
-# so the switch is sent once and not verified; leaving it is up to the user (OSD).
+# An input with nothing connected has no DDC link: write "-" for the sensor and pattern. We can
+# switch to it over another link but not read it back, so the switch is not verified.
 INPUTS=(
     "usbc   x00D1  xff  ^card0-DP"
     "hdmi1  x0090  x00  ^card1-HDMI"
@@ -122,8 +116,7 @@ name_of() {
     for n in "${NAMES[@]}"; do [ "${SENSOR[$n]}" = "$1" ] && { echo "$n"; return; }; done
 }
 
-# Active input name, "unknown" if the sensor value is not in the table, nothing if no link
-# answers. Reading over a bus also proves that bus is still the monitor's.
+# Active input name, "unknown" if the sensor value is not in the table, nothing if no link answers.
 current_input() {
     local n s r
     for n in "${NAMES[@]}"; do
@@ -132,8 +125,7 @@ current_input() {
     done
 }
 
-# Poll the sensor (the target's own link first) until it shows the target input, for at most
-# $2 seconds (default: the confirmation timeout).
+# Poll the sensor until it shows input $1, for at most $2 seconds (default: the timeout).
 wait_for() {
     local want=${SENSOR[$1]} end=$((SECONDS + ${2:-$CONFIRM_TIMEOUT})) n s order
     order=("$1"); for n in "${NAMES[@]}"; do [ "$n" != "$1" ] && order+=("$n"); done
@@ -156,16 +148,13 @@ attempt() {   # attempt <target>: 0 when the monitor confirms the target input
     # Send over the link of the input we are leaving first, then over the others.
     [ "$cur" != unknown ] && order+=("$cur")
     for n in "${NAMES[@]}"; do [ "$n" != "$cur" ] && order+=("$n"); done
-    # The first link is the one that should work: give it the whole timeout. The others are
-    # a fallback: half of it each.
     local wait=$CONFIRM_TIMEOUT
     for n in "${order[@]}"; do
         bus=${BUS[$n]}; [ -n "$bus" ] || continue
         log "$cur -> $target: setvcp xF4 ${VAL[$target]} over the $n link (bus $bus)"
         $DDC --bus "$bus" setvcp xF4 "${VAL[$target]}" --i2c-source-addr=x50 >/dev/null 2>&1
         if [ -z "${SENSOR[$target]}" ]; then
-            # No sensor value for this input: nothing to confirm against (the links may keep
-            # answering, with the sensor of another input), so send once and trust it.
+            # nothing to confirm against: send once and trust it
             sleep 1
             log "sent $target (cannot be verified)"; return 0
         fi
@@ -185,7 +174,7 @@ cmd_set() {
         log "the cached buses did not work; rescanning"
     fi
     scan
-    # A rescan that finds the same buses cannot change the outcome: do not wait again.
+    # same buses as before: retrying cannot help
     [ -n "$before" ] && [ "$(show_buses)" = "$before" ] && die "could not switch to $target" 1
     attempt "$target" && return 0
     die "could not switch to $target" 1
@@ -198,19 +187,6 @@ cmd_get() {
     [ -n "$cur" ] || die "cannot read the monitor (is it on, is DDC/CI enabled?)" 3
     echo "$cur"
     [ "$cur" != unknown ]
-}
-
-cmd_cycle() {
-    local cur n i next=() idx=-1
-    load_cache || scan
-    cur=$(current_input)
-    [ -n "$cur" ] || die "cannot read the monitor (is it on, is DDC/CI enabled?)" 3
-    # only inputs whose link we found: we can always get back from them
-    for n in "${NAMES[@]}"; do [ -n "${BUS[$n]}" ] && next+=("$n"); done
-    for i in "${!next[@]}"; do [ "${next[$i]}" = "$cur" ] && idx=$i; done
-    [ "$idx" -ge 0 ] || die "current input '$cur' has no link to cycle from" 3
-    [ "${#next[@]}" -ge 2 ] || die "need at least two inputs with a link to cycle" 1
-    cmd_set "${next[$(( (idx + 1) % ${#next[@]} ))]}"
 }
 
 cmd_find() {
@@ -226,17 +202,18 @@ cmd_find() {
 }
 
 usage() {
-    echo "usage: lgmonitor-input [-v] get | list | find <card> | cycle | set <input>   (inputs: ${NAMES[*]})" >&2
+    echo "usage: lgmonitor-input [-v] get | list | find <card> | set <input>   (inputs: ${NAMES[*]})" >&2
     exit 2
 }
 
 [ "$1" = -v ] && { VERBOSE=1; shift; }
 [ "$1" = list ] && { printf '%s\n' "${NAMES[@]}"; exit 0; }
-command -v "${DDC%% *}" >/dev/null || die "ddcutil not found" 3
+for dep in ${DDC%% *}; do
+    command -v "$dep" >/dev/null || die "$dep not found" 3
+done
 case "$1" in
     get)  cmd_get ;;
     find)  cmd_find "$2" ;;
-    cycle) cmd_cycle ;;
     set)  cmd_set "$2" ;;
     *)    usage ;;
 esac
