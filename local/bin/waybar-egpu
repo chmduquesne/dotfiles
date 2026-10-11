@@ -31,6 +31,9 @@ ctl_only_users() {
     lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all") 
 }
 
+# "pid name;pid name" for the pids in $1 (one per line), for the log.
+pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
+
 # ---- privileged part (root, no UI) ------------------------------------------
 # sudo's PATH may lack egpu-card, so the eGPU's PCI address ($3) is passed in.
 if [ "$1" = "--root" ]; then
@@ -44,7 +47,6 @@ if [ "$1" = "--root" ]; then
     devs=()
     for d in /sys/bus/pci/devices/"${PCI%.*}".*; do [ -e "$d" ] && devs+=("${d##*/}"); done
     if [ "${#devs[@]}" -eq 0 ]; then
-        echo "No eGPU PCI device present; nothing to disconnect."
         log "no eGPU PCI device present; nothing to disconnect"
         exit 0
     fi
@@ -52,7 +54,6 @@ if [ "$1" = "--root" ]; then
 
     for svc in $SERVICES; do
         if systemctl is-active --quiet "$svc"; then
-            echo "Stopping $svc"
             log "stopping $svc"
             systemctl stop "$svc"
         fi
@@ -60,40 +61,33 @@ if [ "$1" = "--root" ]; then
 
     ctl=$(ctl_only_users)
     if [ -n "$ctl" ]; then
-        log "not blocking, they only have /dev/nvidiactl open (pid name): $(ps -o pid=,comm= -p "$(echo "$ctl" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+        log "not blocking, they only have /dev/nvidiactl open (pid name): $(pid_names "$ctl")"
     fi
     holders=$(gpu_users)
     if [ -n "$holders" ]; then
-        echo "Processes still using the GPU:"
-        ps -o pid,user,comm -p "$(echo "$holders" | paste -sd,)"
-        log "processes still using the GPU (pid name): $(ps -o pid=,comm= -p "$(echo "$holders" | paste -sd,)" | sed 's/^ *//' | paste -sd';')"
+        log "processes still using the GPU (pid name): $(pid_names "$holders")"
         if [ "$force" -eq 1 ]; then
-            echo "Killing them (-f)"
             log "killing the holders (-f)"
             kill $holders
             sleep 2
             holders=$(gpu_users)
             [ -n "$holders" ] && kill -9 $holders && sleep 1
         else
-            echo "Close them or rerun with -f. NOT disconnecting."
             log "refusing to disconnect: the GPU is still in use (rerun with -f)"
             exit 1
         fi
     fi
 
     for dev in $(printf '%s\n' "${devs[@]}" | sort -r); do
-        echo "Removing $dev"
         log "removing $dev"
         echo 1 > "/sys/bus/pci/devices/$dev/remove"
     done
 
     sleep 1
     if [ -e "/sys/bus/pci/devices/$PCI" ]; then
-        echo "WARNING: the eGPU is still listed. Do NOT unplug; check dmesg."
         log "WARNING: the eGPU is still listed after removal; do not unplug"
         exit 2
     fi
-    echo "eGPU disconnected. Safe to unplug."
     log "disconnected; safe to unplug"
     exit 0
 fi
@@ -161,7 +155,7 @@ disconnect() {
     done
 
     if [ -z "$PCI" ]; then
-        echo "No eGPU present; nothing to disconnect."
+        log "no eGPU present; nothing to disconnect"
         notify low "eGPU" "No eGPU connected."
         return 0
     fi
@@ -187,11 +181,11 @@ disconnect() {
         if have_gui && command -v zenity >/dev/null; then
             zenity --question --title="Disconnect eGPU" --width=420 \
                 --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" || {
-                echo "Cancelled."; log "disconnect cancelled by the user"; return 1; }
+                log "disconnect cancelled by the user"; return 1; }
         else
             printf '%s\n\nProceed? [y/N] ' "$summary"
             read -r ans
-            [ "$ans" = "y" ] || { echo "Cancelled."; log "disconnect cancelled by the user"; return 1; }
+            [ "$ans" = "y" ] || { log "disconnect cancelled by the user"; return 1; }
         fi
     fi
 
@@ -209,7 +203,7 @@ disconnect() {
         unset pw
     fi
     kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
-    echo "$out"
+    [ -z "$out" ] || log "output of the privileged part: $out"
     log "disconnect finished with exit code $rc"
 
     case $rc in
