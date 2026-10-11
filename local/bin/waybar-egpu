@@ -1,6 +1,7 @@
 #!/bin/bash
 # Manage the Thunderbolt eGPU (NVIDIA, found by egpu-card): report its state to waybar and
-# disconnect it cleanly.
+# disconnect it cleanly. Meant to run from waybar: the dialogs and notifications are graphical
+# (zenity, notify-send).
 #   waybar-egpu status          JSON for a waybar custom module
 #   waybar-egpu disconnect [-f] [-y]  confirm, then disconnect so the cable can be pulled
 #       -f  kill processes still using the GPU
@@ -97,10 +98,8 @@ for dep in jq lspci lsof egpu-card; do
 done
 PCI=$(egpu-card --pci)   # empty if no eGPU
 
-have_gui() { [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
-
 notify() {  # notify <urgency> <title> <body>
-    have_gui && command -v notify-send >/dev/null && notify-send -u "$1" -i video-display "$2" "$3"
+    notify-send -u "$1" -i video-display "$2" "$3"
 }
 
 # ---- status: waybar JSON ------------------------------------------------------
@@ -147,6 +146,9 @@ pw_watchdog() {
 # ---- disconnect: confirmation UI, then privileged part --------------------------
 disconnect() {
     local force=0 yes=0 a
+    for dep in zenity notify-send; do
+        command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; return 1; }
+    done
     for a in "$@"; do
         case "$a" in
             -f) force=1 ;;
@@ -178,25 +180,20 @@ disconnect() {
     summary+=$'\n\nThen the eGPU is removed from the PCI bus.'
 
     if [ "$yes" -ne 1 ]; then
-        if have_gui && command -v zenity >/dev/null; then
-            zenity --question --title="Disconnect eGPU" --width=420 \
-                --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" || {
-                log "disconnect cancelled by the user"; return 1; }
-        else
-            printf '%s\n\nProceed? [y/N] ' "$summary"
-            read -r ans
-            [ "$ans" = "y" ] || { log "disconnect cancelled by the user"; return 1; }
-        fi
+        zenity --question --title="Disconnect eGPU" --width=420 \
+            --ok-label="Disconnect" --cancel-label="Cancel" --text="$summary" \
+            || { log "disconnect cancelled by the user"; return 1; }
     fi
 
     local out rc pw wd
     if [ -t 0 ]; then
+        # our sudo wrapper may get the password itself (Yubikey and pass): no -S then
         pw_watchdog & wd=$!
         out=$(sudo "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
         rc=$?
     else
-        # Started from waybar: no terminal, so ask for the sudo password graphically.
-        pw=$(zenity --password --title="Disconnect eGPU") || return 1
+        pw=$(zenity --password --title="Disconnect eGPU") \
+            || { log "disconnect cancelled by the user"; return 1; }
         pw_watchdog & wd=$!
         out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$force" "$PCI" 2>&1)
         rc=$?
