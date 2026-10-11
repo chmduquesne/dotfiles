@@ -169,7 +169,6 @@ disconnect() {
         printf -v list '%s, ' "${active[@]}"
         text+=$'\n\n'"This stops: ${list%, }."
     fi
-    text+=$'\n\n'"The cable can then be unplugged."
     zenity --question --no-markup --title="Disconnect eGPU" --width=420 \
         --ok-label="Disconnect" --cancel-label="Cancel" --text="$text" \
         || { log "disconnect cancelled by the user"; return 1; }
@@ -193,8 +192,8 @@ disconnect() {
     log "disconnect finished with exit code $rc"
 
     case $rc in
-        0) notify normal   "eGPU disconnected" "Safe to unplug the cable." ;;
-        1) notify critical "eGPU NOT disconnected" "GPU is still in use. Close the apps and try again." ;;
+        0) notify normal   "eGPU disconnected" "You can now safely unplug it." ;;
+        1) notify critical "eGPU NOT disconnected" "eGPU is still in use. Close the apps and try again." ;;
         *) notify critical "eGPU disconnect problem" "Do NOT unplug. Check dmesg." ;;
     esac
     return $rc
