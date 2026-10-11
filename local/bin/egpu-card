@@ -4,13 +4,11 @@
 #   egpu-card --pci     print its PCI address (0000:a6:00.0)
 #   egpu-card --audio   print the PCI address of its audio function (0000:a6:00.1)
 # Prints nothing and exits 1 if there is no eGPU. The card name also needs a driver bound to
-# the GPU (the DRM card only exists then): a GPU that is present but has none still answers
-# --pci and --audio, but not the card name.
+# the GPU; --pci and --audio work without one.
 #
-# The eGPU is the display-class PCI device the kernel flags "removable" (behind an external
-# port such as Thunderbolt), whatever its vendor or card number. It assumes a single eGPU is
-# plugged in. EGPU_CARD (e.g. card1) overrides the detection. Testing hook: EGPU_SYSFS
-# (instead of /sys).
+# Only systems with one single egpu are supported. The eGPU is the display-class PCI device
+# the kernel flags "removable" (behind an external port such as Thunderbolt), whatever its
+# vendor. EGPU_CARD (e.g. card1) overrides the detection. Testing hook: EGPU_SYSFS (instead of /sys).
 
 SYS=${EGPU_SYSFS:-/sys}
 
