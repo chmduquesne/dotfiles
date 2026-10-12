@@ -44,7 +44,7 @@ set $next_output swaymsg -t get_outputs -r | jq -r \
 set $screenshot grim -g "$(slurp -d)" - | wl-copy && wl-paste -t image/png > "/tmp/screenshot-$(date +%F_%T).png"
 
 # Screen locker
-set $locker swaylock -f -c 000000
+set $locker swaylock-blur
 
 # See https://github.com/swaywm/sway/wiki#clamshell-mode
 set $lid eDP-1

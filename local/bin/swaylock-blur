@@ -1,0 +1,19 @@
+#!/bin/bash
+# Sway equivalent of i3lock-blur: blurred screenshot of each output with a
+# lock icon in the center, used as the swaylock background.
+
+lock="$HOME/.local/share/lock.png"
+dir=$(mktemp -d)
+trap 'rm -rf "$dir"' EXIT
+
+args=()
+while read -r name; do
+    img="$dir/$name.png"
+    grim -o "$name" "$img"
+    convert "$img" -scale 2.5% -resize 4000% "$img"
+    convert "$img" "$lock" -gravity center -composite "$img"
+    args+=(-i "$name:$img")
+done < <(swaymsg -t get_outputs -r | jq -r '.[] | select(.active) | .name')
+
+# -f: return once the lock is up (images are loaded by then), as swayidle -w expects
+swaylock -f "${args[@]}"
