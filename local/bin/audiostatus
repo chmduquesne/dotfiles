@@ -3,20 +3,24 @@
 # Configuration
 readonly EXCLUDE_RECORDING_APPS='["parec", "wf-recorder"]'
 readonly EXCLUDE_PLAYING_APPS='["speech-dispatcher-dummy"]'
-readonly SLEEP_INTERVAL=1
+readonly ICON_IDLE=$'\uf017'       # 
+readonly ICON_PLAYING=$'\uf144'    # 
+readonly ICON_RECORDING=$'\uf590'  # 
 
-INHIBIT_PID=""
-
+# Streams capturing a sink monitor (level meters, screen-share audio) are not microphones
 apps_recording(){
     pactl -f json list source-outputs 2>/dev/null | jq -er \
-        --argjson exclude "$EXCLUDE_RECORDING_APPS" '
-        [.[]
+        --argjson exclude "$EXCLUDE_RECORDING_APPS" \
+        --slurpfile sources <(pactl -f json list sources 2>/dev/null) '
+        [$sources[0][] | select(.name | endswith(".monitor")) | .index] as $monitors
+        | [.[]
         | select(.corked == false)
+        | select(.source | IN($monitors[]) | not)
         | select(.properties."application.process.id" != null)
         | select(.properties."application.name" | IN($exclude[]) | not)
         | .properties."application.name" // .properties."media.name" // "unknown app"]
         | unique
-        | join(" ")
+        | join(", ")
         '
 }
 
@@ -25,53 +29,52 @@ apps_playing(){
         --argjson exclude "$EXCLUDE_PLAYING_APPS" '
         [.[]
         | select(.corked == false)
+        | select(.mute == false)
         | select(.properties."application.process.id" != null)
         | select(.properties."application.name" | IN($exclude[]) | not)
         | .properties."application.name" // .properties."media.name" // "unknown app"]
         | unique
-        | join(" ")
+        | join(", ")
         '
 }
 
-show_status(){
-    local apps_recording="$1"
-    local apps_playing="$2"
-    local tooltip alt class
+jsonify() {  # jsonify <text> <class> <tooltip>
+    jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
+        '{text: $text, class: $class, tooltip: $tooltip}'
+}
 
-    # Determine state
-    # Highest priority: In a call
-    if [[ -n "$apps_recording" ]]; then
-        tooltip="Recording: ${apps_recording}"
-        alt="recording"
-        class="busy"
-    # Playing something
-    elif [[ -n "$apps_playing" ]]; then
-        tooltip="Playing: ${apps_playing}"
-        alt="playing"
-        class="busy"
-    # No sound
+show_status(){  # show_status <recording-apps> <playing-apps> <json|quiet>
+    local recording="$1" playing="$2" mode="$3"
+    local icon class=busy tooltip=""
+
+    [[ -n "$recording" ]] && tooltip="Recording: $recording"
+    [[ -n "$playing" ]] && tooltip+="${tooltip:+$'\n'}Playing: $playing"
+
+    # Icon priority: recording (in a call) > playing > idle
+    if [[ -n "$recording" ]]; then
+        icon="$ICON_RECORDING"
+    elif [[ -n "$playing" ]]; then
+        icon="$ICON_PLAYING"
     else
-        tooltip="Idle"
-        alt="idle"
-        class="free"
+        icon="$ICON_IDLE" class=free tooltip="Idle"
     fi
 
-    printf '{"tooltip": "%s", "alt": "%s", "class": "%s"}\n' "$tooltip" "$alt" "$class"
+    case "$mode" in
+        json)  jsonify "$icon" "$class" "$tooltip" ;;
+        quiet) [[ "$class" == busy ]] && return 0 || return 1 ;;
+    esac
 }
 
 main(){
-    trap cleanup SIGINT SIGTERM EXIT
+    local mode=json
 
-    while true; do
-        local apps_recording apps_playing
+    case "${1:-}" in
+        "") ;;
+        --quiet) mode=quiet ;;
+        *) echo "Usage: ${0##*/} [--quiet]" >&2; exit 1 ;;
+    esac
 
-        apps_recording="$(apps_recording)"
-        apps_playing="$(apps_playing)"
-
-        show_status "$apps_recording" "$apps_playing"
-
-        sleep "$SLEEP_INTERVAL"
-    done
+    show_status "$(apps_recording)" "$(apps_playing)" "$mode"
 }
 
-main
+main "$@"
