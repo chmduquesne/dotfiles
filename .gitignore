@@ -4,3 +4,4 @@ vim/*
 virtualenvs/*
 local/share/*
 local/state/*
+local/bin/claude
