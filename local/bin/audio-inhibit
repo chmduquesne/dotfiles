@@ -43,6 +43,9 @@ readonly EXCLUDE_PLAYING_APPS='["speech-dispatcher-dummy"]'
 readonly ICON_IDLE=$'\uf017'       # 
 readonly ICON_PLAYING=$'\uf144'    # 
 readonly ICON_RECORDING=$'\uf590'  # 
+# We poll rather than use `pactl subscribe`: it emits a constant stream of events
+# (volume, level and stream changes) that we would have to process all the time,
+# whereas polling every few seconds is much lighter.
 readonly POLL_INTERVAL=5
 readonly WAYBAR_SIGNAL=8  # must match "signal" in the waybar module
 readonly DISABLED_FILE="${XDG_RUNTIME_DIR:-/tmp}/audio-inhibit.disabled"
