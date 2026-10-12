@@ -1,4 +1,37 @@
 #!/bin/bash
+# Hold an idle inhibitor while audio is playing or being recorded.
+#   audio-inhibit             run the inhibit loop
+#   audio-inhibit --waybar    JSON status for a waybar custom module
+#   audio-inhibit --toggle    enable/disable inhibition (state kept in $XDG_RUNTIME_DIR)
+#
+# Sway: start at login
+#   exec audio-inhibit
+#
+# Waybar: add "custom/audio-inhibit" to modules-left/center/right, then define it
+#   "custom/audio-inhibit": {
+#       "return-type": "json",
+#       "exec": "~/.local/bin/audio-inhibit --waybar",
+#       "on-click": "~/.local/bin/audio-inhibit --toggle",
+#       "interval": 1
+#   }
+#
+# Waybar style.css (~/.config/waybar/style.css):
+#   #custom-audio-inhibit {
+#       padding: 0 10px;
+#       transition: background-color 150ms;
+#   }
+#   #custom-audio-inhibit:hover {
+#       background-color: rgba(255, 255, 255, 0.2);  /* click to toggle */
+#   }
+#   #custom-audio-inhibit.busy {
+#       color: #ff5555;  /* audio active: screen will not idle */
+#   }
+#   #custom-audio-inhibit.free {
+#       color: #55ff55;  /* nothing playing or recording */
+#   }
+#   #custom-audio-inhibit.disabled {
+#       color: #888888;  /* inhibition toggled off */
+#   }
 
 # Configuration
 readonly EXCLUDE_RECORDING_APPS='["parec", "wf-recorder"]'
