@@ -36,6 +36,7 @@
 # Configuration
 readonly EXCLUDE_RECORDING_APPS='["parec", "wf-recorder"]'
 readonly EXCLUDE_PLAYING_APPS='["speech-dispatcher-dummy"]'
+# We default to Font Awesome glyphs
 readonly ICON_IDLE=$'\uf017'       # 
 readonly ICON_PLAYING=$'\uf144'    # 
 readonly ICON_RECORDING=$'\uf590'  # 
