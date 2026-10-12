@@ -12,8 +12,11 @@
 #       "return-type": "json",
 #       "exec": "~/.local/bin/audio-inhibit --waybar",
 #       "on-click": "~/.local/bin/audio-inhibit --toggle",
-#       "interval": 1
+#       "signal": 8,
+#       "interval": 5
 #   }
+# "signal" must match WAYBAR_SIGNAL below: --toggle sends SIGRTMIN+8 to waybar so the
+# module refreshes at once; "interval" only catches audio starting/stopping.
 #
 # Waybar style.css (~/.config/waybar/style.css):
 #   #custom-audio-inhibit {
@@ -41,6 +44,7 @@ readonly ICON_IDLE=$'\uf017'       # 
 readonly ICON_PLAYING=$'\uf144'    # 
 readonly ICON_RECORDING=$'\uf590'  # 
 readonly POLL_INTERVAL=5
+readonly WAYBAR_SIGNAL=8  # must match "signal" in the waybar module
 readonly DISABLED_FILE="${XDG_RUNTIME_DIR:-/tmp}/audio-inhibit.disabled"
 
 holder=""
@@ -80,6 +84,7 @@ disabled(){ [[ -e "$DISABLED_FILE" ]]; }
 
 toggle(){
     if disabled; then rm -f "$DISABLED_FILE"; else touch "$DISABLED_FILE"; fi
+    pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar
 }
 
 jsonify() {  # jsonify <text> <class> <tooltip>

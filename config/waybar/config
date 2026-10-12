@@ -45,7 +45,8 @@
         "return-type": "json",
         "exec": "~/.local/bin/audio-inhibit --waybar",
         "on-click": "~/.local/bin/audio-inhibit --toggle",
-        "interval": 1
+        "signal": 8,
+        "interval": 5
     },
     "tray": {
         "spacing": 10
