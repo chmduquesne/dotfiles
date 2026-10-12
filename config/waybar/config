@@ -131,14 +131,9 @@
         "on-click": "waybar-egpu disconnect"
     },
     "custom/audiostatus": {
-        "format": "{icon}",
         "return-type": "json",
         "exec": "~/.local/bin/audiostatus",
-        "format-icons": {
-            "idle": "",
-            "playing": "",
-            "recording": ""
-        }
+        "interval": 1
     },
     "custom/updates":{
         "exec": "waybar-apt-updates",

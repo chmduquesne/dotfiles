@@ -244,6 +244,6 @@ exec firefox-esr
 # start ms teams
 #exec teams-pwa
 # Prevent suspending when sound is playing
-exec wayland-pipewire-idle-inhibit
+exec audio-idle-inhibit
 # screen management
 exec kanshi
