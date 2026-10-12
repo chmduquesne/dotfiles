@@ -81,3 +81,17 @@
 #custom-egpu.connected:hover {
     background-color: #8ed400; /* Brighter on hover: click to disconnect */
 }
+
+#custom-qr {
+    padding: 0 10px;
+    background-color: #2980b9; /* Same as #tray, to blend with it */
+    transition: background-color 150ms;
+}
+
+#custom-qr:hover {
+    background-color: #3498db; /* Brighter on hover: left shows the clipboard, right scans */
+}
+
+#custom-qr.scanning {
+    color: #ff5555; /* Red indicator: the webcam is on */
+}

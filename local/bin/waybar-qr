@@ -1,0 +1,106 @@
+#!/bin/bash
+# Bridge between the clipboard and QR codes, meant to be called from waybar.
+#
+# This was entirely vibe coded and very lightly reviewed.
+#
+# Usage: waybar-qr show|scan|status
+#
+#   show    display the clipboard content as a QR code (again to close it)
+#   scan    scan a QR code with the webcam and put its content in the clipboard
+#           (again to stop)
+#   status  print the waybar module state (JSON)
+#
+# scan uses the external webcam if one is plugged in, otherwise the laptop one.
+# A specific camera can be forced with QR_VIDEO (e.g. QR_VIDEO=/dev/video2).
+
+set -e
+
+MAX_BYTES=2900 # roughly what a QR code can hold
+
+# "signal" in the waybar module must match: scan sends SIGRTMIN+9 to waybar so the
+# module refreshes as soon as the webcam is turned on or off.
+WAYBAR_SIGNAL=9
+SCANNING_FLAG="${XDG_RUNTIME_DIR:-/tmp}/waybar-qr.scanning"
+
+refresh_waybar(){
+	pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar || true
+}
+
+status(){
+	local class=idle tip="Left: clipboard to QR code, right: scan with webcam"
+	if [ -e "$SCANNING_FLAG" ]; then
+		class=scanning
+		tip="Scanning with the webcam..."
+	fi
+	jq -nc --arg class "$class" --arg tooltip "$tip" \
+		'{text: "\uf029", class: $class, tooltip: $tooltip}'
+}
+
+# Print the camera to scan with: the first external one (USB device not marked as
+# "fixed" in sysfs) if any, otherwise the first built-in one. Only index 0 nodes
+# are capture nodes (index 1 carries metadata). The lowest-numbered node of the
+# laptop camera is the RGB one; the next one is the infrared camera.
+pick_camera(){
+	local d usb internal=""
+	[ -n "$QR_VIDEO" ] && { echo "$QR_VIDEO"; return; }
+	for d in $(printf '%s\n' /sys/class/video4linux/video* | sort -V); do
+		[ "$(cat "$d/index" 2>/dev/null)" = 0 ] || continue
+		usb="$(readlink -f "$d/device/..")"
+		if [ "$(cat "$usb/removable" 2>/dev/null)" = fixed ]; then
+			[ -z "$internal" ] && internal="/dev/${d##*/}"
+		else
+			echo "/dev/${d##*/}"
+			return
+		fi
+	done
+	echo "${internal:-/dev/video0}"
+}
+
+show(){
+	local content tmp
+	# a second click closes the window instead of opening another one
+	pkill -f '^swayimg --class waybar-qr' && return
+	content="$(wl-paste --no-newline 2>/dev/null)" || true
+	if [ -z "$content" ]; then
+		notify-send "waybar-qr" "The clipboard is empty."
+		return 1
+	fi
+	if [ "${#content}" -gt "$MAX_BYTES" ]; then
+		notify-send "waybar-qr" "Clipboard content is too long for a QR code."
+		return 1
+	fi
+	tmp="$(mktemp --suffix=.png)"
+	trap 'rm -f "$tmp"' EXIT
+	printf '%s' "$content" | qrencode -s 10 -o "$tmp"
+	swayimg --class waybar-qr --size image --config info.show=no "$tmp"
+}
+
+scan(){
+	local content
+	# a second click stops the running scan: mark it as cancelled, so that it quits
+	# silently, then kill the camera process
+	if pgrep -f '^zbarcam --raw -1' >/dev/null; then
+		echo cancelled > "$SCANNING_FLAG"
+		pkill -f '^zbarcam --raw -1'
+		return
+	fi
+	touch "$SCANNING_FLAG"
+	trap 'rm -f "$SCANNING_FLAG"; refresh_waybar' EXIT
+	refresh_waybar
+	content="$(timeout 30 zbarcam --raw -1 "$(pick_camera)" 2>/dev/null)" || true
+	[ "$(cat "$SCANNING_FLAG" 2>/dev/null)" = cancelled ] && return
+	if [ -z "$content" ]; then
+		notify-send "waybar-qr" "No QR code scanned."
+		return 1
+	fi
+	# only copy, never open: a QR code can hide a malicious link
+	printf '%s' "$content" | wl-copy
+	notify-send "waybar-qr" "Copied to clipboard: ${content:0:80}"
+}
+
+case "$1" in
+	show) show ;;
+	scan) scan ;;
+	status) status ;;
+	*) echo "Usage: ${0##*/} show|scan|status" >&2; exit 1 ;;
+esac

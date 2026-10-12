@@ -19,6 +19,7 @@
         "battery",
         "pulseaudio",
         "custom/updates",
+        "custom/qr",
         "tray",
         "clock"
     ],
@@ -147,6 +148,14 @@
             "has-updates": "",
             "updated": ""
         }
+    },
+    "custom/qr": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "waybar-qr status",
+        "signal": 9,
+        "on-click": "waybar-qr show",
+        "on-click-right": "waybar-qr scan"
     }
 }
 
