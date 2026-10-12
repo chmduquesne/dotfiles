@@ -21,16 +21,25 @@
     color: #55ff55; /* Green indicator */
 }
 
-#custom-audiostatus {
+#custom-audio-inhibit {
     padding: 0 10px;
+    transition: background-color 150ms;
 }
 
-#custom-audiostatus.busy {
+#custom-audio-inhibit:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Click to toggle idle inhibition */
+}
+
+#custom-audio-inhibit.busy {
     color: #ff5555; /* Red indicator */
 }
 
-#custom-audiostatus.free {
+#custom-audio-inhibit.free {
     color: #55ff55; /* Green indicator */
+}
+
+#custom-audio-inhibit.disabled {
+    color: #888888; /* Grey: idle inhibition toggled off */
 }
 
 #custom-updates {

@@ -6,6 +6,10 @@ readonly EXCLUDE_PLAYING_APPS='["speech-dispatcher-dummy"]'
 readonly ICON_IDLE=$'\uf017'       # 
 readonly ICON_PLAYING=$'\uf144'    # 
 readonly ICON_RECORDING=$'\uf590'  # 
+readonly POLL_INTERVAL=5
+readonly DISABLED_FILE="${XDG_RUNTIME_DIR:-/tmp}/audio-inhibit.disabled"
+
+holder=""
 
 # Streams capturing a sink monitor (level meters, screen-share audio) are not microphones
 apps_recording(){
@@ -38,6 +42,12 @@ apps_playing(){
         '
 }
 
+disabled(){ [[ -e "$DISABLED_FILE" ]]; }
+
+toggle(){
+    if disabled; then rm -f "$DISABLED_FILE"; else touch "$DISABLED_FILE"; fi
+}
+
 jsonify() {  # jsonify <text> <class> <tooltip>
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, tooltip: $tooltip}'
@@ -60,21 +70,49 @@ show_status(){  # show_status <recording-apps> <playing-apps> <json|quiet>
     fi
 
     case "$mode" in
-        json)  jsonify "$icon" "$class" "$tooltip" ;;
+        json)
+            if disabled; then
+                [[ "$class" == busy ]] && tooltip=$'Idle inhibition disabled\n'"$tooltip" || tooltip="Idle inhibition disabled"
+                class=disabled
+            fi
+            jsonify "$icon" "$class" "$tooltip" ;;
         quiet) [[ "$class" == busy ]] && return 0 || return 1 ;;
     esac
 }
 
+acquire(){
+    systemd-inhibit --what=idle --who="${0##*/}" --why="Audio active" sleep infinity &
+    holder=$!
+}
+
+release(){
+    [[ -n "$holder" ]] && kill "$holder" 2>/dev/null
+    holder=""
+}
+
+# Hold an idle inhibitor (screen lock, suspend) while audio is active, unless toggled off
+inhibit_loop(){
+    trap release EXIT
+    trap 'exit' INT TERM
+
+    while true; do
+        if ! disabled && show_status "$(apps_recording)" "$(apps_playing)" quiet; then
+            [[ -z "$holder" ]] && acquire
+        else
+            release
+        fi
+
+        sleep "$POLL_INTERVAL"
+    done
+}
+
 main(){
-    local mode=json
-
     case "${1:-}" in
-        "") ;;
-        --quiet) mode=quiet ;;
-        *) echo "Usage: ${0##*/} [--quiet]" >&2; exit 1 ;;
+        "") inhibit_loop ;;
+        --waybar) show_status "$(apps_recording)" "$(apps_playing)" json ;;
+        --toggle) toggle ;;
+        *) echo "Usage: ${0##*/} [--waybar|--toggle]" >&2; exit 1 ;;
     esac
-
-    show_status "$(apps_recording)" "$(apps_playing)" "$mode"
 }
 
 main "$@"

@@ -17,7 +17,7 @@
         "disk",
         "battery",
         "pulseaudio",
-        "custom/audiostatus",
+        "custom/audio-inhibit",
         "custom/updates",
         "tray",
         "clock"
@@ -130,9 +130,10 @@
         "exec": "waybar-egpu status",
         "on-click": "waybar-egpu disconnect"
     },
-    "custom/audiostatus": {
+    "custom/audio-inhibit": {
         "return-type": "json",
-        "exec": "~/.local/bin/audiostatus",
+        "exec": "~/.local/bin/audio-inhibit --waybar",
+        "on-click": "~/.local/bin/audio-inhibit --toggle",
         "interval": 1
     },
     "custom/updates":{
