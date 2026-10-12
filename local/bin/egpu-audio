@@ -13,7 +13,6 @@
 # entity"), so the eGPU sink is looked up BEFORE the command and set after it, with retries.
 #
 # State: $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
-# The eGPU is found by egpu-card (see EGPU_CARD there).
 # Testing hooks: EGPU_PACTL, EGPU_LOGGER, EGPU_RUNTIME. Log: journalctl -t egpu-audio
 
 PACTL=${EGPU_PACTL:-pactl}

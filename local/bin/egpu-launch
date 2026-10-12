@@ -2,10 +2,10 @@
 # egpu-launch: from the desktop, show a program on the eGPU's display.
 #   egpu-launch command [args...]        e.g.  egpu-launch steam
 #
-# The desktop-side command: it asks egpu-launchd (on tty2) to run the program with
-# egpu-kiosk, switches your screen to that session and waits until the program is done; the
-# daemon then switches back. No sudo. The exit code is the kiosk's. If you leave with
-# Ctrl+Alt+F1 the program keeps running, and a second egpu-launch is refused until it ends.
+# It asks egpu-launchd (on tty2) to run the program with egpu-kiosk, switches your screen to
+# that session and waits; the daemon switches back when the program is done. No sudo. The exit
+# code is the kiosk's. If you leave with Ctrl+Alt+F1 the program keeps running, and a second
+# egpu-launch is refused until it ends.
 #
 # Testing hooks: EGPU_RUNTIME, EGPU_LOGINCTL (see egpu-launchd).
 
@@ -17,7 +17,6 @@ LOCKFILE=$RT/egpu-launch.lock
 
 die() { echo "egpu-launch: $*" >&2; exit 1; }
 
-# The command is explicit: without one, nothing is queued and the screen is not switched.
 [ $# -gt 0 ] && [ -n "$1" ] \
     || { echo "usage: egpu-launch command [args...]   (e.g. egpu-launch steam)" >&2; exit 2; }
 

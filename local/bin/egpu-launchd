@@ -1,24 +1,21 @@
 #!/bin/bash
-# egpu-launchd: the long-running daemon that owns the eGPU's display, on tty2.
-#   egpu-launchd   runs forever; started by egpu-launchd.service (or by hand in a tty2 login)
+# egpu-launchd: daemon on tty2 that runs `egpu-kiosk` for `egpu-launch`.
 #
-# It waits for requests from `egpu-launch`, runs `egpu-kiosk` in its own tty session (which
-# logind lets take the eGPU's display), then switches back to the desktop session. It reads no
-# keyboard input.
+# Started by egpu-launchd.service. It waits for requests, runs the kiosk in its own tty
+# session (logind only lets the active session take the eGPU's display), then switches back
+# to the desktop session.
 #
 # Protocol (in $XDG_RUNTIME_DIR):
 #   egpu-launchd.fifo      requests: <desktop session>TAB<reply fifo>TAB<quoted command>
-#   egpu-launchd.session   "<pid> <session id>" of this daemon (egpu-launch needs both)
+#   egpu-launchd.session   "<pid> <session id>" of this daemon
 #   egpu-launchd.lock      single-instance lock
 # The reply fifo gets the exit code of egpu-kiosk.
 #
-# Testing hooks: EGPU_RUNTIME (instead of $XDG_RUNTIME_DIR), EGPU_KIOSK (runner), EGPU_LOGINCTL
-# (instead of loginctl), EGPU_LOGGER.
+# Testing hooks: EGPU_RUNTIME, EGPU_KIOSK, EGPU_LOGINCTL, EGPU_LOGGER, EGPU_STATUS.
 # Log: journalctl -t egpu-launchd -t egpu-kiosk (add -k for the kernel log)
 
 # A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
 # (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
-# (EGPU_STATUS: testing hook, a status file instead of /proc/self/status.)
 if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
    && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
     export EGPU_CAPS_DROPPED=1
@@ -40,17 +37,14 @@ done
 
 log() { ${EGPU_LOGGER:-logger} -t egpu-launchd -- "$*" 2>/dev/null || true; }
 
-# Nothing may read this tty's keyboard. As a service (INVOCATION_ID is set) the tty is also
-# made inert (no echo, Ctrl+C etc. are plain characters) so nobody can kill the daemon by
-# keyboard; by hand, signals stay on.
+# Nothing reads this tty's keyboard. As a service the tty is also made inert, so Ctrl+C
+# cannot kill the daemon.
 if [ -n "$INVOCATION_ID" ] && [ -t 0 ]; then stty -isig -echo 2>/dev/null; fi
 exec </dev/null
 
-# Only one daemon at a time.
 exec 9>"$LOCKFILE" || { echo "egpu-launchd: cannot create $LOCKFILE" >&2; exit 1; }
 flock -n 9 || { echo "egpu-launchd: already running." >&2; exit 1; }
 
-# This daemon's own logind session: the one on tty2 (XDG_SESSION_ID when we run in it).
 my_session() {
     if [ -n "$XDG_SESSION_ID" ]; then echo "$XDG_SESSION_ID"; return 0; fi
     $LOGINCTL list-sessions --json=short 2>/dev/null \
@@ -59,7 +53,7 @@ my_session() {
 ME=$(my_session)
 [ -n "$ME" ] || { echo "egpu-launchd: cannot find my own logind session." >&2; exit 1; }
 
-# Poll until our session is the active one (the screen has really switched to this VT).
+# The VT switch is asynchronous: wait until our session is really the active one.
 wait_active() {
     local i
     for i in $(seq 1 20); do
@@ -83,7 +77,7 @@ while IFS=$'\t' read -r desk done cmdstr <&3; do
     log "request: desktop=$desk reply=$done cmd=$cmdstr"
     wait_active || log "warning: session $ME not active after 10 s; continuing anyway"
 
-    eval "set -- $cmdstr"        # the line was quoted with printf %q by egpu-launch
+    eval "set -- $cmdstr"        # quoted with printf %q by egpu-launch
     "$KIOSK" "$@"
     rc=$?
     log "kiosk exited rc=$rc"
