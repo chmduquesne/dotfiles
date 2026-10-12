@@ -35,6 +35,14 @@
 
 #custom-updates {
     padding: 0 10px;
+    background-color: rgba(215, 10, 83, 0.3); /* faint Debian red tint */
+    transition: background-color 150ms;
+}
+
+#custom-updates.has-updates {
+    color: #ffffff;
+    background-color: #d70a53; /* full Debian red, strong contrast */
+    font-weight: bold;
 }
 
 #custom-egpu {

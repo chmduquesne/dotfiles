@@ -3,8 +3,10 @@
 updates="$(apt-get -q -y --ignore-hold --allow-change-held-packages --allow-unauthenticated -s dist-upgrade | /bin/grep ^Inst | wc -l)"
 
 alt="has-updates"
+tooltip="$updates updates available"
 if [ $updates -eq 0 ]; then
     alt="updated"
+    tooltip="All packages are up to date"
 fi
 
-printf '{"text": "%s", "alt": "%s"}\n' "$updates" "$alt"
+printf '{"text": "%s", "class": "%s", "alt": "%s", "tooltip": "%s"}\n' "$updates" "$alt" "$alt" "$tooltip"
