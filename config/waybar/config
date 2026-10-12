@@ -9,6 +9,7 @@
         "custom/screenrec",
         "custom/egpu",
         "idle_inhibitor",
+        "custom/audio-inhibit",
         "backlight",
         "network",
         "memory",
@@ -17,7 +18,6 @@
         "disk",
         "battery",
         "pulseaudio",
-        "custom/audio-inhibit",
         "custom/updates",
         "tray",
         "clock"
@@ -40,6 +40,12 @@
         },
         "tooltip-format-activated": "inhibitor activated",
         "tooltip-format-deactivated": "inhibitor deactivated"
+    },
+    "custom/audio-inhibit": {
+        "return-type": "json",
+        "exec": "~/.local/bin/audio-inhibit --waybar",
+        "on-click": "~/.local/bin/audio-inhibit --toggle",
+        "interval": 1
     },
     "tray": {
         "spacing": 10
@@ -129,12 +135,6 @@
         "interval": 5,
         "exec": "waybar-egpu status",
         "on-click": "waybar-egpu disconnect"
-    },
-    "custom/audio-inhibit": {
-        "return-type": "json",
-        "exec": "~/.local/bin/audio-inhibit --waybar",
-        "on-click": "~/.local/bin/audio-inhibit --toggle",
-        "interval": 1
     },
     "custom/updates":{
         "exec": "waybar-apt-updates",
