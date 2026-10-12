@@ -2,7 +2,7 @@
 # egpu-kiosk: run ONE program fullscreen on the eGPU's display, inside a sway kiosk.
 #   egpu-kiosk command [args...]        e.g.  egpu-kiosk steam
 #
-# The runner. It needs a plain tty session (a free VT, or egpu-display on tty2), not tmux or
+# The runner. It needs a plain tty session (a free VT, or egpu-launchd on tty2), not tmux or
 # the desktop session: logind only gives the display to the active session. From the desktop,
 # use `egpu-launch`.
 #
@@ -97,7 +97,7 @@ trap cleanup EXIT
 
 # --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
 # The input is whichever one the monitor reaches the eGPU through (the cable can move). Any
-# failure here ends the run: the kiosk would show a black screen nobody can leave. egpu-display
+# failure here ends the run: the kiosk would show a black screen nobody can leave. egpu-launchd
 # then switches back to the desktop and egpu-launch reports the exit code.
 fail() { echo "egpu-kiosk: $*" >&2; log "abort: $*"; exit 1; }
 

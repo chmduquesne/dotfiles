@@ -2,17 +2,17 @@
 # egpu-launch: from the desktop, show a program on the eGPU's display.
 #   egpu-launch command [args...]        e.g.  egpu-launch steam
 #
-# The desktop-side command: it asks the egpu-display host (on tty2) to run the program with
+# The desktop-side command: it asks egpu-launchd (on tty2) to run the program with
 # egpu-kiosk, switches your screen to that session and waits until the program is done; the
-# host then switches back. No sudo. The exit code is the kiosk's. If you leave with
+# daemon then switches back. No sudo. The exit code is the kiosk's. If you leave with
 # Ctrl+Alt+F1 the program keeps running, and a second egpu-launch is refused until it ends.
 #
-# Testing hooks: EGPU_RUNTIME, EGPU_LOGINCTL (see egpu-display).
+# Testing hooks: EGPU_RUNTIME, EGPU_LOGINCTL (see egpu-launchd).
 
 RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
 LOGINCTL=${EGPU_LOGINCTL:-loginctl}
-FIFO=$RT/egpu-display.fifo
-SESSFILE=$RT/egpu-display.session
+FIFO=$RT/egpu-launchd.fifo
+SESSFILE=$RT/egpu-launchd.session
 LOCKFILE=$RT/egpu-launch.lock
 
 die() { echo "egpu-launch: $*" >&2; exit 1; }
@@ -40,9 +40,9 @@ desk=$(desktop_session) || die "no graphical session found."
 egpu-card >/dev/null || die "the eGPU is not connected."
 
 [ -p "$FIFO" ] && [ -r "$SESSFILE" ] \
-    || die "the display host is not running (egpu-display.service, or egpu-display in a tty2 login)."
+    || die "the launch daemon is not running (egpu-launchd.service, or egpu-launchd in a tty2 login)."
 read -r hostpid hostsess < "$SESSFILE"
-kill -0 "$hostpid" 2>/dev/null || die "the display host is not running (stale session file)."
+kill -0 "$hostpid" 2>/dev/null || die "the launch daemon is not running (stale session file)."
 
 exec 8>"$LOCKFILE"
 flock -n 8 || die "a program is already running on the eGPU display."
@@ -59,11 +59,11 @@ exec 6<>"$FIFO"
 printf '%s\t%s\t%s\n' "$desk" "$done" "$(printf '%q ' "$@")" >&6
 exec 6>&-
 
-# Wait for the program to finish; give up if the host dies meanwhile.
+# Wait for the program to finish; give up if the daemon dies meanwhile.
 while ! read -r -t 5 -u 4 rc; do
-    kill -0 "$hostpid" 2>/dev/null || die "the display host died."
+    kill -0 "$hostpid" 2>/dev/null || die "the launch daemon died."
 done
 if [ "${rc:-1}" != 0 ]; then
-    echo "egpu-launch: the program ended with code ${rc:-1}; see: journalctl -t egpu-kiosk -t egpu-display -b" >&2
+    echo "egpu-launch: the program ended with code ${rc:-1}; see: journalctl -t egpu-kiosk -t egpu-launchd -b" >&2
 fi
 exit "${rc:-1}"

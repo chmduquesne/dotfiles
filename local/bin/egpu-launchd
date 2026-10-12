@@ -1,20 +1,20 @@
 #!/bin/bash
-# egpu-display: the long-running host that owns the eGPU's display, on tty2.
-#   egpu-display   runs forever; started by egpu-display.service (or by hand in a tty2 login)
+# egpu-launchd: the long-running daemon that owns the eGPU's display, on tty2.
+#   egpu-launchd   runs forever; started by egpu-launchd.service (or by hand in a tty2 login)
 #
 # It waits for requests from `egpu-launch`, runs `egpu-kiosk` in its own tty session (which
 # logind lets take the eGPU's display), then switches back to the desktop session. It reads no
 # keyboard input.
 #
 # Protocol (in $XDG_RUNTIME_DIR):
-#   egpu-display.fifo      requests: <desktop session>TAB<reply fifo>TAB<quoted command>
-#   egpu-display.session   "<pid> <session id>" of this host (egpu-launch needs both)
-#   egpu-display.lock      single-instance lock
+#   egpu-launchd.fifo      requests: <desktop session>TAB<reply fifo>TAB<quoted command>
+#   egpu-launchd.session   "<pid> <session id>" of this daemon (egpu-launch needs both)
+#   egpu-launchd.lock      single-instance lock
 # The reply fifo gets the exit code of egpu-kiosk.
 #
 # Testing hooks: EGPU_RUNTIME (instead of $XDG_RUNTIME_DIR), EGPU_KIOSK (runner), EGPU_LOGINCTL
 # (instead of loginctl), EGPU_LOGGER.
-# Log: journalctl -t egpu-display -t egpu-kiosk (add -k for the kernel log)
+# Log: journalctl -t egpu-launchd -t egpu-kiosk (add -k for the kernel log)
 
 # A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
 # (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
@@ -28,36 +28,36 @@ fi
 RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
 KIOSK=${EGPU_KIOSK:-$HOME/.local/bin/egpu-kiosk}
 LOGINCTL=${EGPU_LOGINCTL:-loginctl}
-FIFO=$RT/egpu-display.fifo
-SESSFILE=$RT/egpu-display.session
-LOCKFILE=$RT/egpu-display.lock
+FIFO=$RT/egpu-launchd.fifo
+SESSFILE=$RT/egpu-launchd.session
+LOCKFILE=$RT/egpu-launchd.lock
 
 export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
 
 for dep in ${LOGINCTL%% *} jq flock "$KIOSK"; do
-    command -v "$dep" >/dev/null || { echo "egpu-display: $dep not found" >&2; exit 1; }
+    command -v "$dep" >/dev/null || { echo "egpu-launchd: $dep not found" >&2; exit 1; }
 done
 
-log() { ${EGPU_LOGGER:-logger} -t egpu-display -- "$*" 2>/dev/null || true; }
+log() { ${EGPU_LOGGER:-logger} -t egpu-launchd -- "$*" 2>/dev/null || true; }
 
 # Nothing may read this tty's keyboard. As a service (INVOCATION_ID is set) the tty is also
-# made inert (no echo, Ctrl+C etc. are plain characters) so nobody can kill the host by
+# made inert (no echo, Ctrl+C etc. are plain characters) so nobody can kill the daemon by
 # keyboard; by hand, signals stay on.
 if [ -n "$INVOCATION_ID" ] && [ -t 0 ]; then stty -isig -echo 2>/dev/null; fi
 exec </dev/null
 
-# Only one host at a time.
-exec 9>"$LOCKFILE" || { echo "egpu-display: cannot create $LOCKFILE" >&2; exit 1; }
-flock -n 9 || { echo "egpu-display: already running." >&2; exit 1; }
+# Only one daemon at a time.
+exec 9>"$LOCKFILE" || { echo "egpu-launchd: cannot create $LOCKFILE" >&2; exit 1; }
+flock -n 9 || { echo "egpu-launchd: already running." >&2; exit 1; }
 
-# This host's own logind session: the one on tty2 (XDG_SESSION_ID when we run in it).
+# This daemon's own logind session: the one on tty2 (XDG_SESSION_ID when we run in it).
 my_session() {
     if [ -n "$XDG_SESSION_ID" ]; then echo "$XDG_SESSION_ID"; return 0; fi
     $LOGINCTL list-sessions --json=short 2>/dev/null \
         | jq -r 'first(.[] | select(.tty == "tty2") | .session) // empty'
 }
 ME=$(my_session)
-[ -n "$ME" ] || { echo "egpu-display: cannot find my own logind session." >&2; exit 1; }
+[ -n "$ME" ] || { echo "egpu-launchd: cannot find my own logind session." >&2; exit 1; }
 
 # Poll until our session is the active one (the screen has really switched to this VT).
 wait_active() {
@@ -69,14 +69,14 @@ wait_active() {
     return 1
 }
 
-cleanup() { rm -f "$FIFO" "$SESSFILE"; log "host stopped"; }
+cleanup() { rm -f "$FIFO" "$SESSFILE"; log "stopped"; }
 trap cleanup EXIT
 trap 'exit 0' TERM INT
 
 [ -p "$FIFO" ] || { rm -f "$FIFO"; mkfifo -m 600 "$FIFO"; }
 exec 3<>"$FIFO"           # read-write: never sees EOF between requests
 echo "$$ $ME" > "$SESSFILE"
-log "host started: pid=$$ session=$ME"
+log "started: pid=$$ session=$ME"
 
 while IFS=$'\t' read -r desk done cmdstr <&3; do
     [ -n "$desk" ] && [ -n "$done" ] || continue
