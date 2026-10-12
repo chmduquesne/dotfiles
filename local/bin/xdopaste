@@ -1,3 +1,0 @@
-#!/bin/bash
-
-xdotool keyup super type --delay 0 "$(xclip -o -selection clipboard)"
