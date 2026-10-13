@@ -1,12 +1,37 @@
 @import url("/etc/xdg/waybar/style.css");
 
+#disk {
+    transition: background-color 150ms;
+}
+
+#disk:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Click to open the disk usage analyzer */
+}
+
+#pulseaudio {
+    transition: background-color 150ms;
+}
+
+#pulseaudio:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Click to open pavucontrol */
+}
+
 #custom-screenrec {
     padding: 0 10px;
+    transition: background-color 150ms;
+}
+
+#custom-screenrec:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 #custom-screenrec.recording {
     color: #ff5555; /* Red indicator */
     background-color: #ecf0f1;
+}
+
+#custom-screenrec.recording:hover {
+    background-color: #d5dbdb; /* Darker on hover: click to stop */
 }
 
 #custom-callstatus {

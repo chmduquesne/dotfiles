@@ -67,7 +67,8 @@
     },
     "disk": {
         "format": "{percentage_used}% 🖴",
-        "tooltip": true
+        "tooltip": true,
+        "on-click": "baobab /"
     },
     "temperature": {
         // "thermal-zone": 2,
