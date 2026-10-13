@@ -6,11 +6,8 @@
 # that session and waits; the daemon switches back when the program is done. No sudo. The exit
 # code is the kiosk's. If you leave with Ctrl+Alt+F1 the program keeps running, and a second
 # egpu-launch is refused until it ends.
-#
-# Testing hooks: EGPU_RUNTIME, EGPU_LOGINCTL (see egpu-launchd).
 
-RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
-LOGINCTL=${EGPU_LOGINCTL:-loginctl}
+RT=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 FIFO=$RT/egpu-launchd.fifo
 SESSFILE=$RT/egpu-launchd.session
 LOCKFILE=$RT/egpu-launch.lock
@@ -23,15 +20,15 @@ die() { echo "egpu-launch: $*" >&2; exit 1; }
 # The graphical session (wayland or x11) of this seat.
 desktop_session() {
     local s
-    for s in $($LOGINCTL list-sessions --no-legend 2>/dev/null | awk '{print $1}'); do
-        case "$($LOGINCTL show-session "$s" -p Type --value 2>/dev/null)" in
+    for s in $(loginctl list-sessions --no-legend 2>/dev/null | awk '{print $1}'); do
+        case "$(loginctl show-session "$s" -p Type --value 2>/dev/null)" in
             wayland|x11) echo "$s"; return 0 ;;
         esac
     done
     return 1
 }
 
-for dep in ${LOGINCTL%% *} flock egpu-card; do
+for dep in loginctl flock egpu-card; do
     command -v "$dep" >/dev/null || { echo "egpu-launch: $dep not found" >&2; exit 1; }
 done
 
@@ -46,16 +43,16 @@ kill -0 "$hostpid" 2>/dev/null || die "the launch daemon is not running (stale s
 exec 8>"$LOCKFILE"
 flock -n 8 || die "a program is already running on the eGPU display."
 
-done=$(mktemp -u "$RT/egpu-launch.done.XXXXXX")
-mkfifo -m 600 "$done" || die "cannot create the reply fifo."
-exec 4<>"$done"
-trap 'rm -f "$done"' EXIT
+reply=$(mktemp -u "$RT/egpu-launch.reply.XXXXXX")
+mkfifo -m 600 "$reply" || die "cannot create the reply fifo."
+exec 4<>"$reply"
+trap 'rm -f "$reply"' EXIT
 
 # Switch the screen first, so a failure here queues nothing.
-$LOGINCTL activate "$hostsess" || die "cannot switch to session $hostsess."
+loginctl activate "$hostsess" || die "cannot switch to session $hostsess."
 
 exec 6<>"$FIFO"
-printf '%s\t%s\t%s\n' "$desk" "$done" "$(printf '%q ' "$@")" >&6
+printf '%s\t%s\t%s\n' "$desk" "$reply" "$(printf '%q ' "$@")" >&6
 exec 6>&-
 
 # Wait for the program to finish; give up if the daemon dies meanwhile.

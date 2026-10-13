@@ -13,26 +13,25 @@
 # entity"), so the eGPU sink is looked up BEFORE the command and set after it, with retries.
 #
 # State: $XDG_RUNTIME_DIR/egpu-audio.state, "<old sink> <new sink>".
-# Testing hooks: EGPU_PACTL, EGPU_LOGGER, EGPU_RUNTIME. Log: journalctl -t egpu-audio
+# Log: journalctl -t egpu-audio
 
-PACTL=${EGPU_PACTL:-pactl}
-RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+RT=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 STATE=$RT/egpu-audio.state
 
-log() { ${EGPU_LOGGER:-logger} -t egpu-audio -- "$*" 2>/dev/null || true; }
+log() { logger -t egpu-audio -- "$*" 2>/dev/null || true; }
 
 # The eGPU's sink with an available port, whichever HDMI or DisplayPort connector it is.
 egpu_sink() {
     local addr
     addr=$(egpu-card --audio) || return 1
-    $PACTL --format=json list sinks 2>/dev/null | jq -r --arg bus "pci-$addr" '
+    pactl --format=json list sinks 2>/dev/null | jq -r --arg bus "pci-$addr" '
         first(.[] | select(.properties["device.bus_path"] == $bus
                            and any(.ports[]; .availability == "available")) | .name) // empty'
 }
 
 # Whether sink $1 is on a monitor: PulseAudio types HDMI and DisplayPort ports alike "HDMI".
 is_physical_monitor_sink() {
-    $PACTL --format=json list sinks 2>/dev/null | jq -e --arg name "$1" '
+    pactl --format=json list sinks 2>/dev/null | jq -e --arg name "$1" '
         .[] | select(.name == $name) | .active_port as $p
             | any(.ports[]; .name == $p and .type == "HDMI")' >/dev/null
 }
@@ -42,7 +41,7 @@ set_default() {
     local sink=$1 i
     for i in $(seq 1 12); do
         [ -n "$sink" ] || sink=$(egpu_sink)
-        if [ -n "$sink" ] && $PACTL set-default-sink "$sink" 2>/dev/null; then return 0; fi
+        if [ -n "$sink" ] && pactl set-default-sink "$sink" 2>/dev/null; then return 0; fi
         sink=$1; sleep 0.5
     done
     return 1
@@ -50,7 +49,7 @@ set_default() {
 
 follow() {
     local old new rc
-    old=$($PACTL get-default-sink 2>/dev/null)
+    old=$(pactl get-default-sink 2>/dev/null)
     if is_physical_monitor_sink "$old"; then
         new=$(egpu_sink)
         [ -n "$new" ] || log "no eGPU audio sink available; audio stays on $old"
@@ -73,7 +72,7 @@ unfollow() {
     "$@"; rc=$?
     [ -r "$STATE" ] || return "$rc"
     read -r old new < "$STATE"; rm -f "$STATE"
-    cur=$($PACTL get-default-sink 2>/dev/null)
+    cur=$(pactl get-default-sink 2>/dev/null)
     if [ "$cur" != "$new" ]; then
         log "default sink is now ${cur:-?}, not $new; not restoring $old"
     elif set_default "$old"; then
@@ -90,7 +89,7 @@ if { [ "$cmd" != follow ] && [ "$cmd" != unfollow ]; } || [ "$2" != -- ] || [ $#
     exit 2
 fi
 shift 2
-for dep in ${PACTL%% *} jq egpu-card; do
+for dep in pactl jq egpu-card; do
     command -v "$dep" >/dev/null || { echo "egpu-audio: $dep not found" >&2; exit 1; }
 done
 "$cmd" "$@"

@@ -7,7 +7,7 @@
 SERVICES=${WAYBAR_EGPU_SERVICES:-ollama}
 
 # Journal log: journalctl -t waybar-egpu
-log() { ${EGPU_LOGGER:-logger} -t waybar-egpu -- "$*" 2>/dev/null || true; }
+log() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
 is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]; }

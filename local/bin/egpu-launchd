@@ -11,31 +11,32 @@
 #   egpu-launchd.lock      single-instance lock
 # The reply fifo gets the exit code of egpu-kiosk.
 #
-# Testing hooks: EGPU_RUNTIME, EGPU_KIOSK, EGPU_LOGINCTL, EGPU_LOGGER, EGPU_STATUS.
 # Log: journalctl -t egpu-launchd -t egpu-kiosk (add -k for the kernel log)
 
 # A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
 # (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
-if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
-   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
-    export EGPU_CAPS_DROPPED=1
-    exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+if [ -z "$EGPU_CAPS_DROPPED" ] \
+   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' /proc/self/status; then
+    if command -v setpriv >/dev/null; then
+        export EGPU_CAPS_DROPPED=1
+        exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+    fi
+    echo "egpu-launchd: warning: setpriv not found; Steam's sandbox may refuse to run." >&2
 fi
 
-RT=${EGPU_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
-KIOSK=${EGPU_KIOSK:-$HOME/.local/bin/egpu-kiosk}
-LOGINCTL=${EGPU_LOGINCTL:-loginctl}
+RT=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+KIOSK=$HOME/.local/bin/egpu-kiosk
 FIFO=$RT/egpu-launchd.fifo
 SESSFILE=$RT/egpu-launchd.session
 LOCKFILE=$RT/egpu-launchd.lock
 
 export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
 
-for dep in ${LOGINCTL%% *} jq flock "$KIOSK"; do
+for dep in loginctl jq flock "$KIOSK"; do
     command -v "$dep" >/dev/null || { echo "egpu-launchd: $dep not found" >&2; exit 1; }
 done
 
-log() { ${EGPU_LOGGER:-logger} -t egpu-launchd -- "$*" 2>/dev/null || true; }
+log() { logger -t egpu-launchd -- "$*" 2>/dev/null || true; }
 
 # Nothing reads this tty's keyboard. As a service the tty is also made inert, so Ctrl+C
 # cannot kill the daemon.
@@ -47,7 +48,7 @@ flock -n 9 || { echo "egpu-launchd: already running." >&2; exit 1; }
 
 my_session() {
     if [ -n "$XDG_SESSION_ID" ]; then echo "$XDG_SESSION_ID"; return 0; fi
-    $LOGINCTL list-sessions --json=short 2>/dev/null \
+    loginctl list-sessions --json=short 2>/dev/null \
         | jq -r 'first(.[] | select(.tty == "tty2") | .session) // empty'
 }
 ME=$(my_session)
@@ -57,7 +58,7 @@ ME=$(my_session)
 wait_active() {
     local i
     for i in $(seq 1 20); do
-        [ "$($LOGINCTL show-session "$ME" -p Active --value 2>/dev/null)" = yes ] && return 0
+        [ "$(loginctl show-session "$ME" -p Active --value 2>/dev/null)" = yes ] && return 0
         sleep 0.5
     done
     return 1
@@ -72,9 +73,9 @@ exec 3<>"$FIFO"           # read-write: never sees EOF between requests
 echo "$$ $ME" > "$SESSFILE"
 log "started: pid=$$ session=$ME"
 
-while IFS=$'\t' read -r desk done cmdstr <&3; do
-    [ -n "$desk" ] && [ -n "$done" ] || continue
-    log "request: desktop=$desk reply=$done cmd=$cmdstr"
+while IFS=$'\t' read -r desk reply cmdstr <&3; do
+    [ -n "$desk" ] && [ -n "$reply" ] || continue
+    log "request: desktop=$desk reply=$reply cmd=$cmdstr"
     wait_active || log "warning: session $ME not active after 10 s; continuing anyway"
 
     eval "set -- $cmdstr"        # quoted with printf %q by egpu-launch
@@ -82,9 +83,9 @@ while IFS=$'\t' read -r desk done cmdstr <&3; do
     rc=$?
     log "kiosk exited rc=$rc"
 
-    "$LOGINCTL" activate "$desk" \
+    loginctl activate "$desk" \
         || log "warning: could not switch back to session $desk"
 
     # Reply without ever blocking: opening a fifo read-write does not wait for a reader.
-    { exec 5<>"$done" && echo "$rc" >&5; exec 5>&-; } 2>/dev/null
+    { exec 5<>"$reply" && echo "$rc" >&5; exec 5>&-; } 2>/dev/null
 done

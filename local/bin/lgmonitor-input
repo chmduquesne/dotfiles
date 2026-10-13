@@ -23,9 +23,6 @@
 # sensor, which is polled every 0.4 s. If the cached buses fail, it rescans once. The first
 # link gets the whole confirmation timeout, fallbacks half, so a monitor that ignores us
 # fails after ~15 s.
-#
-# Testing hooks: LGMONITOR_DDCUTIL, LGMONITOR_LOGGER, LGMONITOR_RUNTIME (cache directory),
-# LGMONITOR_TIMEOUT (seconds to wait for confirmation).
 
 # name  xF4-value  F8-sensor  regex of the DRM connector whose DDC link belongs to this input
 # (for a DisplayPort cable on the eGPU, widen the hdmi1 pattern, e.g. ^card1-(HDMI|DP))
@@ -38,11 +35,9 @@ INPUTS=(
     "hdmi2  x0091  -    -"
 )
 
-DDC=${LGMONITOR_DDCUTIL:-ddcutil}
-LOGGER=${LGMONITOR_LOGGER:-logger}
-RT=${LGMONITOR_RUNTIME:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}}
+RT=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 CACHE=$RT/lgmonitor-input.buses
-CONFIRM_TIMEOUT=${LGMONITOR_TIMEOUT:-10}
+CONFIRM_TIMEOUT=10
 VERBOSE=
 
 declare -A VAL SENSOR PATTERN BUS CONN
@@ -54,7 +49,7 @@ for row in "${INPUTS[@]}"; do
 done
 
 log() {
-    $LOGGER -t lgmonitor-input -- "$*" 2>/dev/null || true
+    logger -t lgmonitor-input -- "$*" 2>/dev/null || true
     [ -n "$VERBOSE" ] && echo "lgmonitor-input: $*" >&2
     return 0
 }
@@ -70,7 +65,7 @@ show_buses() {
 # --- bus discovery and cache --------------------------------------------------------------
 scan() {
     local out pairs n pair
-    out=$($DDC detect --brief 2>/dev/null) || true
+    out=$(ddcutil detect --brief 2>/dev/null) || true
     # "<connector> <bus>" for every valid display
     pairs=$(printf '%s\n' "$out" | awk '
         /^Display [0-9]+/  { valid = 1; next }
@@ -107,7 +102,7 @@ load_cache() {
 read_f8() {
     [ -n "$1" ] || return 1
     local line
-    line=$(timeout 4 $DDC --bus "$1" -t getvcp f8 2>/dev/null | head -1)
+    line=$(timeout 4 ddcutil --bus "$1" -t getvcp f8 2>/dev/null | head -1)
     case "$line" in "VCP F8 CNC "*) echo "${line##* }" ;; esac
 }
 
@@ -152,7 +147,7 @@ attempt() {   # attempt <target>: 0 when the monitor confirms the target input
     for n in "${order[@]}"; do
         bus=${BUS[$n]}; [ -n "$bus" ] || continue
         log "$cur -> $target: setvcp xF4 ${VAL[$target]} over the $n link (bus $bus)"
-        $DDC --bus "$bus" setvcp xF4 "${VAL[$target]}" --i2c-source-addr=x50 >/dev/null 2>&1
+        ddcutil --bus "$bus" setvcp xF4 "${VAL[$target]}" --i2c-source-addr=x50 >/dev/null 2>&1
         if [ -z "${SENSOR[$target]}" ]; then
             # nothing to confirm against: send once and trust it
             sleep 1
@@ -208,9 +203,7 @@ usage() {
 
 [ "$1" = -v ] && { VERBOSE=1; shift; }
 [ "$1" = list ] && { printf '%s\n' "${NAMES[@]}"; exit 0; }
-for dep in ${DDC%% *}; do
-    command -v "$dep" >/dev/null || die "$dep not found" 3
-done
+command -v ddcutil >/dev/null || die "ddcutil not found" 3
 case "$1" in
     get)  cmd_get ;;
     find)  cmd_find "$2" ;;

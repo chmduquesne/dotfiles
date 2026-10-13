@@ -18,14 +18,16 @@
 # Alt+Esc quits the kiosk.
 # Log: journalctl -t egpu-kiosk (add -k for the kernel log); sway output (noisy):
 #      ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log
-# Testing hooks: EGPU_LOGGER, EGPU_BINDIR (searched first for commands), EGPU_STATUS.
 
 # A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
 # (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
-if [ -z "$EGPU_CAPS_DROPPED" ] && command -v setpriv >/dev/null \
-   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' "${EGPU_STATUS:-/proc/self/status}"; then
-    export EGPU_CAPS_DROPPED=1
-    exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+if [ -z "$EGPU_CAPS_DROPPED" ] \
+   && grep -Eq '^Cap(Prm|Eff|Amb):[[:space:]]*0*[1-9a-fA-F]' /proc/self/status; then
+    if command -v setpriv >/dev/null; then
+        export EGPU_CAPS_DROPPED=1
+        exec setpriv --ambient-caps=-all --inh-caps=-all "$0" "$@"
+    fi
+    echo "egpu-kiosk: warning: setpriv not found; Steam's sandbox may refuse to run." >&2
 fi
 
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}
@@ -34,14 +36,14 @@ SWAYLOG=$STATE/sway-egpu-kiosk.log
 CONF=${XDG_CONFIG_HOME:-$HOME/.config}/egpu/kiosk-sway.conf
 
 # Minimal environments (systemd service) lack these.
-export PATH="${EGPU_BINDIR:+$EGPU_BINDIR:}$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:$PATH"
 : "${XDG_RUNTIME_DIR:=/run/user/$(id -u)}"
 export XDG_RUNTIME_DIR
 if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
     export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
 fi
 
-log() { ${EGPU_LOGGER:-logger} -t egpu-kiosk -- "$*" 2>/dev/null || true; }
+log() { logger -t egpu-kiosk -- "$*" 2>/dev/null || true; }
 
 if [ $# -eq 0 ] || [ -z "$1" ]; then
     echo "usage: egpu-kiosk command [args...]   (e.g. egpu-kiosk steam)" >&2
@@ -60,6 +62,8 @@ log "start: user=$(id -un) session=${XDG_SESSION_ID:-?} vt=${XDG_VTNR:-?} cmd=${
 
 # --- 1. free the VRAM (best effort; the ollama service itself keeps running) -------------
 if command -v ollama >/dev/null; then
+    command -v curl >/dev/null && command -v jq >/dev/null \
+        || log "ollama: curl or jq missing; models not unloaded"
     host=${OLLAMA_HOST:-127.0.0.1:11434}; host=${host#http://}
     loaded=$(curl -s -m 10 "http://$host/api/ps" 2>/dev/null | jq -r '.models[].name' 2>/dev/null)
     for m in $loaded; do

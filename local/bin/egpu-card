@@ -8,9 +8,7 @@
 #
 # Only systems with one single egpu are supported. The eGPU is the display-class PCI device
 # the kernel flags "removable" (behind an external port such as Thunderbolt), whatever its
-# vendor. Testing hook: EGPU_SYSFS (instead of /sys).
-
-SYS=${EGPU_SYSFS:-/sys}
+# vendor.
 
 case $1 in
     "") mode=card ;;
@@ -19,7 +17,7 @@ case $1 in
     *) echo "usage: egpu-card [--pci|--audio]" >&2; exit 2 ;;
 esac
 
-for dev in "$SYS"/bus/pci/devices/*; do
+for dev in /sys/bus/pci/devices/*; do
     [[ $(< "$dev/class") == 0x03* && $(< "$dev/removable") == removable ]] || continue
     gpu=$(readlink -f "$dev"); break
 done 2>/dev/null
