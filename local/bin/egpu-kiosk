@@ -71,11 +71,11 @@ fi
 # Some programs (Steam) outlive their window and would block `waybar-egpu disconnect`. Sway
 # runs in a transient scope: stopping it terminates everything the program left behind.
 SCOPE=egpu-kiosk-app.scope
-# ddc_on is set before the monitor switch, so a failed switch still tries to switch back.
-ddc_on=
+# restore_monitor is set before the monitor switch, so a failed switch still tries to switch back.
+restore_monitor=
 cleanup() {
     systemctl --user stop "$SCOPE" >/dev/null 2>&1
-    if [ -n "$ddc_on" ]; then
+    if [ -n "$restore_monitor" ]; then
         egpu-audio unfollow -- lgmonitor-input set usbc \
             || echo "egpu-kiosk: could not switch the monitor back; use its input button." >&2
     fi
@@ -94,7 +94,7 @@ for _ in 1 2 3; do   # the DDC scan sometimes misses the eGPU's link once
     input=; sleep 2
 done
 [ -n "$input" ] || fail "no monitor input is wired to the eGPU ($card)."
-ddc_on=1
+restore_monitor=1
 log "monitor input for the eGPU: $input"
 egpu-audio follow -- lgmonitor-input set "$input" \
     || fail "could not switch the monitor to $input."
