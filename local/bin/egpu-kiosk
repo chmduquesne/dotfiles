@@ -83,6 +83,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# A scope left by a run that was killed hard would make systemd-run fail on the name below.
+if systemctl --user is-active --quiet "$SCOPE"; then
+    log "stopping a stale $SCOPE"
+    systemctl --user stop "$SCOPE" >/dev/null 2>&1
+fi
+
 # --- 2. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
 # The input is whichever one the monitor reaches the eGPU through (the cable can move). A
 # failure here ends the run: the kiosk would show a black screen nobody can leave.
@@ -100,8 +106,13 @@ egpu-audio follow -- lgmonitor-input set "$input" \
     || fail "could not switch the monitor to $input."
 
 # --- 3. the kiosk -----------------------------------------------------------------------
+# The sway config runs KIOSK_CMD and then exits sway, whose own exit code is always 0. So the
+# program's exit code is written to a file, and becomes ours. If the file is missing (Alt+Esc,
+# or sway died) we keep sway's code.
 : > "$SWAYLOG"
-KIOSK_CMD=$(printf '%q ' "${cmd[@]}") \
+rcfile=$XDG_RUNTIME_DIR/egpu-kiosk.rc
+rm -f "$rcfile"
+KIOSK_CMD="$(printf '%q ' "${cmd[@]}"); echo \$? > $(printf '%q' "$rcfile")" \
 WLR_DRM_DEVICES=/dev/dri/$card \
 WLR_NO_HARDWARE_CURSORS=1 \
 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json \
@@ -110,4 +121,9 @@ systemd-run --user --scope --collect --quiet --unit="${SCOPE%.scope}" -p Timeout
     sway --unsupported-gpu -c "$CONF" >> "$SWAYLOG" 2>&1
 rc=$?
 log "sway exited rc=$rc"
+if [ -r "$rcfile" ] && read -r prog_rc < "$rcfile" && [[ $prog_rc =~ ^[0-9]+$ ]]; then
+    log "program exited rc=$prog_rc"
+    rc=$prog_rc
+fi
+rm -f "$rcfile"
 exit $rc
