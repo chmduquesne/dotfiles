@@ -90,7 +90,7 @@ toggle(){
     pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar
 }
 
-jsonify() {  # jsonify <text> <class> <tooltip>
+waybar_emit() {  # waybar_emit <text> <class> <tooltip>
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, tooltip: $tooltip}'
 }
@@ -117,7 +117,7 @@ show_status(){  # show_status <recording-apps> <playing-apps> <json|quiet>
                 [[ "$class" == busy ]] && tooltip=$'Idle inhibition disabled\n'"$tooltip" || tooltip="Idle inhibition disabled"
                 class=disabled
             fi
-            jsonify "$icon" "$class" "$tooltip" ;;
+            waybar_emit "$icon" "$class" "$tooltip" ;;
         quiet) [[ "$class" == busy ]] && return 0 || return 1 ;;
     esac
 }

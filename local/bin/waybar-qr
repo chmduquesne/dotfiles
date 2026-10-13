@@ -26,14 +26,18 @@ refresh_waybar(){
 	pkill -RTMIN+"$WAYBAR_SIGNAL" -x waybar || true
 }
 
+waybar_emit(){  # waybar_emit <text> <class> <tooltip>
+	jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
+		'{text: $text, class: $class, tooltip: $tooltip}'
+}
+
 status(){
 	local class=idle tip="Left: clipboard to QR code, right: scan with webcam"
 	if [ -e "$SCANNING_FLAG" ]; then
 		class=scanning
 		tip="Scanning with the webcam..."
 	fi
-	jq -nc --arg class "$class" --arg tooltip "$tip" \
-		'{text: "\uf029", class: $class, tooltip: $tooltip}'
+	waybar_emit "" "$class" "$tip"
 }
 
 # Print the camera to scan with: the first external one (USB device not marked as

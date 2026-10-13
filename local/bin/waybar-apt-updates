@@ -14,7 +14,7 @@
 STAMP=/var/lib/apt/periodic/update-success-stamp
 MAX_NAMES=15
 
-emit() {
+waybar_emit() {
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, alt: $class, tooltip: $tooltip}'
 }
@@ -30,7 +30,7 @@ lists_age() {
     fi
 }
 
-plan=$(apt-get -q -s dist-upgrade 2>&1) || { emit "?" error "apt-get failed: ${plan##*$'\n'}"; exit 0; }
+plan=$(apt-get -q -s dist-upgrade 2>&1) || { waybar_emit "?" error "apt-get failed: ${plan##*$'\n'}"; exit 0; }
 
 names=$(awk '/^Inst/ {print $2}' <<< "$plan")
 count=$(awk '/^Inst/ {n++} END {print n + 0}' <<< "$plan")
@@ -47,4 +47,4 @@ fi
 age=$(lists_age)
 [ -n "$age" ] && tooltip+=$'\n\n'"Lists refreshed $age"
 
-emit "$count" "$class" "$tooltip"
+waybar_emit "$count" "$class" "$tooltip"

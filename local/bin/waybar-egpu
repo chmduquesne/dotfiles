@@ -98,7 +98,7 @@ notify() {  # notify <urgency> <title> <body>
 }
 
 # ---- status: waybar JSON ------------------------------------------------------
-waybar_json() {  # waybar_json <text> <class> <tooltip>
+waybar_emit() {  # waybar_emit <text> <class> <tooltip>
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, tooltip: $tooltip}'
 }
@@ -116,14 +116,14 @@ nvidia_stuck() {
 status() {
     # cheap checks only, so polling never wakes the GPU
     if [ -z "$PCI" ]; then
-        waybar_json "" disconnected ""
+        waybar_emit "" disconnected ""
     elif gone; then
-        waybar_json "🎮⚠️" error "eGPU unplugged without disconnecting. Do not suspend; reboot."
+        waybar_emit "🎮⚠️" error "eGPU unplugged without disconnecting. Do not suspend; reboot."
     elif is_nvidia && nvidia_stuck; then
-        waybar_json "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
+        waybar_emit "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
     else
         name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
-        waybar_json "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
+        waybar_emit "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
     fi
 }
 
