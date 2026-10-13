@@ -2,7 +2,7 @@
 # egpu-kiosk: run ONE program fullscreen on the eGPU's display, inside a sway kiosk.
 #   egpu-kiosk command [args...]        e.g.  egpu-kiosk steam
 #
-# It must run in a tty session of its own (a free VT, or egpu-launchd on tty2), not in the
+# The kiosk must run in a tty session of its own (a free VT, or egpu-launchd on tty2), not in the
 # desktop session: logind only gives the display to the active session. From the desktop,
 # use `egpu-launch`.
 #
@@ -18,8 +18,7 @@
 # Alt+Esc quits the kiosk.
 # Log: journalctl -t egpu-kiosk (add -k for the kernel log); sway output (noisy):
 #      ${XDG_STATE_HOME:-~/.local/state}/sway-egpu-kiosk.log
-# Testing hooks: EGPU_DRYRUN=1 (only print what would run), EGPU_LOGGER, EGPU_BINDIR
-# (searched first for commands), EGPU_STATUS.
+# Testing hooks: EGPU_LOGGER, EGPU_BINDIR (searched first for commands), EGPU_STATUS.
 
 # A service started with PAMName= can carry CAP_WAKE_ALARM, which makes Steam's sandbox
 # (bubblewrap) refuse to run. Clear the capabilities and re-exec once.
@@ -50,11 +49,6 @@ if [ $# -eq 0 ] || [ -z "$1" ]; then
 fi
 cmd=("$@")
 
-if [ -n "$EGPU_DRYRUN" ]; then
-    printf 'would run in the sway kiosk: %s\n' "$(printf '%q ' "${cmd[@]}")"
-    exit 0
-fi
-
 for dep in sway systemd-run egpu-card egpu-audio lgmonitor-input; do
     command -v "$dep" >/dev/null || { echo "egpu-kiosk: $dep not found" >&2; exit 1; }
 done
@@ -73,7 +67,7 @@ if command -v ollama >/dev/null; then
     done
 fi
 
-# --- 2. cleanup, however we end ----------------------------------------------------------
+# --- cleanup, however we end (step 4 above; defined early so the trap covers every exit) ---
 # Some programs (Steam) outlive their window and would block `waybar-egpu disconnect`. Sway
 # runs in a transient scope: stopping it terminates everything the program left behind.
 SCOPE=egpu-kiosk-app.scope
@@ -89,7 +83,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# --- 3. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
+# --- 2. monitor input (LG, over DDC/CI: see lgmonitor-input) and audio ---------------------
 # The input is whichever one the monitor reaches the eGPU through (the cable can move). A
 # failure here ends the run: the kiosk would show a black screen nobody can leave.
 fail() { echo "egpu-kiosk: $*" >&2; log "abort: $*"; exit 1; }
@@ -105,7 +99,7 @@ log "monitor input for the eGPU: $input"
 egpu-audio follow -- lgmonitor-input set "$input" \
     || fail "could not switch the monitor to $input."
 
-# --- 4. the kiosk -----------------------------------------------------------------------
+# --- 3. the kiosk -----------------------------------------------------------------------
 : > "$SWAYLOG"
 KIOSK_CMD=$(printf '%q ' "${cmd[@]}") \
 WLR_DRM_DEVICES=/dev/dri/$card \
