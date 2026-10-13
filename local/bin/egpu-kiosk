@@ -12,7 +12,8 @@
 #      the monitor, moves it along (egpu-audio); on failure it exits 1 rather than run on a
 #      screen nobody can see
 #   3. runs sway on the eGPU only (config: ~/.config/egpu/kiosk-sway.conf) with the program
-#   4. on exit: shuts Steam down, switches the monitor back to USB-C, restores audio
+#   4. on exit: stops every process left over from the program (sway runs in a systemd scope,
+#      so e.g. Steam's tray process goes too), switches the monitor back to USB-C, restores audio
 #
 # Alt+Esc quits the kiosk.
 # Log: journalctl -t egpu-kiosk (add -k for the kernel log); sway output (noisy):
@@ -48,14 +49,13 @@ if [ $# -eq 0 ] || [ -z "$1" ]; then
     exit 2
 fi
 cmd=("$@")
-[ "${cmd[0]}" = steam ] && cmd[0]=/usr/games/steam
 
 if [ -n "$EGPU_DRYRUN" ]; then
     printf 'would run in the sway kiosk: %s\n' "$(printf '%q ' "${cmd[@]}")"
     exit 0
 fi
 
-for dep in sway egpu-card egpu-audio lgmonitor-input; do
+for dep in sway systemd-run egpu-card egpu-audio lgmonitor-input; do
     command -v "$dep" >/dev/null || { echo "egpu-kiosk: $dep not found" >&2; exit 1; }
 done
 
@@ -74,11 +74,13 @@ if command -v ollama >/dev/null; then
 fi
 
 # --- 2. cleanup, however we end ----------------------------------------------------------
-# Steam stays in its tray when its window closes and would block `waybar-egpu disconnect`.
+# Some programs (Steam) outlive their window and would block `waybar-egpu disconnect`. Sway
+# runs in a transient scope: stopping it terminates everything the program left behind.
+SCOPE=egpu-kiosk-app.scope
 # ddc_on is set before the monitor switch, so a failed switch still tries to switch back.
 ddc_on=
 cleanup() {
-    if [ "${cmd[0]}" = /usr/games/steam ]; then /usr/games/steam -shutdown >/dev/null 2>&1; fi
+    systemctl --user stop "$SCOPE" >/dev/null 2>&1
     if [ -n "$ddc_on" ]; then
         egpu-audio unfollow -- lgmonitor-input set usbc \
             || echo "egpu-kiosk: could not switch the monitor back; use its input button." >&2
@@ -110,7 +112,8 @@ WLR_DRM_DEVICES=/dev/dri/$card \
 WLR_NO_HARDWARE_CURSORS=1 \
 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json \
 __GLX_VENDOR_LIBRARY_NAME=nvidia \
-sway --unsupported-gpu -c "$CONF" >> "$SWAYLOG" 2>&1
+systemd-run --user --scope --collect --quiet --unit="${SCOPE%.scope}" -p TimeoutStopSec=20 \
+    sway --unsupported-gpu -c "$CONF" >> "$SWAYLOG" 2>&1
 rc=$?
 log "sway exited rc=$rc"
 exit $rc
