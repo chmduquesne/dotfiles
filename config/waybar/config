@@ -140,7 +140,6 @@
     },
     "custom/updates":{
         "exec": "waybar-apt-updates",
-        "on-click": "waybar-apt-updates",
         "interval": 900,
         "return-type": "json",
         "format": "{} {icon}",

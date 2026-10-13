@@ -1,12 +1,44 @@
 #!/bin/bash
+# waybar-apt-updates: pending apt updates for waybar, as JSON.
+#
+# The count comes from simulating a dist-upgrade against the local package lists, which only
+# change on `apt update`. The lists' age is read from the stamp written by the
+# APT::Update::Post-Invoke-Success hook (see /etc/apt/apt.conf.d/20update-package-lists).
 
-updates="$(apt-get -q -y --ignore-hold --allow-change-held-packages --allow-unauthenticated -s dist-upgrade | /bin/grep ^Inst | wc -l)"
+STAMP=/var/lib/apt/periodic/update-success-stamp
+MAX_NAMES=15
 
-alt="has-updates"
-tooltip="$updates updates available"
-if [ $updates -eq 0 ]; then
-    alt="updated"
+emit() {
+    jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
+        '{text: $text, class: $class, alt: $class, tooltip: $tooltip}'
+}
+
+# "3 hours ago" for the age of $STAMP; prints nothing if there is no stamp.
+lists_age() {
+    local secs
+    [ -e "$STAMP" ] || return 0
+    secs=$(( $(date +%s) - $(stat -c %Y "$STAMP") ))
+    if   [ "$secs" -ge 86400 ]; then echo "$((secs / 86400)) days ago"
+    elif [ "$secs" -ge 3600 ];  then echo "$((secs / 3600)) hours ago"
+    else echo "$((secs / 60)) minutes ago"
+    fi
+}
+
+plan=$(apt-get -q -s dist-upgrade 2>&1) || { emit "?" error "apt-get failed: ${plan##*$'\n'}"; exit 0; }
+
+names=$(awk '/^Inst/ {print $2}' <<< "$plan")
+count=$(awk '/^Inst/ {n++} END {print n + 0}' <<< "$plan")
+
+if [ "$count" -eq 0 ]; then
+    class=updated
     tooltip="All packages are up to date"
+else
+    class=has-updates
+    tooltip="$count updates available"$'\n\n'$(head -n "$MAX_NAMES" <<< "$names")
+    [ "$count" -gt "$MAX_NAMES" ] && tooltip+=$'\n'"... and $((count - MAX_NAMES)) more"
 fi
 
-printf '{"text": "%s", "class": "%s", "alt": "%s", "tooltip": "%s"}\n' "$updates" "$alt" "$alt" "$tooltip"
+age=$(lists_age)
+[ -n "$age" ] && tooltip+=$'\n\n'"Lists refreshed $age"
+
+emit "$count" "$class" "$tooltip"
