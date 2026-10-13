@@ -2,8 +2,14 @@
 # waybar-apt-updates: pending apt updates for waybar, as JSON.
 #
 # The count comes from simulating a dist-upgrade against the local package lists, which only
-# change on `apt update`. The lists' age is read from the stamp written by the
-# APT::Update::Post-Invoke-Success hook (see /etc/apt/apt.conf.d/20update-package-lists).
+# change on `apt update`. The lists' age is read from a stamp file.
+#
+# Setup: have apt refresh the lists daily and stamp each successful refresh. Put this in
+# /etc/apt/apt.conf.d/20update-package-lists:
+#   APT::Periodic::Update-Package-Lists "1";
+#   APT::Update::Post-Invoke-Success { "touch /var/lib/apt/periodic/update-success-stamp"; };
+# The first line makes apt-daily.timer run `apt update` once a day (without it the timer does
+# nothing); the second writes the stamp. Without the stamp, the tooltip has no age line.
 
 STAMP=/var/lib/apt/periodic/update-success-stamp
 MAX_NAMES=15
