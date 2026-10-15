@@ -1,0 +1,97 @@
+#!/bin/bash
+# opencode-sandboxed [--notrust] [ARGS]: run opencode in a rootless podman container, with the current
+# directory mounted at /src.
+#
+# opencode is configured like on the host (~/.config/opencode, mounted read-only), but not
+# ~/.local/share/opencode, which holds auth.json. Its local ollama is reached through 10.0.2.2,
+# which podman maps to the host's loopback. Sessions and opencode's own data are kept in
+# .opencode-sandbox in the project, for `--continue` and `--session` (the directory ignores
+# itself in git). --notrust, for code you do not trust, keeps nothing: no .opencode-sandbox
+# directory, so no transcripts that a prompt injection could survive in or leak. Other ARGS go
+# to opencode.
+#
+# Protected: no capabilities, non-root, read-only root filesystem (writable: /src, /tmp and a
+# throwaway $HOME), pid and memory limits, no SSH agent, .git read-only.
+# NOT protected: the network is open (the agent can send out anything it can read), and /src
+# is writable, so whatever the agent writes there can run later on the host. Before running
+# anything it touched on the host, check `git diff` and .envrc, Makefile, package scripts,
+# editor tasks. Commit and push from the host: .git is read-only inside.
+
+AGENT=opencode
+
+dockerfile(){
+	local version
+	version="$(opencode --version 2>/dev/null || echo 1.18.35)"
+
+	cat <<-EOF
+	FROM ubuntu:22.04
+
+	RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \\
+		git \\
+		python3 \\
+		python3-pip \\
+		curl \\
+		ca-certificates \\
+		vim
+
+	# opencode, pinned to the version used on the host
+	RUN curl -fsSL https://github.com/sst/opencode/releases/download/v$version/opencode-linux-x64.tar.gz \\
+		| tar -xz -C /usr/local/bin opencode
+
+	WORKDIR /src
+	ENTRYPOINT ["opencode"]
+	EOF
+}
+
+run(){
+	local project mounts=(-v "$PWD:/src") ctx rc
+	project="$(basename "$PWD")"
+
+	# .git is a file in worktrees and submodules: only a directory can be remounted read-only
+	[[ -d .git ]] && mounts+=(-v "$PWD/.git:/src/.git:ro")
+
+	# --notrust is ours, not opencode's: nothing is kept. Otherwise opencode's data directory
+	# (sessions, database) lives in the project
+	local args=() arg notrust
+	for arg in "$@"; do
+		if [[ $arg == --notrust ]]; then notrust=1; else args+=("$arg"); fi
+	done
+	if [[ -z $notrust ]]; then
+		mkdir -p .opencode-sandbox || exit 1
+		[[ -e .opencode-sandbox/.gitignore ]] || echo '*' > .opencode-sandbox/.gitignore
+		mounts+=(-e XDG_DATA_HOME=/src/.opencode-sandbox)
+	fi
+
+	[[ -d ~/.config/opencode ]] && mounts+=(-v "$HOME/.config/opencode:$HOME/.config/opencode:ro")
+
+	# the Dockerfile needs no files from the project: build it with an empty context. Cached
+	# layers make this fast when the Dockerfile has not changed
+	ctx="$(mktemp -d)"
+	dockerfile | podman build -q -t "$AGENT-sandbox" -f - "$ctx" >/dev/null
+	rc=$?
+	rmdir "$ctx"
+	[[ $rc -eq 0 ]] || exit 1
+
+	# $HOME is an empty tmpfs at the host path, so that absolute paths in the agent's config
+	# keep working. Everything the agent writes there is lost on exit
+	podman run -it \
+		--rm \
+		--cap-drop=all \
+		--security-opt no-new-privileges \
+		--userns=keep-id \
+		--pids-limit=1024 \
+		--memory=12g \
+		--read-only \
+		--tmpfs /tmp \
+		--tmpfs "$HOME" \
+		-e HOME="$HOME" \
+		-e OPENCODE_DISABLE_AUTOUPDATE=true \
+		--network=pasta:--map-host-loopback,10.0.2.2 \
+		-e OPENCODE_CONFIG_CONTENT='{"provider":{"ollama":{"options":{"baseURL":"http://10.0.2.2:11434/v1"}}}}' \
+		"${mounts[@]}" \
+		--name "$project-$AGENT" \
+		"$AGENT-sandbox" \
+		"${args[@]}"
+}
+
+run "$@"
