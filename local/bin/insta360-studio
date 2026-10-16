@@ -1,0 +1,63 @@
+#!/bin/bash
+# insta360-studio: run Insta360 Studio (Windows) under Wine, on the eGPU when it is connected
+# and on the integrated GPU otherwise.
+#   insta360-studio                      start Studio
+#   insta360-studio --install setup.exe  run the installer you downloaded from insta360.com
+#   insta360-studio --gpu igpu|egpu      force a GPU (default: egpu if egpu-card finds one)
+#   insta360-studio --winecfg            open winecfg in the same prefix
+# To show the window on the eGPU's own display instead: egpu-launch insta360-studio
+
+export WINEPREFIX=${INSTA360_PREFIX:-$HOME/.local/share/wineprefixes/insta360}
+export WINEARCH=win64
+export WINEDEBUG=${WINEDEBUG:--all}
+
+gpu=auto
+while [ $# -gt 0 ]; do
+    case $1 in
+        --gpu) gpu=$2; shift 2 ;;
+        --install) mode=install; installer=$2; shift 2 ;;
+        --winecfg) mode=winecfg; shift ;;
+        *) echo "usage: insta360-studio [--gpu igpu|egpu] [--install setup.exe | --winecfg]" >&2; exit 2 ;;
+    esac
+done
+
+if [ "$gpu" = auto ]; then
+    egpu-card >/dev/null 2>&1 && gpu=egpu || gpu=igpu
+fi
+
+case $gpu in
+    egpu)
+        # NVIDIA PRIME render offload; DXVK is told which Vulkan device to pick.
+        export __NV_PRIME_RENDER_OFFLOAD=1
+        export __GLX_VENDOR_LIBRARY_NAME=nvidia
+        export __VK_LAYER_NV_optimus=NVIDIA_only
+        export DXVK_FILTER_DEVICE_NAME=NVIDIA
+        ;;
+    igpu)
+        export DXVK_FILTER_DEVICE_NAME=AMD
+        ;;
+    *) echo "insta360-studio: unknown gpu '$gpu'" >&2; exit 2 ;;
+esac
+echo "insta360-studio: using $gpu" >&2
+
+[ -d "$WINEPREFIX" ] || mkdir -p "$WINEPREFIX"
+
+case $mode in
+    winecfg) exec wine winecfg ;;
+    install)
+        [ -f "$installer" ] || { echo "insta360-studio: no such installer: $installer" >&2; exit 1; }
+        exec wine "$installer" ;;
+esac
+
+# Qt's networklistmanager plugin makes Studio abort at startup under Wine (WinRT network APIs
+# are stubs). Studio puts the file back by itself, so remove it and lock the directory.
+nidir="$WINEPREFIX/drive_c/Program Files/Insta360 Studio/networkinformation"
+if [ -d "$nidir" ]; then
+    chmod u+w "$nidir"
+    rm -f "$nidir"/qnetworklistmanager.dll*
+    chmod a-w "$nidir"
+fi
+
+exe=$(find "$WINEPREFIX/drive_c/Program Files"* -iname 'Insta360 Studio.exe' 2>/dev/null | head -n1)
+[ -n "$exe" ] || { echo "insta360-studio: Studio is not installed; run: insta360-studio --install setup.exe" >&2; exit 1; }
+exec wine "$exe"
