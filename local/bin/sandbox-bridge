@@ -54,11 +54,13 @@ find_container(){
 	return 1
 }
 
-# the bridge's git objects (the trees it builds) go to a scratch directory, not into the repo
+# The bridge's git work happens in a scratch git directory, not in .git: if the agent can write
+# .git (it can when the sandbox was started above the repository), its .git/config could name
+# programs (core.fsmonitor, core.pager, filter and diff drivers) that git would run on the host
+# at the first `git add`, before you approve anything. The scratch directory has a clean
+# config and borrows the objects of the repository through alternates.
 scratch_git(){
-	GIT_OBJECT_DIRECTORY="$scratch/objects" \
-		GIT_ALTERNATE_OBJECT_DIRECTORIES="$(git rev-parse --absolute-git-dir)/objects" \
-		"$@"
+	GIT_DIR="$scratch/git" GIT_WORK_TREE="$PWD" "$@"
 }
 
 # print the git tree of the project as it is now
@@ -67,7 +69,7 @@ tree(){
 	# the excluded paths are dropped from the index afterwards: as add arguments, git complains
 	# about those that .gitignore also lists
 	export GIT_INDEX_FILE="$scratch/index"
-	scratch_git git add -A -- . &&
+	scratch_git git add -A -- . > /dev/null &&
 		scratch_git git rm -r -q --cached --ignore-unmatch -- "${excluded[@]}" &&
 		scratch_git git write-tree
 }
@@ -170,7 +172,8 @@ main(){
 
 	scratch="$(mktemp -d)"
 	trap 'rm -rf "$scratch"' EXIT
-	mkdir "$scratch/objects"
+	git init -q --bare "$scratch/git" || exit 1
+	echo "$(git rev-parse --absolute-git-dir)/objects" > "$scratch/git/objects/info/alternates"
 	# the first request is compared with HEAD, or with nothing in a repository without commits
 	base="$(git rev-parse --verify -q 'HEAD^{tree}' || git hash-object -t tree /dev/null)"
 

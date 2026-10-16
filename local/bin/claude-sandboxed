@@ -12,11 +12,11 @@
 # memory or transcripts that a prompt injection could survive in or leak. Other ARGS go to claude.
 #
 # Protected: no capabilities, non-root, read-only root filesystem (writable: /src, /tmp and a
-# throwaway $HOME), pid and memory limits, no SSH agent, .git read-only.
+# throwaway $HOME), pid and memory limits, no SSH agent, git config and hooks read-only.
 # NOT protected: the network is open (the agent can send out anything it can read, including that token), and /src
 # is writable, so whatever the agent writes there can run later on the host. Before running
 # anything it touched on the host, check `git diff` and .envrc, Makefile, package scripts,
-# editor tasks. Commit and push from the host: .git is read-only inside.
+# editor tasks. The agent can commit but not push (no credentials): push from the host.
 
 AGENT=claude
 
@@ -107,8 +107,18 @@ run(){
 	local project mounts=(-v "$PWD:/src") ctx rc settings notrust instr
 	project="$(basename "$PWD")"
 
-	# .git is a file in worktrees and submodules: only a directory can be remounted read-only
-	[[ -d .git ]] && mounts+=(-v "$PWD/.git:/src/.git:ro")
+	# The agent can commit, but not change what git runs on the host: in every .git directory
+	# under the project (the sandbox may be started above the repositories), config and hooks
+	# are read-only, as they are in submodules (.git/modules/*). Anything else in .git is data.
+	# A .git that is a file (worktrees and submodules) is not handled
+	local gitdir item
+	while IFS= read -r -d '' gitdir; do
+		for item in "$gitdir"/config "$gitdir"/hooks "$gitdir"/modules/*/config "$gitdir"/modules/*/hooks; do
+			[[ -e $item ]] && mounts+=(-v "$item:/src${item#"$PWD"}:ro")
+		done
+	done < <(find "$PWD" -maxdepth 4 -name .git -type d -print0)
+	# commits need an identity: the host's, which a repository's own config overrides
+	[[ -f ~/.gitconfig ]] && mounts+=(-v "$HOME/.gitconfig:$HOME/.gitconfig:ro")
 
 	local token_file="${CLAUDE_SANDBOXED_TOKEN_FILE:-$HOME/.claude-sandboxed-token}" path
 	[[ -r $token_file ]] || { echo "No token in $token_file: run claude setup-token and save it there" >&2; exit 1; }
