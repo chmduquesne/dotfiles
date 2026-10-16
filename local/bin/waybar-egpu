@@ -146,6 +146,22 @@ pw_watchdog() {
     done
 }
 
+# Stop the pids in $1: SIGTERM, then SIGKILL for those still alive after ~3 s.
+kill_users() {
+    local pids=$1 i
+    log "killing (pid name): $(pid_names "$pids")"
+    # shellcheck disable=SC2086
+    kill $pids 2>/dev/null
+    for i in 1 2 3 4 5 6; do
+        sleep 0.5
+        [ -z "$(gpu_users)" ] && return 0
+    done
+    log "SIGTERM was not enough; sending SIGKILL"
+    # shellcheck disable=SC2046
+    kill -9 $(gpu_users) 2>/dev/null
+    sleep 1
+}
+
 # ---- disconnect: confirmation UI, then privileged part --------------------------
 disconnect() {
     for dep in zenity notify-send; do
@@ -163,13 +179,23 @@ disconnect() {
         return 1
     fi
 
-    local holders svc active=() list text
-    holders=$(gpu_users | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
-    if [ -n "$holders" ]; then
-        log "refusing to disconnect: the GPU is still in use"
-        zenity --error --no-markup --title="Disconnect eGPU" --width=420 \
-            --text="The eGPU is still in use by:"$'\n'"$(echo "$holders" | sed 's/^/  • /')"$'\n\n'"Close them and try again."
-        return 1
+    local holders pids svc active=() list text
+    pids=$(gpu_users)
+    if [ -n "$pids" ]; then
+        holders=$(echo "$pids" | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
+        log "the GPU is in use (pid name): $(pid_names "$pids")"
+        zenity --question --no-markup --title="Disconnect eGPU" --width=420 \
+            --ok-label="Close processes" --cancel-label="Cancel" \
+            --text="The eGPU is still in use by:"$'\n'"$(echo "$holders" | sed 's/^/  • /')"$'\n\n'"Close them and continue?" \
+            || { log "disconnect cancelled by the user"; return 1; }
+        kill_users "$pids"
+        pids=$(gpu_users)
+        if [ -n "$pids" ]; then
+            log "refusing to disconnect: could not stop (pid name): $(pid_names "$pids")"
+            zenity --error --no-markup --title="Disconnect eGPU" --width=420 \
+                --text="Could not stop:"$'\n'"$(pid_names "$pids" | tr ';' '\n' | sed 's/^/  • /')"
+            return 1
+        fi
     fi
 
     for svc in $(services); do
