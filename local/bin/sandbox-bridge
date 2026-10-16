@@ -15,11 +15,13 @@
 # already in the queue when the bridge starts are ignored.
 #
 # For each request you see the target and a diff of what changed in the project since you last
-# approved something (the first time: since HEAD), and answer y/n. On y it runs
+# approved something (the first time: since HEAD), and answer with one key: Enter or y to
+# approve, n to decline, d for the full diff. On y it runs
 # `make <target> <vars>` with a clean environment: only PATH, HOME, USER, LANG, TERM and
-# XDG_RUNTIME_DIR, killed after SANDBOX_BRIDGE_TIMEOUT seconds (default 600). Commands that do
-# not end (tunnels, servers) are for you to run in your own terminal, not through the bridge.
-# The agent reads the result in make-output/<target>.txt, which its Makefile
+# XDG_RUNTIME_DIR. If it runs long, you are asked whether to keep waiting: after
+# SANDBOX_BRIDGE_CHECK seconds (default 60), then after twice as long, then four times, and so
+# on; n kills it and the agent sees exit=124. Commands that never end (tunnels, servers) are for
+# you to run in your own terminal, not through the bridge. The agent reads the result in make-output/<target>.txt, which its Makefile
 # is expected to write; the bridge deletes the old one first, and appends `done <target>
 # exit=<code>`, `declined <target>` or `rejected` to make-output/_bridge.txt.
 #
@@ -40,6 +42,7 @@ deny='SHELL|SHELLOPTS|BASHOPTS|MAKE.*|PATH|HOME|USER|LD_.*|BASH_ENV|ENV|IFS|PS4|
 AGENT="${1:-claude}"
 container=
 scratch=
+make_pid=
 base=
 seen=0
 
@@ -115,6 +118,48 @@ parse(){
 	done
 }
 
+# drop keystrokes typed ahead, so that a stray Enter cannot answer a prompt that was not there yet
+flush_input(){
+	local junk
+	while read -t 0 && read -r -n 1 -t 0.1 junk; do :; done
+}
+
+# run `make $target ${margs[@]}` in its own process group, with a clean environment. When it has
+# run for $SANDBOX_BRIDGE_CHECK seconds (default 60), ask whether to keep waiting, then again
+# after twice as long, then four times as long, and so on. Answering n kills it (status 124).
+run_make(){
+	local gap="${SANDBOX_BRIDGE_CHECK:-60}" start="$SECONDS" next answer i
+	next=$gap
+	setsid env -i PATH="$PATH" HOME="$HOME" USER="$USER" LANG="${LANG:-C.UTF-8}" TERM="${TERM:-dumb}" \
+		XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-}" make "$target" "${margs[@]}" < /dev/null &
+	make_pid=$!
+	while kill -0 "$make_pid" 2>/dev/null; do
+		sleep 1
+		(( SECONDS - start < next )) && continue
+		flush_input
+		printf '\n%s is still running after %ss. Keep waiting? [Y/n] ' "$target" "$((SECONDS - start))"
+		while kill -0 "$make_pid" 2>/dev/null; do
+			read -t 1 -n 1 -r answer || continue
+			case $answer in
+				""|y|Y) gap=$((gap * 2)); next=$((SECONDS - start + gap)); echo; break ;;
+				n|N)
+					echo
+					kill -TERM -- "-$make_pid" 2>/dev/null
+					for i in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$make_pid" 2>/dev/null || break; sleep 1; done
+					kill -KILL -- "-$make_pid" 2>/dev/null
+					{ wait "$make_pid"; } 2>/dev/null
+					make_pid=
+					return 124
+					;;
+			esac
+		done
+	done
+	wait "$make_pid"
+	local rc=$?
+	make_pid=
+	return $rc
+}
+
 handle(){
 	local line="$1" target vars var value margs cur answer rc
 	[[ -z ${line//[[:space:]]/} ]] && return
@@ -136,12 +181,15 @@ handle(){
 		scratch_git git diff --stat "$base" "$cur" -- . "${excludes[@]}"
 	fi
 
+	flush_input
 	while :; do
-		read -rp "[y]es / [n]o / [d]iff? " answer || exit 0
+		printf '[Y]es (Enter) / [n]o / [d]iff? '
+		read -r -n 1 answer || exit 0
+		echo
 		case $answer in
-			y|yes) break ;;
-			n|no) log "declined $target"; return ;;
-			d|diff) scratch_git git diff --color=always "$base" "$cur" -- . "${excludes[@]}" | ${PAGER:-less -R} ;;
+			""|y|Y) break ;;
+			n|N) log "declined $target"; return ;;
+			d|D) scratch_git git diff --color=always "$base" "$cur" -- . "${excludes[@]}" | ${PAGER:-less -R} ;;
 		esac
 	done
 
@@ -161,13 +209,9 @@ handle(){
 	# make expands $ in command line values (even $(shell ...)): double them to keep them literal
 	margs=()
 	for var in "${vars[@]}"; do value="${var#*=}"; margs+=("${var%%=*}=${value//\$/\$\$}"); done
-	# a target that does not end (a tunnel, a server) must not block the bridge: it is killed
-	# after $SANDBOX_BRIDGE_TIMEOUT seconds, and the agent sees exit=124
-	timeout -k 10 "${SANDBOX_BRIDGE_TIMEOUT:-600}" \
-		env -i PATH="$PATH" HOME="$HOME" USER="$USER" LANG="${LANG:-C.UTF-8}" TERM="${TERM:-dumb}" \
-		XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-}" make "$target" "${margs[@]}" < /dev/null
+	run_make
 	rc=$?
-	(( rc == 124 )) && echo "$target did not finish in ${SANDBOX_BRIDGE_TIMEOUT:-600}s: killed."
+	(( rc == 124 )) && echo "$target was stopped."
 	log "done $target exit=$rc"
 }
 
@@ -178,7 +222,7 @@ main(){
 	[[ "$(git rev-parse --show-toplevel)" == "$PWD" ]] || { echo "Run it at the root of the repository" >&2; exit 1; }
 
 	scratch="$(mktemp -d)"
-	trap 'rm -rf "$scratch"' EXIT
+	trap '[[ -n $make_pid ]] && kill -TERM -- "-$make_pid" 2>/dev/null; rm -rf "$scratch"' EXIT
 	git init -q --bare "$scratch/git" || exit 1
 	echo "$(git rev-parse --absolute-git-dir)/objects" > "$scratch/git/objects/info/alternates"
 	# the first request is compared with HEAD, or with nothing in a repository without commits
