@@ -6,6 +6,13 @@
 #   insta360-studio --gpu igpu|egpu      force a GPU (default: egpu if egpu-card finds one)
 #   insta360-studio --winecfg            open winecfg in the same prefix
 # To show the window on the eGPU's own display instead: egpu-launch insta360-studio
+#
+# Hardware decode/encode (CUDA, NVENC) needs nvidia-libs (github.com/SveSop/nvidia-libs) in the
+# prefix, then "Use hardware decoder/encoder" ticked in Studio's preferences. Rebuilding the
+# prefix: extract nvidia-libs to ~/.local/share/nvidia-libs and run
+#   WINEPREFIX=<prefix> setup_nvlibs.sh install
+# On Wine 10 (WoW64) that script links the 64-bit DLLs into syswow64; move all of them except
+# nvapi.dll to drive_c/windows/system32 (ln -sf), or "wine bin/cudatest.exe" fails to load nvcuda.dll.
 
 export WINEPREFIX=${INSTA360_PREFIX:-$HOME/.local/share/wineprefixes/insta360}
 export WINEARCH=win64
