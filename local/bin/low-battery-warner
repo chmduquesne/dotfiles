@@ -1,9 +1,10 @@
 #!/bin/bash
 
 CAPACITY=/sys/class/power_supply/BAT0/capacity
+STATUS=/sys/class/power_supply/BAT0/status
 
 while true; do
-    if [ "$(cat $CAPACITY)" -le 10 ]; then
+    if [ "$(cat $CAPACITY)" -le 10 ] && [ "$(cat $STATUS)" = "Discharging" ]; then
         notify-send -u critical -i battery-low "Low battery" "Charge me ⚡"
     fi
     sleep 60

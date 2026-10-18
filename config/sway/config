@@ -246,5 +246,7 @@ exec firefox-esr
 #exec teams-pwa
 # Prevent suspending when sound is playing
 exec audio-inhibit
+# Big red popup when the battery is low
+exec low-battery-warner
 # screen management
 exec kanshi
