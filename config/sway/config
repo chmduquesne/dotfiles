@@ -234,6 +234,8 @@ exec nm-applet --indicator
 exec swaync
 # sound
 exec pasystray
+# logitech keyboard keys (e.g. mic mute), hidden in the tray
+exec solaar --window=hide
 # switch to bluetooth when available
 exec pactl load-module module-switch-on-connect
 # rclone
