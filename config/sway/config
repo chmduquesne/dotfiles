@@ -29,8 +29,7 @@ set $term gnome-terminal
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-#set $menu dmenu_path | bemenu | xargs swaymsg exec --
-set $menu j4-dmenu-desktop --dmenu='bemenu -i --nb "#3f3f3f" --nf "#dcdccc" --fn "pango:Monospace 11"' --term='gnome-terminal'
+set $menu j4-dmenu-desktop --dmenu=launcher-menu --term='gnome-terminal'
 
 # Paste text
 set $paste ~/.local/bin/swaypaste

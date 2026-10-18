@@ -1,0 +1,31 @@
+#!/bin/sh
+# dmenu-style picker for j4-dmenu-desktop: desktop entries (on stdin) plus
+# every executable in $PATH. j4-dmenu-desktop runs unknown entries as commands.
+# Entries are ordered by how often they were picked ("count<TAB>entry" history).
+
+history=${XDG_CACHE_HOME:-$HOME/.cache}/launcher-menu-history
+tab=$(printf '\t')
+touch "$history"
+
+choice=$({ cat; dmenu_path; } | awk -F'\t' -v histfile="$history" '
+	BEGIN {
+		while ((getline < histfile) > 0) {
+			count = $1
+			sub(/^[0-9]+\t/, "")
+			print count "\t" $0
+		}
+		close(histfile)
+	}
+	{ print "0\t" $0 }
+' | sort -t "$tab" -k1,1rn -s | cut -f2- | awk '!seen[$0]++' \
+	| wmenu -i -N 3f3f3f -n dcdccc -f "DejaVu Sans Mono 11" "$@") || exit $?
+
+[ -n "$choice" ] || exit 0
+
+tmp=$(mktemp)
+awk -F'\t' -v OFS='\t' -v pick="$choice" '
+	{ c = $1; sub(/^[0-9]+\t/, ""); if ($0 == pick) { c++; found = 1 } print c, $0 }
+	END { if (!found) print 1, pick }
+' "$history" | sort -t "$tab" -k1,1rn > "$tmp" && mv "$tmp" "$history"
+
+printf '%s\n' "$choice"
