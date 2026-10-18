@@ -2,16 +2,16 @@
 #
 # Enhanced version of passmenu
 #
-# Usage: passmenu [--type|--xprop] [otp]
+# Usage: passmenu [--type|--window] [otp]
 #
 # List of improvements:
 # * The `--type` option has been modified to also send an extra Enter key
 #   press to immediately validate the password after typing it
-# * An option `--xprop` was added. When used, it grabs the window manager
-#   attributes WM_CLASS and WM_NAME from the focused window and only shows
-#   choices which include those
+# * An option `--window` was added (`--xprop` is kept as an alias). When used,
+#   it grabs the app_id (or X11 class) and title of the focused sway window
+#   and only shows choices which include those
 # * When there is only one matching entry, it is chosen immediately without
-#   involving dmenu, to remove useless key presses
+#   involving the menu, to remove useless key presses
 # * User feedback is displayed via notify-send popups to allow launching
 #   the program from a shortcut instead of the terminal
 # * Extra arguments are transferred to pass so it can be used with otp
@@ -19,7 +19,7 @@
 shopt -s nullglob globstar
 
 typeit=0
-xprop=0
+window=0
 while [[ -n $1 ]]; do
 	case "$1" in
 		'--type')
@@ -27,8 +27,8 @@ while [[ -n $1 ]]; do
 			shift
 			continue
 		;;
-		'--xprop')
-			xprop=1
+		'--window'|'--xprop')
+			window=1
 			shift
 			continue
 		;;
@@ -44,16 +44,17 @@ password_files=( "${password_files[@]#"$prefix"/}" )
 password_files=( "${password_files[@]%.gpg}" )
 entry=$(printf '%s\n' "${password_files[@]}")
 
-if [[ $xprop -eq 1 ]]; then
-	windowid=$(xdotool getwindowfocus)
-	wmclass=$(xprop -id $windowid WM_CLASS | cut -d'"' -f2 | tr -cd "[:alnum:] -")
-	wmname=$(xprop -id $windowid WM_NAME | cut -d'"' -f2 | tr -cd "[:alnum:] -")
+if [[ $window -eq 1 ]]; then
+	focused=$(swaymsg -t get_tree | jq -r '.. | select(.focused? == true)
+		| [.app_id // .window_properties.class // "", .name // ""] | @tsv')
+	wmclass=$(cut -f1 <<< "$focused" | tr -cd "[:alnum:] -")
+	wmname=$(cut -f2 <<< "$focused" | tr -cd "[:alnum:] -")
 	entry=$(grep -P "($wmclass|$wmname)" <<< "$entry")
 	[[ -z "$entry" ]] &&
 		notify-send "passmenu" "No match found for $wmname nor $wmclass"
 fi
 
-[[ $(grep -c . <<< "$entry") -gt 1 ]] && entry=$(dmenu <<< "$entry")
+[[ $(grep -c . <<< "$entry") -gt 1 ]] && entry=$(wmenu -i -N 3f3f3f -n dcdccc -f "DejaVu Sans Mono 11" <<< "$entry")
 
 [[ -n $entry ]] || exit
 
@@ -63,5 +64,5 @@ if [[ $typeit -eq 0 ]]; then
 		notify-send "passmenu" "Error: could not fetch $entry from the password store."
 else
 	pass "$@" "$entry" | { IFS= read -r pass; printf %s "$pass"; } |
-		xdotool type --clearmodifiers --file - && xdotool key KP_Enter
+		wtype - && wtype -k Return
 fi
