@@ -49,11 +49,20 @@ echo "insta360-studio: using $gpu" >&2
 
 [ -d "$WINEPREFIX" ] || mkdir -p "$WINEPREFIX"
 
+# Studio leaves quick-look-daemon.exe and the Wine services running after it exits (one of them
+# spins a core at 100%), so stop everything in the prefix once wine returns.
+run() {
+    wine "$@"
+    status=$?
+    wineserver -k
+    exit $status
+}
+
 case $mode in
-    winecfg) exec wine winecfg ;;
+    winecfg) run winecfg ;;
     install)
         [ -f "$installer" ] || { echo "insta360-studio: no such installer: $installer" >&2; exit 1; }
-        exec wine "$installer" ;;
+        run "$installer" ;;
 esac
 
 # Qt's networklistmanager plugin makes Studio abort at startup under Wine (WinRT network APIs
@@ -67,4 +76,4 @@ fi
 
 exe=$(find "$WINEPREFIX/drive_c/Program Files"* -iname 'Insta360 Studio.exe' 2>/dev/null | head -n1)
 [ -n "$exe" ] || { echo "insta360-studio: Studio is not installed; run: insta360-studio --install setup.exe" >&2; exit 1; }
-exec wine "$exe"
+run "$exe"
