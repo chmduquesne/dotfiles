@@ -1,0 +1,3 @@
+#!/bin/sh
+# wmenu with my colors and font; extra arguments are passed to wmenu.
+exec wmenu -N 3f3f3f -n dcdccc -f "DejaVu Sans Mono 11" "$@"

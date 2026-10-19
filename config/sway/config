@@ -181,10 +181,11 @@ bindsym $mod+Shift+S exec $screenshot
 bindsym $mod+p exec $paste
 
 # emoji button
-bindsym $mod+semicolon exec bemoji -t
-bindsym XF86Messenger exec bemoji -t
+set $emoji env BEMOJI_PICKER_CMD="wmenu-themed -i -l 20 -p 🔍" bemoji -t
+bindsym $mod+semicolon exec $emoji
+bindsym XF86Messenger exec $emoji
 # Logitech MX keys mini
-bindsym $mod+period exec bemoji -t
+bindsym $mod+period exec $emoji
 
 # Lock screen
 bindsym Mod1+Control+l exec $locker
