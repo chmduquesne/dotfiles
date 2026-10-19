@@ -1,5 +1,5 @@
 #!/bin/bash
-# waybar-apt-updates: pending apt updates for waybar, as JSON.
+# waybar-apt: pending apt updates for waybar.
 #
 # The count comes from simulating a dist-upgrade against the local package lists, which only
 # change on `apt update`. The lists' age is read from a stamp file.
@@ -10,6 +10,15 @@
 #   APT::Update::Post-Invoke-Success { "touch /var/lib/apt/periodic/update-success-stamp"; };
 # The first line makes apt-daily.timer run `apt update` once a day (without it the timer does
 # nothing); the second writes the stamp. Without the stamp, the tooltip has no age line.
+
+# Usage: waybar-apt status|update|upgrade
+#   status   print the waybar JSON
+#   update   run `sudo apt update` in a terminal (waybar left click), then refresh the module
+#   upgrade  run `sudo apt upgrade` in a terminal (waybar right click), then refresh the module
+#
+# Keep TERMINAL in sync with `set $term` in config/sway/config.
+TERMINAL=gnome-terminal
+WAYBAR_SIGNAL=10    # must match "signal" of custom/updates in config/waybar/config
 
 STAMP=/var/lib/apt/periodic/update-success-stamp
 MAX_NAMES=15
@@ -30,6 +39,18 @@ lists_age() {
     fi
 }
 
+# Run `sudo apt $1` in a terminal that stays open until a key is pressed, then refresh waybar.
+apt_in_terminal() {
+    "$TERMINAL" --wait -- bash -c "sudo apt $1; echo; read -n 1 -s -r -p 'Press any key to close'"
+    pkill -RTMIN+"$WAYBAR_SIGNAL" waybar
+}
+
+case "$1" in
+    status) ;;
+    update|upgrade) apt_in_terminal "$1"; exit 0 ;;
+    *) echo "usage: ${0##*/} status|update|upgrade" >&2; exit 1 ;;
+esac
+
 plan=$(apt-get -q -s dist-upgrade 2>&1) || { waybar_emit "?" error "apt-get failed: ${plan##*$'\n'}"; exit 0; }
 
 names=$(awk '/^Inst/ {print $2}' <<< "$plan")
@@ -40,7 +61,7 @@ if [ "$count" -eq 0 ]; then
     tooltip="All packages are up to date"
 else
     class=has-updates
-    tooltip="$count updates available"$'\n\n'$(head -n "$MAX_NAMES" <<< "$names")
+    tooltip="$count updates available (left click: update lists, right click: upgrade)"$'\n\n'$(head -n "$MAX_NAMES" <<< "$names")
     [ "$count" -gt "$MAX_NAMES" ] && tooltip+=$'\n'"... and $((count - MAX_NAMES)) more"
 fi
 

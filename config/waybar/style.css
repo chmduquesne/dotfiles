@@ -79,6 +79,18 @@
     font-weight: bold;
 }
 
+#custom-updates:hover {
+    background-color: rgba(215, 10, 83, 0.6); /* Left click: apt update, right click: apt upgrade */
+}
+
+#custom-updates.has-updates:hover {
+    background-color: #f01a68; /* Brighter on hover */
+}
+
+#custom-updates.error {
+    background-color: #888888; /* Grey: apt could not compute the update count */
+}
+
 #custom-egpu {
     padding: 0 10px;
 }

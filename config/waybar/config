@@ -140,7 +140,10 @@
         "on-click": "waybar-egpu disconnect"
     },
     "custom/updates":{
-        "exec": "waybar-apt-updates",
+        "exec": "waybar-apt status",
+        "on-click": "waybar-apt update",
+        "on-click-right": "waybar-apt upgrade",
+        "signal": 10,
         "interval": 900,
         "return-type": "json",
         "format": "{} {icon}",
