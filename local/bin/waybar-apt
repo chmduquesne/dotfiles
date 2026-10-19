@@ -16,8 +16,7 @@
 #   update   run `sudo apt update` in a terminal (waybar left click), then refresh the module
 #   upgrade  run `sudo apt upgrade` in a terminal (waybar right click), then refresh the module
 #
-# Keep TERMINAL in sync with `set $term` in config/sway/config.
-TERMINAL=gnome-terminal
+# The terminal is the Debian x-terminal-emulator alternative, like `set $term` in config/sway/config.
 WAYBAR_SIGNAL=10    # must match "signal" of custom/updates in config/waybar/config
 
 STAMP=/var/lib/apt/periodic/update-success-stamp
@@ -41,7 +40,7 @@ lists_age() {
 
 # Run `sudo apt $1` in a terminal that stays open until a key is pressed, then refresh waybar.
 apt_in_terminal() {
-    "$TERMINAL" --wait -- bash -c "sudo apt $1; echo; read -n 1 -s -r -p 'Press any key to close'"
+    x-terminal-emulator -e bash -c "sudo apt $1; echo; read -n 1 -s -r -p 'Press any key to close'"
     pkill -RTMIN+"$WAYBAR_SIGNAL" waybar
 }
 

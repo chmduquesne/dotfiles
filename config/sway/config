@@ -24,12 +24,12 @@ set $ws0 10:📟
 floating_modifier $mod normal
 
 # Your preferred terminal emulator
-set $term gnome-terminal
+set $term x-terminal-emulator
 
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu j4-dmenu-desktop --dmenu=launcher-menu --term='gnome-terminal'
+set $menu j4-dmenu-desktop --dmenu=launcher-menu --term='x-terminal-emulator'
 
 # Paste text
 set $paste ~/.local/bin/swaypaste
