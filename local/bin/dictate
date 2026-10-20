@@ -7,8 +7,10 @@ PIDF="$RUNDIR/pid"
 KEEPF="$RUNDIR/keepalive"
 LANGF="$RUNDIR/lang"
 ERRF="$RUNDIR/whisper.err"
-BUSYF="$RUNDIR/busy"      # exists while transcribing
+BUSYF="$RUNDIR/busy"      # exists while transcribing: no new recording can start
 LANGS=(auto en fr de)
+MAX_SECONDS=${DICTATE_MAX_SECONDS:-120}   # a recording is stopped (and transcribed) after this long
+TIMERF="$RUNDIR/timer"
 WAYBAR_SIGNAL=11
 MODELS="$HOME/.local/share/whisper"
 BIN="$HOME/.local/bin"
@@ -42,7 +44,7 @@ fail() { notify-send -u low -i audio-input-microphone "Dictation failure" "$1"; 
 # Whisper hallucinates words ("you") on silence, so detect a silent recording first.
 is_silent() {
   local max
-  max=$(ffmpeg -hide_banner -i "$WAV" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-\?[0-9.]*\) dB.*/\1/p')
+  max=$(ffmpeg -nostdin -hide_banner -i "$WAV" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-\?[0-9.]*\) dB.*/\1/p')
   [ -z "$max" ] || awk -v m="$max" 'BEGIN { exit !(m < -50) }'
 }
 
@@ -56,6 +58,22 @@ keepalive_start() {
 keepalive_stop() {
   [ -f "$KEEPF" ] || return 0
   kill "$(cat "$KEEPF")" 2>/dev/null; rm -f "$KEEPF"
+}
+
+# wtype makes sway switch to its own keymap, and only the next key event from another keyboard
+# switches back. Until then clients (Solaar) cannot look up XF86AudioRecord, so its key press is
+# lost. Tap an unbound key on a throwaway uinput device to switch the keymap back right away.
+restore_keymap() {
+  python3 - <<'EOF2' 2>/dev/null || true
+import time
+from evdev import UInput, ecodes as e
+with UInput({e.EV_KEY: [e.KEY_F24]}, name="dictate-keymap-reset") as ui:
+    time.sleep(0.3)  # let sway notice the new keyboard
+    for v in (1, 0):
+        ui.write(e.EV_KEY, e.KEY_F24, v)
+        ui.syn()
+    time.sleep(0.1)
+EOF2
 }
 
 clean() { tr '\n' ' ' | sed 's/^ *//; s/ *$//'; }
@@ -78,6 +96,10 @@ case "${1:-}" in
     keepalive_start
     pw-record --rate 16000 --channels 1 "$WAV" &
     echo $! > "$PIDF"
+    # Safety net for a missed key release: stop by ourselves, unless this recording is over.
+    setsid bash -c 'sleep "$1"; [ "$(cat "$2" 2>/dev/null)" = "$3" ] && exec "$4" stop' \
+      _ "$MAX_SECONDS" "$PIDF" "$!" "$0" >/dev/null 2>&1 &
+    echo $! > "$TIMERF"
     refresh
     ;;
   toggle)
@@ -89,6 +111,10 @@ case "${1:-}" in
     kill -INT "$pid" 2>/dev/null
     while kill -0 "$pid" 2>/dev/null; do sleep 0.05; done
     keepalive_stop
+    if [ -f "$TIMERF" ]; then  # when the timer itself called us ($$ is its pid), do not kill it
+      timer=$(cat "$TIMERF"); rm -f "$TIMERF"
+      [ "$timer" = "$$" ] || kill -- "-$timer" 2>/dev/null  # its whole session, sleep included
+    fi
     LANG_OPT=$(cur_lang)
     touch "$BUSYF"; refresh
     trap 'rm -f "$BUSYF"; refresh' EXIT
@@ -103,6 +129,7 @@ case "${1:-}" in
     if [ -n "$text" ]; then
       printf '%s' "$text" | wl-copy
       wtype -- "$text"
+      restore_keymap
     elif [ "$cpu_failed" = 1 ]; then
       fail "whisper-cli failed: $(tail -n 1 "$ERRF")"
     else
