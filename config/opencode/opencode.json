@@ -8,8 +8,8 @@
         "baseURL": "http://localhost:11434/v1"
       },
       "models": {
-        "qwen38-96k": {
-          "name": "Qwen3.8 27B 96k (3090, think)",
+        "qwen38": {
+          "name": "Qwen3.8 27B (3090, think)",
           "tools": true,
           "variants": {
             "fast": {
@@ -18,12 +18,12 @@
             }
           },
           "limit": {
-            "context": 98304,
+            "context": 102400,
             "output": 32768
           }
         }
       }
     }
   },
-  "model": "ollama/qwen38-96k"
+  "model": "ollama/qwen38"
 }
