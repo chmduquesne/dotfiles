@@ -68,7 +68,7 @@ restore_keymap() { swaymsg -q input type:keyboard events enabled; }
 clean() { tr '\n' ' ' | sed 's/^ *//; s/ *$//'; }
 
 run_igpu() {  # AMD driver only: the NVIDIA driver is never loaded
-  [ -f "$RADV_ICD" ] || return 0
+  [ -f "$RADV_ICD" ] || return 1  # without it whisper-cli-vulkan silently runs the large model on the CPU
   VK_DRIVER_FILES="$RADV_ICD" "$BIN/whisper-cli-vulkan" \
     -m "$MODELS/ggml-large-v3-turbo.bin" -f "$RECORDING_FILE" \
     -l "$LANG_OPT" -nt -np -dev 0 2>/dev/null | clean
@@ -112,14 +112,12 @@ case "${1:-}" in
       fail "No sound captured: check the microphone ($(pactl get-default-source))"
       exit 0
     fi
-    text=$(run_igpu)
-    cpu_failed=0
-    if [ -z "$text" ]; then text=$(run_cpu) || cpu_failed=1; fi
+    text=$(run_igpu || run_cpu); status=$?  # the CPU only takes over when the iGPU run fails
     if [ -n "$text" ]; then
       printf '%s' "$text" | wl-copy
       wtype -- "$text"
       restore_keymap
-    elif [ "$cpu_failed" = 1 ]; then
+    elif [ "$status" != 0 ]; then
       fail "whisper-cli failed: $(tail -n 1 "$ERROR_FILE")"
     else
       fail "Nothing recognized"
