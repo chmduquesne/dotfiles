@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# Push-to-talk dictation with whisper.cpp: record, transcribe, copy to the clipboard and type.
+#   dictate start|stop|toggle          record / transcribe the recording
+#   dictate status                     JSON for the waybar module
+#   dictate lang [auto|en|fr|de]       set the language, or cycle it (also next-lang, prev-lang)
+#
+# Expected whisper.cpp setup:
+#   ~/.local/bin/whisper-cli-vulkan   Vulkan build, run on the AMD iGPU (large-v3-turbo model)
+#   ~/.local/bin/whisper-cli          CPU build, fallback when the iGPU run fails (small model)
+#   ~/.local/share/whisper/           ggml-large-v3-turbo.bin and ggml-small.bin
+# Also needed: pw-record, pw-cat, pactl, ffmpeg, wl-copy, wtype, swaymsg, jq, notify-send.
 set -u
 set -o pipefail
 RUNDIR="${XDG_RUNTIME_DIR:-/tmp}/dictate"
