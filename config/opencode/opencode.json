@@ -12,14 +12,23 @@
           "name": "Qwen3.8 27B (3090, think)",
           "tools": true,
           "variants": {
-            "fast": {
+            "nothink": {
               "reasoningEffort": "none",
               "temperature": 0.3
+            },
+            "low": {
+              "reasoningEffort": "low"
+            },
+            "high": {
+              "reasoningEffort": "high"
             }
           },
           "limit": {
             "context": 102400,
             "output": 32768
+          },
+          "options": {
+            "reasoningEffort": "medium"
           }
         }
       }
