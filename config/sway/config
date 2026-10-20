@@ -164,7 +164,7 @@ bindsym --locked XF86AudioRaiseVolume exec wpctl set-volume -l 1.5 @DEFAULT_AUDI
 bindsym --locked XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
 
 # Push-to-talk dictation: record while the key is held
-bindsym XF86AudioRecord exec ~/.local/bin/dictate start
+bindsym --no-repeat XF86AudioRecord exec ~/.local/bin/dictate start
 bindsym --release XF86AudioRecord exec ~/.local/bin/dictate stop
 
 # Start a terminal
@@ -186,10 +186,10 @@ bindsym $mod+p exec $paste
 
 # emoji button
 set $emoji env BEMOJI_PICKER_CMD="wmenu-themed -i -l 20 -p 🔍" bemoji -t
-bindsym $mod+semicolon exec $emoji
-bindsym XF86Messenger exec $emoji
+bindsym --no-repeat $mod+semicolon exec $emoji
+bindsym --no-repeat XF86Messenger exec $emoji
 # Logitech MX keys mini
-bindsym $mod+period exec $emoji
+bindsym --no-repeat $mod+period exec $emoji
 
 # Lock screen
 bindsym Mod1+Control+l exec $locker
