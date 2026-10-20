@@ -6,6 +6,7 @@
     ],
     "modules-center": ["sway/window"],
     "modules-right": [
+        "custom/dictate",
         "custom/screenrec",
         "custom/egpu",
         "idle_inhibitor",
@@ -123,6 +124,16 @@
             "default": ["", "", ""]
         },
         "on-click": "pavucontrol"
+    },
+    "custom/dictate": {
+        "format": "{}",
+        "return-type": "json",
+        "interval": 5,
+        "signal": 11,
+        "exec": "~/.local/bin/dictate status",
+        "on-click": "~/.local/bin/dictate toggle",
+        "on-scroll-up": "~/.local/bin/dictate next-lang",
+        "on-scroll-down": "~/.local/bin/dictate prev-lang"
     },
     "custom/screenrec": {
         "format": "{}",

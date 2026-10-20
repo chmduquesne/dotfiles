@@ -163,6 +163,10 @@ bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ to
 bindsym --locked XF86AudioRaiseVolume exec wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+
 bindsym --locked XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
 
+# Push-to-talk dictation: record while the key is held
+bindsym --locked XF86AudioRecord exec ~/.local/bin/dictate start
+bindsym --locked --release XF86AudioRecord exec ~/.local/bin/dictate stop
+
 # Start a terminal
 bindsym $mod+Return exec $term
 

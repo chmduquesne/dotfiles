@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -u
+set -o pipefail
+RUNDIR="${XDG_RUNTIME_DIR:-/tmp}/dictate"
+WAV="$RUNDIR/rec.wav"
+PIDF="$RUNDIR/pid"
+KEEPF="$RUNDIR/keepalive"
+LANGF="$RUNDIR/lang"
+ERRF="$RUNDIR/whisper.err"
+BUSYF="$RUNDIR/busy"      # exists while transcribing
+LANGS=(auto en fr de)
+WAYBAR_SIGNAL=11
+MODELS="$HOME/.local/share/whisper"
+BIN="$HOME/.local/bin"
+RADV_ICD=/usr/share/vulkan/icd.d/radeon_icd.json
+mkdir -p "$RUNDIR"
+
+refresh() { pkill -RTMIN+$WAYBAR_SIGNAL waybar 2>/dev/null || true; }
+cur_lang() { cat "$LANGF" 2>/dev/null || echo auto; }
+
+cycle_lang() {  # cycle_lang <+1|-1>
+  local cur i n=${#LANGS[@]}; cur=$(cur_lang)
+  for i in "${!LANGS[@]}"; do [ "${LANGS[$i]}" = "$cur" ] && break; done
+  [ "${LANGS[$i]}" = "$cur" ] || i=0
+  echo "${LANGS[$(( (i + $1 + n) % n ))]}" > "$LANGF"
+}
+
+status() {
+  local lang state class icon tip
+  lang=$(cur_lang)
+  if [ -f "$BUSYF" ]; then state=transcribing; icon="⏳"
+  elif [ -f "$PIDF" ]; then state=recording; icon="🔴"
+  else state=idle; icon="🗣"; fi
+  class=$state
+  tip="Dictation: $state"$'\n'"Language: $lang"$'\n'"Click: start/stop - Scroll: language"
+  jq -nc --arg text "$icon ${lang^^}" --arg class "$class" --arg tooltip "$tip" \
+    '{text: $text, class: $class, tooltip: $tooltip}'
+}
+
+fail() { notify-send -u low -i audio-input-microphone "Dictation failure" "$1"; }
+
+# Whisper hallucinates words ("you") on silence, so detect a silent recording first.
+is_silent() {
+  local max
+  max=$(ffmpeg -hide_banner -i "$WAV" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-\?[0-9.]*\) dB.*/\1/p')
+  [ -z "$max" ] || awk -v m="$max" 'BEGIN { exit !(m < -50) }'
+}
+
+# A Bluetooth headset mic only delivers samples (otherwise digital silence) while its sink is
+# also streaming, so play inaudible silence while recording.
+keepalive_start() {
+  case "$(pactl get-default-source)" in bluez_input.*) ;; *) return 0 ;; esac
+  pw-cat -p --raw --format s16 --rate 48000 --channels 1 - < /dev/zero &
+  echo $! > "$KEEPF"
+}
+keepalive_stop() {
+  [ -f "$KEEPF" ] || return 0
+  kill "$(cat "$KEEPF")" 2>/dev/null; rm -f "$KEEPF"
+}
+
+clean() { tr '\n' ' ' | sed 's/^ *//; s/ *$//'; }
+
+run_igpu() {  # AMD driver only: the NVIDIA driver is never loaded
+  [ -f "$RADV_ICD" ] || return 0
+  VK_DRIVER_FILES="$RADV_ICD" "$BIN/whisper-cli-vulkan" \
+    -m "$MODELS/ggml-large-v3-turbo.bin" -f "$WAV" \
+    -l "$LANG_OPT" -nt -np -dev 0 2>/dev/null | clean
+}
+run_cpu() {
+  "$BIN/whisper-cli" -m "$MODELS/ggml-small.bin" -f "$WAV" \
+    -l "$LANG_OPT" -nt -np -t 6 2>"$ERRF" | clean
+}
+
+case "${1:-}" in
+  start)
+    [ -f "$PIDF" ] && exit 0
+    [ -f "$BUSYF" ] && exit 0
+    keepalive_start
+    pw-record --rate 16000 --channels 1 "$WAV" &
+    echo $! > "$PIDF"
+    refresh
+    ;;
+  toggle)
+    if [ -f "$PIDF" ]; then exec "$0" stop; else exec "$0" start; fi
+    ;;
+  stop)
+    [ -f "$PIDF" ] || exit 0
+    pid=$(cat "$PIDF"); rm -f "$PIDF"
+    kill -INT "$pid" 2>/dev/null
+    while kill -0 "$pid" 2>/dev/null; do sleep 0.05; done
+    keepalive_stop
+    LANG_OPT=$(cur_lang)
+    touch "$BUSYF"; refresh
+    trap 'rm -f "$BUSYF"; refresh' EXIT
+
+    if is_silent; then
+      fail "No sound captured: check the microphone ($(pactl get-default-source))"
+      exit 0
+    fi
+    text=$(run_igpu)
+    cpu_failed=0
+    if [ -z "$text" ]; then text=$(run_cpu) || cpu_failed=1; fi
+    if [ -n "$text" ]; then
+      printf '%s' "$text" | wl-copy
+      wtype -- "$text"
+    elif [ "$cpu_failed" = 1 ]; then
+      fail "whisper-cli failed: $(tail -n 1 "$ERRF")"
+    else
+      fail "Nothing recognized"
+    fi
+    ;;
+  status) status ;;
+  lang)
+    if [ -n "${2:-}" ]; then echo "$2" > "$LANGF"; else cycle_lang 1; fi
+    refresh
+    ;;
+  next-lang) cycle_lang 1; refresh ;;
+  prev-lang) cycle_lang -1; refresh ;;
+  *) echo "usage: dictate start|stop|toggle|status|lang [auto|en|fr|de]|next-lang|prev-lang" >&2; exit 1 ;;
+esac

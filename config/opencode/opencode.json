@@ -5,14 +5,28 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
       "options": {
-        "baseURL": "http://localhost:11434/v1"
+        "baseURL": "http://localhost:8099/v1"
       },
       "models": {
         "qwen38-96k": {
           "name": "Qwen3.8 27B 96k (3090, think)",
           "tools": true,
+          "options": {
+            "temperature": 0.7,
+            "topP": 0.8
+          },
           "variants": {
-            "fast": { "reasoningEffort": "none" }
+            "fast": {
+              "reasoningEffort": "none",
+              "temperature": 0.3
+            },
+            "balanced": {
+              "temperature": 0.7
+            },
+            "creative": {
+              "temperature": 0.9,
+              "topP": 0.95
+            }
           },
           "limit": {
             "context": 98304,

@@ -5,3 +5,5 @@ virtualenvs/*
 local/share/*
 local/state/*
 local/bin/claude
+local/bin/whisper-cli
+local/bin/whisper-cli-vulkan

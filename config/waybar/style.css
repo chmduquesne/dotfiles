@@ -132,3 +132,26 @@
 #custom-qr.scanning {
     color: #ff5555; /* Red indicator: the webcam is on */
 }
+
+#custom-dictate {
+    padding: 0 10px;
+    background-color: #8e44ad; /* Purple: not used by any other module */
+    transition: background-color 150ms;
+}
+
+#custom-dictate:hover {
+    background-color: #a569bd;
+}
+
+#custom-dictate.recording {
+    color: #ff5555;
+    background-color: #ecf0f1;
+}
+
+#custom-dictate.recording:hover {
+    background-color: #d5dbdb; /* Darker on hover: click to stop */
+}
+
+#custom-dictate.transcribing {
+    color: #f1c40f;
+}
