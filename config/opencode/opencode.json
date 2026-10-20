@@ -11,21 +11,10 @@
         "qwen38-96k": {
           "name": "Qwen3.8 27B 96k (3090, think)",
           "tools": true,
-          "options": {
-            "temperature": 0.7,
-            "top_p": 0.8
-          },
           "variants": {
             "fast": {
               "reasoningEffort": "none",
               "temperature": 0.3
-            },
-            "creative": {
-              "temperature": 0.9,
-              "top_p": 0.95
-            },
-            "deep": {
-              "reasoningEffort": "high"
             }
           },
           "limit": {
