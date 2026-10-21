@@ -211,22 +211,22 @@ bar {
 default_border pixel 1
 #xwayland disable
 
-assign [class="Navigator"]                               → $ws1
-assign [class="teams-for-linux"]                         → $ws9
-assign [class="Microsoft"]                               → $ws9
+assign [app_id="firefox-esr"]                            → $ws1
 assign [class="spotify"]                                 → $ws7
-assign [class="Steam"]                                   → $ws6
-assign [class="Signal"]                                  → $ws8
-assign [instance="crx_cifhbcnohmdccbgoicgdjpfamggdegmo"] → $ws9
+assign [class="steam"]                                   → $ws6
+assign [app_id="signal"]                                 → $ws8
+assign [app_id=".*cifhbcnohmdccbgoicgdjpfamggdegmo.*"]   → $ws9
+
+# Do not autolock the screen if there is a window in fullscreen mode
 for_window [app_id=".*"] inhibit_idle fullscreen
 
 # include /etc/sway/config.d/*
 
 # TODO https://github.com/swaywm/sway/wiki/Setting-environmental-variables
 
-# This will lock your screen after 300 seconds of inactivity, then turn off
-# your displays after another 300 seconds, and turn your screens back on when
-# resumed. It will also lock your screen before your computer goes to sleep.
+# Lock the screen after 300 seconds of inactivity, then turn off displays
+# after another 300 seconds. Turn the screens back on when resumed, and
+# lock the screen before the computer goes to sleep.
 exec swayidle -w \
          timeout 300 "$locker" \
          timeout 600 'swaymsg "output * dpms off" && systemctl suspend' \
