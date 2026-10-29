@@ -1,26 +1,40 @@
 #!/bin/bash
-# Manage the eGPU (found by egpu-card): report its state to waybar and disconnect it cleanly.
-#   waybar-egpu status          JSON for a waybar custom module
-#   waybar-egpu disconnect      confirm, then disconnect so the cable can be pulled
+# Manage the eGPU (found by egpu-card): report its state to waybar and
+# disconnect it cleanly.
+#   waybar-egpu status       JSON for a waybar custom module
+#   waybar-egpu disconnect   confirm, then disconnect so the cable can be
+#                            pulled
 
-# The disconnect itself (stop the services, check that nothing holds the GPU, remove it from the PCI
-# bus) is done by egpu-disconnect, which this script runs through sudo.
+# The disconnect itself (stop the services, check that nothing holds the
+# GPU, remove it from the PCI bus) is done by egpu-disconnect, which this
+# script runs through sudo.
 
-# Journal log: journalctl -t waybar-egpu (and -t egpu-disconnect for the disconnect itself)
+# Journal log: journalctl -t waybar-egpu (and -t egpu-disconnect for the
+# disconnect itself)
 log() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
-# NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
-is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]; }
+# NVIDIA is told by PCI vendor, not driver (which may be gone after a
+# surprise unplug).
+is_nvidia() {
+    [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]
+}
 
-# pids using the eGPU's device nodes, and the services stopped before disconnecting.
+# pids using the eGPU's device nodes, and the services stopped before
+# disconnecting.
 gpu_users() { egpu-disconnect --holders "$PCI"; }
 services() { egpu-disconnect --services "$PCI"; }
 
 # "pid name;pid name" for the pids in $1, for the log.
-pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
+pid_names() {
+    ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" \
+        | sed 's/^ *//' | paste -sd';'
+}
 
 for dep in jq lspci lsof egpu-card egpu-disconnect; do
-    command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
+    command -v "$dep" >/dev/null || {
+        echo "waybar-egpu: $dep not found" >&2
+        exit 1
+    }
 done
 PCI=$(egpu-card --pci)   # empty if no eGPU
 
@@ -28,37 +42,47 @@ notify() {  # notify <urgency> <title> <body>
     notify-send -u "$1" -i video-display "$2" "$3"
 }
 
-# ---- status: waybar JSON ------------------------------------------------------
+# ---- status: waybar JSON ---------------------------------------------
 waybar_emit() {  # waybar_emit <text> <class> <tooltip>
     jq -nc --arg text "$1" --arg class "$2" --arg tooltip "$3" \
         '{text: $text, class: $class, tooltip: $tooltip}'
 }
 
-# Still listed but gone from the bus (unplugged without disconnecting): its live config space
-# reads ffff, unlike the cached sysfs files.
-gone() { [ "$(timeout 2 od -An -tx2 -N2 "/sys/bus/pci/devices/$PCI/config" 2>/dev/null | tr -d ' ')" = ffff ]; }
+# Still listed but gone from the bus (unplugged without disconnecting): its
+# live config space reads ffff, unlike the cached sysfs files.
+gone() {
+    local cfg=/sys/bus/pci/devices/$PCI/config
+    [ "$(timeout 2 od -An -tx2 -N2 "$cfg" 2>/dev/null | tr -d ' ')" = ffff ]
+}
 
 # Driver loaded but no GPU: the stuck state after a surprise unplug.
 nvidia_stuck() {
-    [ -d /proc/driver/nvidia/gpus ] && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
+    [ -d /proc/driver/nvidia/gpus ] \
+        && [ -z "$(ls -A /proc/driver/nvidia/gpus 2>/dev/null)" ] \
         && lsmod | grep -q '^nvidia '
 }
 
 status() {
+    local name
     # cheap checks only, so polling never wakes the GPU
     if [ -z "$PCI" ]; then
         waybar_emit "" disconnected ""
     elif gone; then
-        waybar_emit "🎮⚠️" error "eGPU unplugged without disconnecting. Do not suspend; reboot."
+        waybar_emit "🎮⚠️" error \
+            "eGPU unplugged without disconnecting. Do not suspend; reboot."
     elif is_nvidia && nvidia_stuck; then
-        waybar_emit "🎮⚠️" error "eGPU in a stuck state. Do not suspend; reboot."
+        waybar_emit "🎮⚠️" error \
+            "eGPU in a stuck state. Do not suspend; reboot."
     else
-        name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
-        waybar_emit "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
+        name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' \
+               | sed 's/ (rev.*//')
+        waybar_emit "🎮" connected \
+            "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
     fi
 }
 
-# Stop the pids in $1: SIGTERM, then SIGKILL for those still alive after ~3 s.
+# Stop the pids in $1: SIGTERM, then SIGKILL for those still alive after
+# ~3 s.
 kill_users() {
     local pids=$1 i
     log "killing (pid name): $(pid_names "$pids")"
@@ -74,10 +98,13 @@ kill_users() {
     sleep 1
 }
 
-# ---- disconnect: confirmation UI, then privileged part --------------------------
+# ---- disconnect: confirmation UI, then privileged part ---------------
 disconnect() {
     for dep in zenity notify-send; do
-        command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; return 1; }
+        command -v "$dep" >/dev/null || {
+            echo "waybar-egpu: $dep not found" >&2
+            return 1
+        }
     done
 
     if [ -z "$PCI" ]; then
@@ -87,25 +114,34 @@ disconnect() {
     fi
     if gone; then
         log "refusing to disconnect: the eGPU is already unplugged"
-        notify critical "eGPU already unplugged" "Nothing to disconnect. Reboot before reconnecting."
+        notify critical "eGPU already unplugged" \
+            "Nothing to disconnect. Reboot before reconnecting."
         return 1
     fi
 
     local holders pids svc active=() list text
     pids=$(gpu_users)
     if [ -n "$pids" ]; then
-        holders=$(echo "$pids" | while read -r pid; do echo "$(ps -o comm= -p "$pid") (pid $pid)"; done)
+        holders=$(echo "$pids" | while read -r pid; do
+            echo "$(ps -o comm= -p "$pid") (pid $pid)"
+        done)
         log "the GPU is in use (pid name): $(pid_names "$pids")"
-        zenity --question --no-markup --title="Disconnect eGPU" --width=420 \
-            --ok-label="Close processes" --cancel-label="Cancel" \
-            --text="The eGPU is still in use by:"$'\n'"$(echo "$holders" | sed 's/^/  • /')"$'\n\n'"Close them and continue?" \
+        text="The eGPU is still in use by:"$'\n'
+        text+=$(echo "$holders" | sed 's/^/  • /')
+        text+=$'\n\n'"Close them and continue?"
+        zenity --question --no-markup --title="Disconnect eGPU" \
+            --width=420 --ok-label="Close processes" \
+            --cancel-label="Cancel" --text="$text" \
             || { log "disconnect cancelled by the user"; return 1; }
         kill_users "$pids"
         pids=$(gpu_users)
         if [ -n "$pids" ]; then
-            log "refusing to disconnect: could not stop (pid name): $(pid_names "$pids")"
-            zenity --error --no-markup --title="Disconnect eGPU" --width=420 \
-                --text="Could not stop:"$'\n'"$(pid_names "$pids" | tr ';' '\n' | sed 's/^/  • /')"
+            log "refusing to disconnect: could not stop (pid name):" \
+                "$(pid_names "$pids")"
+            text="Could not stop:"$'\n'
+            text+=$(pid_names "$pids" | tr ';' '\n' | sed 's/^/  • /')
+            zenity --error --no-markup --title="Disconnect eGPU" \
+                --width=420 --text="$text"
             return 1
         fi
     fi
@@ -126,13 +162,15 @@ disconnect() {
     # sudo's PATH may lack ~/.local/bin, so give it the resolved path
     root_cmd=$(readlink -f "$(command -v egpu-disconnect)")
     if [ -t 0 ]; then
-        # our sudo wrapper may use a Yubikey and pass for the password (hence no -S)
+        # our sudo wrapper may use a Yubikey and pass for the password
+        # (hence no -S)
         out=$(sudo "$root_cmd" -u "$(id -un)" "$PCI" 2>&1)
         rc=$?
     else
         pw=$(zenity --password --title="Disconnect eGPU") \
             || { log "disconnect cancelled by the user"; return 1; }
-        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$root_cmd" -u "$(id -un)" "$PCI" 2>&1)
+        out=$(printf '%s\n' "$pw" \
+              | sudo -S -p '' "$root_cmd" -u "$(id -un)" "$PCI" 2>&1)
         rc=$?
         unset pw
     fi
@@ -140,9 +178,12 @@ disconnect() {
     log "disconnect finished with exit code $rc"
 
     case $rc in
-        0) notify normal   "eGPU disconnected" "You can now safely unplug it." ;;
-        1) notify critical "eGPU NOT disconnected" "eGPU is still in use. Close the apps and try again." ;;
-        *) notify critical "eGPU disconnect problem" "Do NOT unplug. Check dmesg." ;;
+        0) notify normal "eGPU disconnected" \
+               "You can now safely unplug it." ;;
+        1) notify critical "eGPU NOT disconnected" \
+               "eGPU is still in use. Close the apps and try again." ;;
+        *) notify critical "eGPU disconnect problem" \
+               "Do NOT unplug. Check dmesg." ;;
     esac
     return $rc
 }

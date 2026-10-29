@@ -1,39 +1,62 @@
 #!/bin/bash
-# egpu-disconnect: disconnect the eGPU cleanly so the cable can be pulled (or the machine can sleep).
-#   egpu-disconnect [-u USER] [PCI]     root: stop the services that use the eGPU, check that nothing
-#                                       holds it, remove its PCI functions. PCI defaults to egpu-card.
-#   egpu-disconnect --holders [PCI]     print the pids holding the eGPU's device nodes
-#   egpu-disconnect --services [PCI]    print the services stopped before disconnecting
+# egpu-disconnect: disconnect the eGPU cleanly, so that the cable can be
+# pulled (or the machine can sleep).
+#   egpu-disconnect [-u USER] [PCI]
+#       root: stop the services that use the eGPU, check that nothing
+#       holds it, remove its PCI functions. PCI defaults to egpu-card.
+#   egpu-disconnect --holders [PCI]
+#       print the pids holding the eGPU's device nodes
+#   egpu-disconnect --services [PCI]
+#       print the services stopped before disconnecting
 #
-# Exit codes: 0 disconnected (or no eGPU), 1 the GPU is still in use, 2 the eGPU is still listed
-# after the removal (do not unplug).
+# Exit codes: 0 disconnected (or no eGPU), 1 the GPU is still in use,
+# 2 the eGPU is still listed after the removal (do not unplug).
 #
-# USER (default: $SUDO_USER) is the owner of the desktop session. PipeWire keeps the eGPU's HDMI
-# audio card open, which hangs the removal in D state: when that happens, PipeWire is restarted in
-# USER's session (it cannot reopen the card by then).
+# USER (default: $SUDO_USER) is the owner of the desktop session.
+# PipeWire keeps the eGPU's HDMI audio card open, which hangs the removal
+# in D state: when that happens, PipeWire is restarted in USER's session
+# (it cannot reopen the card by then).
 #
-# Used by waybar-egpu (the status bar button, through sudo) and by the sleep hook (as root, on every
-# suspend, without a password). The sleep hook must only run root-owned code, so it uses a copy in
-# /usr/local/libexec/egpu, next to a copy of egpu-card. Install (and re-run after editing either):
-#   sudo install -D -m 755 -t /usr/local/libexec/egpu ~/.local/bin/egpu-disconnect ~/.local/bin/egpu-card
+# Used by waybar-egpu (the status bar button, through sudo) and by the
+# sleep hook (as root, on every suspend, without a password). The sleep
+# hook must only run root-owned code, so it uses a copy in
+# /usr/local/libexec/egpu, next to a copy of egpu-card. Install (and
+# re-run after editing either):
+#   sudo install -D -m 755 -t /usr/local/libexec/egpu \
+#       ~/.local/bin/egpu-disconnect ~/.local/bin/egpu-card
 # Undo (together with the sleep hook, see egpu-sleep-hook):
 #   sudo rm -r /usr/local/libexec/egpu
+#
 # Journal log: journalctl -t egpu-disconnect
 
 # Services to stop before disconnecting.
 SERVICES=${EGPU_SERVICES:-${WAYBAR_EGPU_SERVICES:-ollama}}
 
 log() { logger -t egpu-disconnect -- "$*" 2>/dev/null || true; }
-die() { echo "egpu-disconnect: $*" >&2; exit "${2:-1}"; }
+die() { echo "egpu-disconnect: $1" >&2; exit "${2:-1}"; }
 
-# egpu-card is looked up next to this script first, so that a root-owned copy uses its own.
-HERE=$(dirname "$(readlink -f "$0")")
-egpu_card() {
-    if [ -x "$HERE/egpu-card" ]; then "$HERE/egpu-card" "$@"; else egpu-card "$@"; fi
+usage() {
+    echo "usage: egpu-disconnect [-u USER] [PCI]" >&2
+    echo "       egpu-disconnect --holders|--services [PCI]" >&2
+    exit 2
 }
 
-# NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
-is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]; }
+# egpu-card is looked up next to this script first, so that a root-owned
+# copy uses its own.
+HERE=$(dirname "$(readlink -f "$0")")
+egpu_card() {
+    if [ -x "$HERE/egpu-card" ]; then
+        "$HERE/egpu-card" "$@"
+    else
+        egpu-card "$@"
+    fi
+}
+
+# NVIDIA is told by PCI vendor, not driver (which may be gone after a
+# surprise unplug).
+is_nvidia() {
+    [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]
+}
 
 services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
 
@@ -41,16 +64,21 @@ services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
 gpu_users() {
     local n d nodes=()
     if is_nvidia; then
-        for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
+        for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do
+            [ -e "$n" ] && nodes+=("$n")
+        done
     fi
-    for d in /sys/class/drm/card[0-9]/device /sys/class/drm/renderD*/device; do
+    for d in /sys/class/drm/card[0-9]/device \
+             /sys/class/drm/renderD*/device; do
         [ "$(basename "$(readlink -f "$d")")" = "$PCI" ] || continue
-        n=/dev/dri/$(basename "$(dirname "$d")"); [ -e "$n" ] && nodes+=("$n")
+        n=/dev/dri/$(basename "$(dirname "$d")")
+        [ -e "$n" ] && nodes+=("$n")
     done
     [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
 }
-# NVIDIA only: pids holding just /dev/nvidiactl. They merely list the GPUs (e.g. Firefox), so
-# they do not block.
+
+# NVIDIA only: pids holding just /dev/nvidiactl. They merely list the GPUs
+# (e.g. Firefox), so they do not block.
 ctl_only_users() {
     local all
     is_nvidia || return 0
@@ -59,20 +87,30 @@ ctl_only_users() {
 }
 
 # "pid name;pid name" for the pids in $1, for the log.
-pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
+pid_names() {
+    ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" \
+        | sed 's/^ *//' | paste -sd';'
+}
 
-# While the removal runs: if this script sits in D state for ~6 s, restart PipeWire in USER's session.
+# While the removal runs: if this script sits in D state for ~6 s, restart
+# PipeWire in USER's session.
 pw_watchdog() {
     local stuck=0 uid
-    uid=$(id -u "$RUN_USER" 2>/dev/null) || { log "no session user; PipeWire will not be restarted if the removal hangs"; return; }
+    if ! uid=$(id -u "$RUN_USER" 2>/dev/null); then
+        log "no session user; PipeWire is not restarted if the removal hangs"
+        return
+    fi
     while sleep 2; do
-        if ps -eo stat=,comm= | awk '$1 ~ /^D/ && $2 == "egpu-disconnect" {f=1} END {exit !f}'; then
+        if ps -eo stat=,comm= \
+           | awk '$1 ~ /^D/ && $2 == "egpu-disconnect" {f=1} END {exit !f}'
+        then
             stuck=$((stuck + 1))
         else
             stuck=0
         fi
         if [ "$stuck" -ge 3 ]; then
-            log "removal is stuck (probably PipeWire holding the audio card); restarting PipeWire"
+            log "removal is stuck (probably PipeWire holding the audio" \
+                "card); restarting PipeWire"
             runuser -u "$RUN_USER" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
                 systemctl --user restart pipewire pipewire-pulse wireplumber
             return
@@ -85,9 +123,13 @@ disconnect() {
     for dep in lsof systemctl; do
         command -v "$dep" >/dev/null || die "$dep not found"
     done
-    log "disconnect start (pci=$PCI, requested by ${SUDO_USER:-${RUN_USER:-unknown}})"
+    log "disconnect start (pci=$PCI," \
+        "requested by ${SUDO_USER:-${RUN_USER:-unknown}})"
+
     local devs=() d svc ctl holders dev wd
-    for d in /sys/bus/pci/devices/"${PCI%.*}".*; do [ -e "$d" ] && devs+=("${d##*/}"); done
+    for d in /sys/bus/pci/devices/"${PCI%.*}".*; do
+        [ -e "$d" ] && devs+=("${d##*/}")
+    done
     if [ "${#devs[@]}" -eq 0 ]; then
         log "no eGPU PCI device present; nothing to disconnect"
         exit 0
@@ -103,11 +145,13 @@ disconnect() {
 
     ctl=$(ctl_only_users)
     if [ -n "$ctl" ]; then
-        log "not blocking, they only have /dev/nvidiactl open (pid name): $(pid_names "$ctl")"
+        log "not blocking, they only have /dev/nvidiactl open" \
+            "(pid name): $(pid_names "$ctl")"
     fi
     holders=$(gpu_users)
     if [ -n "$holders" ]; then
-        log "processes still using the GPU (pid name): $(pid_names "$holders")"
+        log "processes still using the GPU (pid name):" \
+            "$(pid_names "$holders")"
         log "refusing to disconnect: the GPU is still in use"
         exit 1
     fi
@@ -117,7 +161,8 @@ disconnect() {
         log "removing $dev"
         echo 1 > "/sys/bus/pci/devices/$dev/remove"
     done
-    kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
+    kill "$wd" 2>/dev/null
+    wait "$wd" 2>/dev/null
 
     sleep 1
     if [ -e "/sys/bus/pci/devices/$PCI" ]; then
@@ -132,18 +177,24 @@ mode=disconnect
 RUN_USER=${SUDO_USER:-}
 while [ $# -gt 0 ]; do
     case $1 in
-        -u) [ -n "$2" ] || die "-u needs a user" 2; RUN_USER=$2; shift 2 ;;
+        -u) [ -n "$2" ] || usage; RUN_USER=$2; shift 2 ;;
         --holders) mode=holders; shift ;;
         --services) mode=services; shift ;;
-        -*) die "usage: egpu-disconnect [-u USER] [PCI] | --holders [PCI] | --services [PCI]" 2 ;;
+        -*) usage ;;
         *) PCI=$1; shift ;;
     esac
 done
 
 if [ -z "$PCI" ]; then
-    PCI=$(egpu_card --pci) || { [ "$mode" = disconnect ] && log "no eGPU present; nothing to disconnect"; exit 0; }
+    if ! PCI=$(egpu_card --pci); then
+        if [ "$mode" = disconnect ]; then
+            log "no eGPU present; nothing to disconnect"
+        fi
+        exit 0
+    fi
 fi
-[[ $PCI =~ ^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$ ]] || die "bad PCI address '$PCI'" 2
+[[ $PCI =~ ^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$ ]] \
+    || die "bad PCI address '$PCI'" 2
 
 case $mode in
     holders) gpu_users ;;

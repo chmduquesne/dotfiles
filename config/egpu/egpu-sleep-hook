@@ -1,31 +1,43 @@
 #!/bin/bash
-# systemd-sleep hook: take the eGPU off the PCI bus before sleeping, bring it back after.
+# systemd-sleep hook: take the eGPU off the PCI bus before sleeping, bring
+# it back after.
 #
 # Two problems with suspending while the eGPU is attached:
-#  - nvidia is configured with NVreg_PreserveVideoMemoryAllocations=1, so with a model loaded the
-#    driver copies GBs of VRAM from the eGPU to /var/tmp while suspending. Over USB4 in s2idle this
-#    hung the machine (it never resumed, and the eGPU "fell off the bus" on the next boot). The eGPU
-#    is compute-only and ollama reloads models on demand, so there is nothing worth preserving.
-#  - after a resume, the USB4 link sometimes drops a few seconds later (thunderbolt: retimer
-#    disconnected, pciehp: Link Down) and the nvidia driver hangs on the vanished GPU.
-# So: pre: egpu-disconnect (stops ollama, checks that nothing holds the GPU, removes it from the PCI
-# bus); post: rescan the PCI bus so the card comes back, and the udev rule starts ollama again.
+#  - nvidia is configured with NVreg_PreserveVideoMemoryAllocations=1, so
+#    with a model loaded the driver copies GBs of VRAM from the eGPU to
+#    /var/tmp while suspending. Over USB4 in s2idle this hung the machine
+#    (it never resumed, and the eGPU "fell off the bus" on the next boot).
+#    The eGPU is compute-only and ollama reloads models on demand, so
+#    there is nothing worth preserving.
+#  - after a resume, the USB4 link sometimes drops a few seconds later
+#    (thunderbolt: retimer disconnected, pciehp: Link Down) and the nvidia
+#    driver hangs on the vanished GPU.
+# So: pre: egpu-disconnect (stops ollama, checks that nothing holds the
+# GPU, removes it from the PCI bus); post: rescan the PCI bus so the card
+# comes back, and the udev rule starts ollama again.
 #
-# It never blocks the sleep. If the GPU is in use or the removal fails, it logs and lets the machine
-# sleep as it would without this hook (ollama is stopped in all cases).
+# It never blocks the sleep. If the GPU is in use or the removal fails, it
+# logs and lets the machine sleep as it would without this hook (ollama is
+# stopped in all cases).
 #
-# This runs as root at every suspend, with no password: it must only run root-owned code, hence the
-# copies in /usr/local/libexec/egpu instead of ~/.local/bin. Re-run the install after editing
-# egpu-disconnect or egpu-card.
+# This runs as root at every suspend, with no password: it must only run
+# root-owned code, hence the copies in /usr/local/libexec/egpu instead of
+# ~/.local/bin. Re-run the install after editing egpu-disconnect or
+# egpu-card.
 #
 # Install:
-#   sudo install -D -m 755 ~/.config/egpu/egpu-sleep-hook /usr/lib/systemd/system-sleep/egpu-sleep
-#   sudo install -D -m 755 -t /usr/local/libexec/egpu ~/.local/bin/egpu-disconnect ~/.local/bin/egpu-card
-#   sudo rm -f /usr/lib/systemd/system-sleep/ollama-egpu    # the previous hook, superseded by this one
+#   sudo install -D -m 755 ~/.config/egpu/egpu-sleep-hook \
+#       /usr/lib/systemd/system-sleep/egpu-sleep
+#   sudo install -D -m 755 -t /usr/local/libexec/egpu \
+#       ~/.local/bin/egpu-disconnect ~/.local/bin/egpu-card
+#   # the previous hook, superseded by this one:
+#   sudo rm -f /usr/lib/systemd/system-sleep/ollama-egpu
 # Undo:
-#   sudo rm /usr/lib/systemd/system-sleep/egpu-sleep && sudo rm -r /usr/local/libexec/egpu
+#   sudo rm /usr/lib/systemd/system-sleep/egpu-sleep
+#   sudo rm -r /usr/local/libexec/egpu
 #
-# State: /run/egpu-sleep.state, "<pci address> <nvidia-persistenced was active: 0|1>".
+# State: /run/egpu-sleep.state, "<pci address> <persistenced>" where
+# persistenced is 1 if nvidia-persistenced was active, 0 otherwise.
 # Log: journalctl -t egpu-sleep -t egpu-disconnect
 
 LIBEXEC=/usr/local/libexec/egpu
@@ -36,17 +48,24 @@ log() { logger -t egpu-sleep -- "$*" 2>/dev/null || true; }
 
 pre() {
     local pci persistenced=0 rc
-    # Whatever happens next, a model must not stay in VRAM for the driver to preserve.
+    # Whatever happens next, a model must not stay in VRAM for the driver
+    # to preserve.
     systemctl stop ollama.service
 
-    pci=$("$LIBEXEC/egpu-card" --pci) || { log "no eGPU; nothing to disconnect"; return 0; }
+    if ! pci=$("$LIBEXEC/egpu-card" --pci); then
+        log "no eGPU; nothing to disconnect"
+        return 0
+    fi
     systemctl is-active --quiet nvidia-persistenced && persistenced=1
 
     log "disconnecting $pci before sleep"
     timeout 40 "$LIBEXEC/egpu-disconnect" -u "$RUN_USER" "$pci"
     rc=$?
     case $rc in
-        0) echo "$pci $persistenced" > "$STATE"; log "eGPU disconnected; sleeping without it" ;;
+        0)
+            echo "$pci $persistenced" > "$STATE"
+            log "eGPU disconnected; sleeping without it"
+            ;;
         1) log "the GPU is in use; sleeping with the eGPU attached" ;;
         *) log "disconnect failed (rc=$rc); sleeping anyway" ;;
     esac
@@ -55,14 +74,18 @@ pre() {
 post() {
     local pci persistenced i
     if [ ! -r "$STATE" ]; then
-        # The eGPU was not disconnected: ollama has to be started here, if the card is still there.
-        nvidia-smi -L >/dev/null 2>&1 && systemctl --no-block start ollama.service
+        # The eGPU was not disconnected: ollama has to be started here, if
+        # the card is still there.
+        if nvidia-smi -L >/dev/null 2>&1; then
+            systemctl --no-block start ollama.service
+        fi
         return 0
     fi
     read -r pci persistenced < "$STATE"
     rm -f "$STATE"
 
-    # The USB4 link needs a moment after resume: rescan until the card shows up.
+    # The USB4 link needs a moment after resume: rescan until the card
+    # shows up.
     for i in $(seq 1 30); do
         echo 1 > /sys/bus/pci/rescan
         [ -e "/sys/bus/pci/devices/$pci" ] && break
