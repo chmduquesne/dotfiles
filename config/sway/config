@@ -255,3 +255,5 @@ exec audio-inhibit
 exec low-battery-warner
 # screen management
 exec kanshi
+# start signal
+exec signal-desktop

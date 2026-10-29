@@ -279,7 +279,5 @@ export PATH=/home/chmd/.opencode/bin:$PATH
 # npm
 export PATH=/home/chmd/.npm-global/bin:$PATH
 
-alias devcontainer='devcontainer --docker-path podman'
-
 export ANDROID_HOME=$HOME/.local/share/android-sdk
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
