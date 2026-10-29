@@ -6,6 +6,10 @@
 # Prints nothing and exits 1 if there is no eGPU. The card name also needs a driver bound to
 # the GPU; --pci and --audio work without one.
 #
+# The sleep hook runs a root-owned copy of this script, in /usr/local/libexec/egpu. Install (and
+# re-run after editing; see egpu-disconnect and egpu-sleep-hook):
+#   sudo install -D -m 755 -t /usr/local/libexec/egpu ~/.local/bin/egpu-disconnect ~/.local/bin/egpu-card
+#
 # Only systems with one single egpu are supported. The eGPU is the display-class PCI device
 # the kernel flags "removable" (behind an external port such as Thunderbolt), whatever its
 # vendor.

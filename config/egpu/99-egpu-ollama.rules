@@ -1,0 +1,16 @@
+# Source of truth lives in the dotfiles; install with
+#   sudo install -m 644 ~/.config/egpu/99-egpu-ollama.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload
+# Undo:
+#   sudo rm /etc/udev/rules.d/99-egpu-ollama.rules && sudo udevadm control --reload
+#
+# Tie ollama to the NVIDIA eGPU: start it when the GPU appears, stop it when it goes away.
+#
+# Matches the NVIDIA VGA-class PCI device. The internal GPU is AMD, so this only
+# fires for the eGPU. Match on uevent env (PCI_ID/PCI_CLASS), not ATTR{}, because
+# sysfs attributes are already gone by the time a "remove" event is handled.
+#
+# --no-block: udev must not wait for systemd. The ollama drop-in (10-egpu.conf)
+# makes the start wait until nvidia-smi sees the GPU.
+ACTION=="add",    SUBSYSTEM=="pci", ENV{PCI_CLASS}=="30000", ENV{PCI_ID}=="10DE:*", RUN+="/usr/bin/systemctl --no-block start ollama.service"
+ACTION=="remove", SUBSYSTEM=="pci", ENV{PCI_CLASS}=="30000", ENV{PCI_ID}=="10DE:*", RUN+="/usr/bin/systemctl --no-block stop ollama.service"

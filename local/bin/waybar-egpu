@@ -3,92 +3,23 @@
 #   waybar-egpu status          JSON for a waybar custom module
 #   waybar-egpu disconnect      confirm, then disconnect so the cable can be pulled
 
-# Services to stop before disconnecting.
-SERVICES=${WAYBAR_EGPU_SERVICES:-ollama}
+# The disconnect itself (stop the services, check that nothing holds the GPU, remove it from the PCI
+# bus) is done by egpu-disconnect, which this script runs through sudo.
 
-# Journal log: journalctl -t waybar-egpu
+# Journal log: journalctl -t waybar-egpu (and -t egpu-disconnect for the disconnect itself)
 log() { logger -t waybar-egpu -- "$*" 2>/dev/null || true; }
 
 # NVIDIA is told by PCI vendor, not driver (which may be gone after a surprise unplug).
 is_nvidia() { [ "$(cat "/sys/bus/pci/devices/$PCI/vendor" 2>/dev/null)" = 0x10de ]; }
 
-services() { echo "$SERVICES"; is_nvidia && echo nvidia-persistenced; }
-
-# pids using the eGPU: holders of its DRM nodes (NVIDIA: also /dev/nvidia*).
-gpu_users() {
-    local n d nodes=()
-    if is_nvidia; then
-        for n in /dev/nvidia[0-9]* /dev/nvidia-uvm* /dev/nvidia-caps/*; do [ -e "$n" ] && nodes+=("$n"); done
-    fi
-    for d in /sys/class/drm/card[0-9]/device /sys/class/drm/renderD*/device; do
-        [ "$(basename "$(readlink -f "$d")")" = "$PCI" ] || continue
-        n=/dev/dri/$(basename "$(dirname "$d")"); [ -e "$n" ] && nodes+=("$n")
-    done
-    [ "${#nodes[@]}" -gt 0 ] && lsof -t "${nodes[@]}" 2>/dev/null | sort -u
-}
-# NVIDIA only: pids holding just /dev/nvidiactl. They merely list the GPUs (e.g. Firefox), so
-# they do not block.
-ctl_only_users() {
-    local all
-    is_nvidia || return 0
-    all=$(gpu_users)
-    lsof -t /dev/nvidiactl 2>/dev/null | sort -u | grep -vxFf <(echo "$all")
-}
+# pids using the eGPU's device nodes, and the services stopped before disconnecting.
+gpu_users() { egpu-disconnect --holders "$PCI"; }
+services() { egpu-disconnect --services "$PCI"; }
 
 # "pid name;pid name" for the pids in $1, for the log.
 pid_names() { ps -o pid=,comm= -p "$(echo "$1" | paste -sd,)" | sed 's/^ *//' | paste -sd';'; }
 
-# ---- privileged part (root, no UI) ------------------------------------------
-# sudo's PATH may lack egpu-card, so the eGPU's PCI address ($2) is passed in.
-if [ "$1" = "--root" ]; then
-    PCI=$2
-    for dep in lsof systemctl; do
-        command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
-    done
-    [[ $PCI =~ ^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]$ ]] \
-        || { echo "waybar-egpu: bad PCI address '$PCI'" >&2; exit 1; }
-    log "disconnect start (pci=$PCI, requested by ${SUDO_USER:-unknown})"
-    devs=()
-    for d in /sys/bus/pci/devices/"${PCI%.*}".*; do [ -e "$d" ] && devs+=("${d##*/}"); done
-    if [ "${#devs[@]}" -eq 0 ]; then
-        log "no eGPU PCI device present; nothing to disconnect"
-        exit 0
-    fi
-    log "eGPU PCI functions: ${devs[*]}"
-
-    for svc in $(services); do
-        if systemctl is-active --quiet "$svc"; then
-            log "stopping $svc"
-            systemctl stop "$svc"
-        fi
-    done
-
-    ctl=$(ctl_only_users)
-    if [ -n "$ctl" ]; then
-        log "not blocking, they only have /dev/nvidiactl open (pid name): $(pid_names "$ctl")"
-    fi
-    holders=$(gpu_users)
-    if [ -n "$holders" ]; then
-        log "processes still using the GPU (pid name): $(pid_names "$holders")"
-        log "refusing to disconnect: the GPU is still in use"
-        exit 1
-    fi
-
-    for dev in $(printf '%s\n' "${devs[@]}" | sort -r); do
-        log "removing $dev"
-        echo 1 > "/sys/bus/pci/devices/$dev/remove"
-    done
-
-    sleep 1
-    if [ -e "/sys/bus/pci/devices/$PCI" ]; then
-        log "WARNING: the eGPU is still listed after removal; do not unplug"
-        exit 2
-    fi
-    log "disconnected; safe to unplug"
-    exit 0
-fi
-
-for dep in jq lspci lsof egpu-card; do
+for dep in jq lspci lsof egpu-card egpu-disconnect; do
     command -v "$dep" >/dev/null || { echo "waybar-egpu: $dep not found" >&2; exit 1; }
 done
 PCI=$(egpu-card --pci)   # empty if no eGPU
@@ -125,25 +56,6 @@ status() {
         name=$(lspci -s "$PCI" | awk -F': ' '{print $2}' | sed 's/ (rev.*//')
         waybar_emit "🎮" connected "eGPU connected"$'\n'"$name"$'\n'"Click to disconnect"
     fi
-}
-
-# ---- audio: PipeWire can block the removal of the eGPU's audio function ----------------------
-# PipeWire keeps /dev/snd/controlC<n> open, which hangs the removal in D state. During the
-# privileged step, watch for that and restart PipeWire (it cannot reopen the card by then).
-pw_watchdog() {
-    local stuck=0 restarted=0
-    while sleep 2; do
-        if ps -eo stat=,comm= | awk '$1 ~ /^D/ && $2 == "waybar-egpu" {f=1} END {exit !f}'; then
-            stuck=$((stuck + 1))
-        else
-            stuck=0
-        fi
-        if [ "$stuck" -ge 3 ] && [ "$restarted" -eq 0 ]; then       # stuck for ~6 s
-            log "removal is stuck (probably PipeWire holding the audio card); restarting PipeWire"
-            systemctl --user restart pipewire pipewire-pulse wireplumber
-            restarted=1
-        fi
-    done
 }
 
 # Stop the pids in $1: SIGTERM, then SIGKILL for those still alive after ~3 s.
@@ -210,22 +122,21 @@ disconnect() {
         --ok-label="Disconnect" --cancel-label="Cancel" --text="$text" \
         || { log "disconnect cancelled by the user"; return 1; }
 
-    local out rc pw wd
+    local out rc pw root_cmd
+    # sudo's PATH may lack ~/.local/bin, so give it the resolved path
+    root_cmd=$(readlink -f "$(command -v egpu-disconnect)")
     if [ -t 0 ]; then
         # our sudo wrapper may use a Yubikey and pass for the password (hence no -S)
-        pw_watchdog & wd=$!
-        out=$(sudo "$(readlink -f "$0")" --root "$PCI" 2>&1)
+        out=$(sudo "$root_cmd" -u "$(id -un)" "$PCI" 2>&1)
         rc=$?
     else
         pw=$(zenity --password --title="Disconnect eGPU") \
             || { log "disconnect cancelled by the user"; return 1; }
-        pw_watchdog & wd=$!
-        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$(readlink -f "$0")" --root "$PCI" 2>&1)
+        out=$(printf '%s\n' "$pw" | sudo -S -p '' "$root_cmd" -u "$(id -un)" "$PCI" 2>&1)
         rc=$?
         unset pw
     fi
-    kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null
-    [ -z "$out" ] || log "output of the privileged part: $out"
+    [ -z "$out" ] || log "output of egpu-disconnect: $out"
     log "disconnect finished with exit code $rc"
 
     case $rc in
