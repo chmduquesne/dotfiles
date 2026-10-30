@@ -72,7 +72,7 @@ if command -v ollama >/dev/null; then
 fi
 
 # --- cleanup, however we end (step 4 above; defined early so the trap covers every exit) ---
-# Some programs (Steam) outlive their window and would block `waybar-egpu disconnect`. Sway
+# Some programs (Steam) outlive their window and would block `egpu-disconnect`. Sway
 # runs in a transient scope: stopping it terminates everything the program left behind.
 SCOPE=egpu-kiosk-app.scope
 # restore_monitor is set before the monitor switch, so a failed switch still tries to switch back.
